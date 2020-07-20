@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import './PasswordGeneration.css';
 import { FormControl, Button, InputGroup, Form } from 'react-bootstrap';
 //import useForm from 'react-hook-form';
+//pivot: learn to create better forms and improve css, than come back 
 
 //had to coement that out because css overwrites button css (border radius figure remove of botstrap or overwite )
 //import 'bootstrap/dist/css/bootstrap.min.css';
@@ -22,7 +23,7 @@ function PasswordGeneration() {
   return <div id="main">
       <h3>Enter a length for your password</h3>
 
-      <InputGroup className="mb-3">
+      <div className="HorizontalLayout">
         <FormControl
           placeholder={pwLength}
           aria-label={pwLength}
@@ -32,14 +33,14 @@ function PasswordGeneration() {
         <InputGroup.Append>
           <Button onClick={handleClick} variant="outline-secondary"><ArrowClockwise /></Button>
         </InputGroup.Append>
-      </InputGroup>
+      </div>
       <div className="HorizontalLayout" >
         <Form.Check id="checkboxNumbers" onChange={handleChangeCheckbox} className="PWGenCheckbox" type="checkbox" label="Numbers" checked={checkboxState["checkboxNumbers"]} />
         <Form.Check id="checkboxSpecialChars" onChange={handleChangeCheckbox} className="PWGenCheckbox" type="checkbox" label="Special characters" checked={checkboxState["checkboxSpecialChars"]} />
         <Form.Check id="checkboxUpper" onChange={handleChangeCheckbox} className="PWGenCheckbox" type="checkbox" label="Upper case" checked={checkboxState["checkboxUpper"]} />
         <Form.Check id="checkboxLower" onChange={handleChangeCheckbox} className="PWGenCheckbox" type="checkbox" label="Lower case" checked={checkboxState["checkboxLower"]} />
       </div>
-      <Form.Control as="textarea" rows="5" readOnly={true} value={password} />
+      <Form.Control as="textarea" rows="8" readOnly={true} value={password} />
     </div>;
 
 
