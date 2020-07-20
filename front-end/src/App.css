@@ -1,0 +1,84 @@
+@import url('https://fonts.googleapis.com/css2?family=Varela+Round&display=swap');
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  background-color: #24242a;
+}
+
+li,a,button,.LinkItems{
+  font-family: "Varela",sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  color: #edf0f1;
+  text-decoration: none;
+}
+
+button {
+  padding: 9px 25px;
+  background-color: rgba(0, 136, 169, 1);
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease 0s;
+}
+
+button:hover{
+  background-color: rgba(0, 136, 169, 0.8);
+}
+
+.Tools {  
+  align-items: center;
+  padding: 30px 10%;
+}
+
+
+
+
+
+/*
+CSS für Passgen ist von bootstrap abhängig form neu bauen und maybe try react-hook-form
+CSS für PassGen Tool
+make raw versions of send and keyfile
+7 min im react router vid 
+
+
+ul{
+  display: flex;
+  flex-direction: row;
+}
+
+li{
+  width: 8%;
+  list-style-type: none;
+  padding: 5px;
+}
+
+
+.App-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+    .App {
+      text-align: center;
+    }
+    
+    
+    .App-link {
+      color: #ffffff;
+    }
+
+    
+    
+    .LightBorder{
+      border: 1.5px solid #D3D3D3;
+      border-radius: 5px 5px 0px 0px;
+      margin-top: 1%;
+      
+    }
+    
+    
+    */
