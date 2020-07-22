@@ -24,14 +24,14 @@ function PasswordGeneration() {
       <h3>Enter a length for your password</h3>
 
       <div className="HorizontalLayout">
-        <FormControl
+        <FormControl className="Fullwidth"
           placeholder={pwLength}
           aria-label={pwLength}
           aria-describedby="basic-addon2"
           onChange={evt => handleChange(evt)}
         />
         <InputGroup.Append>
-          <Button onClick={handleClick} variant="outline-secondary"><ArrowClockwise /></Button>
+          <Button onClick={handleClick} variant="outline-secondary"><ArrowClockwise className="ButtonImage" /></Button>
         </InputGroup.Append>
       </div>
       <div className="HorizontalLayout" >
@@ -40,7 +40,9 @@ function PasswordGeneration() {
         <Form.Check id="checkboxUpper" onChange={handleChangeCheckbox} className="PWGenCheckbox" type="checkbox" label="Upper case" checked={checkboxState["checkboxUpper"]} />
         <Form.Check id="checkboxLower" onChange={handleChangeCheckbox} className="PWGenCheckbox" type="checkbox" label="Lower case" checked={checkboxState["checkboxLower"]} />
       </div>
-      <Form.Control as="textarea" rows="8" readOnly={true} value={password} />
+      <div className="HorizontalLayout">
+        <Form.Control className="Fullwidth" as="textarea" rows="8" readOnly={true} value={password} />
+      </div>
     </div>;
 
 

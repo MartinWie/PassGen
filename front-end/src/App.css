@@ -7,7 +7,7 @@
   background-color: #24242a;
 }
 
-li,a,button,.LinkItems{
+li,a,button,.LinkItems,textarea,input{
   font-family: "Varela",sans-serif;
   font-weight: 500;
   font-size: 16px;
@@ -22,6 +22,16 @@ button {
   border-radius: 50px;
   cursor: pointer;
   transition: all 0.3s ease 0s;
+}
+
+.ButtonImage{
+  background-color: rgba(0, 136, 169, 1);
+  transition: all 0.3s ease 0s;
+  border-radius: 50px;
+}
+
+.ButtonImage:hover{
+  background-color: rgba(0, 136, 169, 0.8);
 }
 
 button:hover{
