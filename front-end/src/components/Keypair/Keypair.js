@@ -2,7 +2,7 @@ import React from 'react';
 
 function Keypair(){
     return <div>
-        <a>Keypair</a>
+        <a>Keypair component tbd</a>
     </div>
 }
 
