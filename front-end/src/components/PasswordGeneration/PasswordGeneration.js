@@ -35,10 +35,10 @@ function PasswordGeneration() {
         </InputGroup.Append>
       </div>
       <div className="HorizontalLayout" >
-        <Form.Check id="checkboxNumbers" onChange={handleChangeCheckbox} className="PWGenCheckbox" type="checkbox" label="Numbers" checked={checkboxState["checkboxNumbers"]} />
-        <Form.Check id="checkboxSpecialChars" onChange={handleChangeCheckbox} className="PWGenCheckbox" type="checkbox" label="Special characters" checked={checkboxState["checkboxSpecialChars"]} />
-        <Form.Check id="checkboxUpper" onChange={handleChangeCheckbox} className="PWGenCheckbox" type="checkbox" label="Upper case" checked={checkboxState["checkboxUpper"]} />
-        <Form.Check id="checkboxLower" onChange={handleChangeCheckbox} className="PWGenCheckbox" type="checkbox" label="Lower case" checked={checkboxState["checkboxLower"]} />
+        <Form.Check id="checkboxNumbers" onChange={handleChangeCheckbox} className="PWGenCheckbox" type="checkbox" label=" 0-9" checked={checkboxState["checkboxNumbers"]} />
+        <Form.Check id="checkboxSpecialChars" onChange={handleChangeCheckbox} className="PWGenCheckbox" type="checkbox" label=" !/%..." checked={checkboxState["checkboxSpecialChars"]} />
+        <Form.Check id="checkboxUpper" onChange={handleChangeCheckbox} className="PWGenCheckbox" type="checkbox" label=" A-Z" checked={checkboxState["checkboxUpper"]} />
+        <Form.Check id="checkboxLower" onChange={handleChangeCheckbox} className="PWGenCheckbox" type="checkbox" label=" a-z" checked={checkboxState["checkboxLower"]} />
       </div>
       <div className="HorizontalLayout">
         <Form.Control className="Fullwidth" as="textarea" rows="8" readOnly={true} value={password} />

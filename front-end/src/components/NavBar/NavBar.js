@@ -20,9 +20,14 @@ const NavBar = () => {
                 </li>
             </ul>
       </nav>
-      <a className="cta"><button>Contact</button></a>
+      <a className="cta"><button onClick={contact}>Contact</button></a>
 
       </header>
+
+      function contact() {
+        window.location.href = 'https://www.linkedin.com/in/martin-wiechmann-2b5aa3151/';
+          
+      }
 }
 
 export default NavBar;

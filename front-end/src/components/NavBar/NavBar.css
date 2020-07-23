@@ -25,3 +25,39 @@
   .nav__links li a:hover {
     color: #0088a9;
   }
+
+  /* playing around to get a good mobile navbar(not hamburger menu bottom buttons are more ease to reach)
+  @media (pointer:none), (pointer:coarse) {
+    .NavStyle{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 30px 10%;
+    }
+    
+    .logo{
+      cursor: pointer;
+    }
+    
+    .nav__links{
+      list-style: none;
+    }
+    
+    .nav__links li {
+      display: inline-block;
+      padding: 0px 20px ;
+            background-color: #0088a9;
+    }
+    
+    .nav__links li a {
+      transition: all 0.3s ease 0s;
+      background-color: #0088a9;
+    }
+    
+    .nav__links li a:hover {
+      color: #0088a9;
+    }
+    
+  }
+
+  */
