@@ -6,7 +6,9 @@ import { Link } from 'react-router-dom'
 const NavBarMobileTop = () => {
    
     return <header className="NavStyle">
-        <img src={logo} className="logo" alt="logo" />
+        <Link to="/">
+            <img src={logo} className="logo" alt="logo" />
+        </Link>
         <a className="cta"><button onClick={contact}>Contact</button></a>
 
       </header>
