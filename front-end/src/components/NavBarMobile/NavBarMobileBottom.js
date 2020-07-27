@@ -1,6 +1,7 @@
 import React, {useState } from 'react'
 import './NavBarMobile.css'
 import { Link } from 'react-router-dom'
+import { Key,ChatLeftText, FileEarmark, Share } from 'react-bootstrap-icons';
 
 const NavBarMobileBottom = () => {
    
@@ -8,13 +9,24 @@ const NavBarMobileBottom = () => {
         <nav>
             <ul className="nav__links">
                 <li>
-                    <Link className="LinkItems" to="/passgen">PassGen</Link>
+                    <Link className="LinkItems" to="/passgen">
+                        PassGen <Key className="ButtonImage" />
+                    </Link>
                 </li>
                 <li>
-                    <Link className="LinkItems" to="/keypair">Keypair</Link>
+                    <Link className="LinkItems" to="/words">
+                        Words <ChatLeftText className="ButtonImage" />
+                    </Link>
                 </li>
                 <li>
-                    <Link className="LinkItems" to="/send">Send</Link>
+                    <Link className="LinkItems" to="/keypair">
+                        Keypair <FileEarmark className="ButtonImage" />
+                    </Link>
+                </li>
+                <li>
+                    <Link className="LinkItems" to="/send">
+                        Send <Share className="ButtonImage" />
+                    </Link>
                 </li>
             </ul>
         </nav>

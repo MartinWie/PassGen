@@ -1,11 +1,6 @@
 import React, {useState} from 'react';
 import './PasswordGeneration.css';
 import { FormControl, Button, InputGroup, Form } from 'react-bootstrap';
-//import useForm from 'react-hook-form';
-//pivot: learn to create better forms and improve css, than come back 
-
-//had to coement that out because css overwrites button css (border radius figure remove of botstrap or overwite )
-//import 'bootstrap/dist/css/bootstrap.min.css';
 import { ArrowClockwise } from 'react-bootstrap-icons';
 const randomString = require('../../utils/getRandomString')
 

@@ -15,6 +15,9 @@ const NavBar = () => {
                     <Link className="LinkItems" to="/passgen">PassGen</Link>
                 </li>
                 <li>
+                    <Link className="LinkItems" to="/words">Words</Link>
+                </li>
+                <li>
                     <Link className="LinkItems" to="/keypair">Keypair</Link>
                 </li>
                 <li>
