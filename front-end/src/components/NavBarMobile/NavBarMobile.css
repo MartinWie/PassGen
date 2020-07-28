@@ -1,27 +1,41 @@
-.NavStyle{
+.NavStyle__mobile{
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 30px 10%;
   }
   
   .logo{
     cursor: pointer;
   }
   
-  .nav__links{
+  .nav__mobilelinks{
     list-style: none;
   }
   
-  .nav__links li {
+  .nav__mobilelinks li {
     display: inline-block;
-    padding: 0px 20px ;
   }
-  
-  .nav__links li a {
-    transition: all 0.3s ease 0s;
+
+  body{
+    margin: 0 0 55px 0;;
   }
-  
-  .nav__links li a:hover {
-    color: #0088a9;
+
+  .nav__mobile__bottom {
+    position: fixed;
+    bottom: 0px;
+    width: 100%;
+    height: 55px;
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.2);
+    overflow-x: auto;
+    display: flex;
+  }
+
+  .nav__mobilelink{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-grow: 1;
+    min-width: 50px;
+    overflow: hidden;
+    white-space: nowrap;
   }

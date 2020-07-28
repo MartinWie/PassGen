@@ -26,7 +26,7 @@ function App() {
         </Switch>
       </div>
       <MobileView>
-      <NavBarMobileBottom />
+        <NavBarMobileBottom />
       </MobileView>
     </Router>
   </div>

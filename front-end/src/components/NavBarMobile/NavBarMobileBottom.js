@@ -5,27 +5,31 @@ import { Key,ChatLeftText, FileEarmark, Share } from 'react-bootstrap-icons';
 
 const NavBarMobileBottom = () => {
    
-    return <header className="NavStyle">
-        <nav>
-            <ul className="nav__links">
-                <li>
-                    <Link className="LinkItems" to="/passgen">
-                        PassGen <Key className="ButtonImage" />
+    return <header className="NavStyle__mobile">
+        <nav className="nav__mobile__bottom">
+            <ul className="nav__mobilelinks">
+                <li className="nav__mobilelink nav__mobilelink--active">
+                    <Link to="/passgen">
+                        <Key className="nav__icon" />
+                        <span className="nav__mobiletext">PassGen</span>
                     </Link>
                 </li>
-                <li>
-                    <Link className="LinkItems" to="/words">
-                        Words <ChatLeftText className="ButtonImage" />
+                <li className="nav__mobilelink">
+                    <Link to="/words">
+                        <ChatLeftText className="nav__icon" />
+                        <span className="nav__mobiletext">Words</span>
                     </Link>
                 </li>
-                <li>
-                    <Link className="LinkItems" to="/keypair">
-                        Keypair <FileEarmark className="ButtonImage" />
+                <li className="nav__mobilelink">
+                    <Link to="/keypair">
+                        <FileEarmark className="nav__icon" />
+                        <span className="nav__mobiletext">Keypair</span>
                     </Link>
                 </li>
-                <li>
-                    <Link className="LinkItems" to="/send">
-                        Send <Share className="ButtonImage" />
+                <li className="nav__mobilelink">
+                    <Link to="/send">
+                        <Share className="nav__icon" />
+                        <span className="nav__mobiletext">Send</span>
                     </Link>
                 </li>
             </ul>
