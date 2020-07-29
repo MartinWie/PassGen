@@ -8,16 +8,8 @@
     cursor: pointer;
   }
   
-  .nav__mobilelinks{
-    list-style: none;
-  }
-  
-  .nav__mobilelinks li {
-    display: inline-block;
-  }
-
   body{
-    margin: 0 0 55px 0;;
+    margin: 0 0 55px 0;
   }
 
   .nav__mobile__bottom {
@@ -39,3 +31,13 @@
     overflow: hidden;
     white-space: nowrap;
   }
+/*
+  .nav__mobiletext{
+    
+  }
+
+  .nav__icon{
+    
+  }
+
+*/
