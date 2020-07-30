@@ -7,23 +7,22 @@ const NavBarMobileBottom = () => {
    
     return <header className="NavStyle__mobile">
         <nav className="nav__mobile__bottom">
-
-                    <Link to="/passgen" className="nav__mobilelink nav__mobilelink--active">
-                        <Key className="nav__icon" size={28} />
-                        <span className="nav__mobiletext">PassGen</span>
-                    </Link>
-                    <Link to="/words" className="nav__mobilelink">
-                        <ChatLeftText className="nav__icon" size={28} />
-                        <span className="nav__mobiletext">Words</span>
-                    </Link>
-                    <Link to="/keypair" className="nav__mobilelink">
-                        <FileEarmark className="nav__icon" size={28} />
-                        <span className="nav__mobiletext">Keypair</span>
-                    </Link>
-                    <Link to="/send" className="nav__mobilelink">
-                        <Share className="nav__icon" size={28} />
-                        <span className="nav__mobiletext">Send</span>
-                    </Link>
+            <Link to="/passgen" className="nav__mobilelink">
+                <Key size={23} />
+                <span>PassGen</span>
+            </Link>
+            <Link to="/words" className="nav__mobilelink">
+                <ChatLeftText size={23} />
+                <span>Words</span>
+            </Link>
+            <Link to="/keypair" className="nav__mobilelink">
+                <FileEarmark size={23} />
+                <span>Keypair</span>
+            </Link>
+            <Link to="/send" className="nav__mobilelink">
+                <Share size={23} />
+                <span>Send</span>
+            </Link>
         </nav>
       </header>
 
