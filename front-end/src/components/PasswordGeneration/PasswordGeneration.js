@@ -15,7 +15,7 @@ function PasswordGeneration() {
     checkboxLower:true
   });
 
-  return <div id="main">
+  return <div className="toolsframe">
       <h3>Enter a length for your password</h3>
 
       <div className="HorizontalLayout">

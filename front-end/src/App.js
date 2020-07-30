@@ -8,6 +8,7 @@ import NavBarMobileTop from './components/NavBarMobile/NavBarMobileTop'
 import NavBarMobileBottom from './components/NavBarMobile/NavBarMobileBottom'
 import Keypair from './components/Keypair/Keypair' 
 import Send from './components/Send/Send'
+import Words from './components/Words/Words'
 
 function App() {
   return <div>
@@ -18,10 +19,11 @@ function App() {
       <MobileView>
           <NavBarMobileTop />
       </MobileView>
-      <div className="Tools">
+      <div className="tools">
         <Switch>
           <Route exact path="/keypair" component={Keypair}/>
           <Route exact path="/send" component={Send} />
+          <Route exact path="/words" component={Words} />
           <Route path="/" component={PasswordGeneration} />
         </Switch>
       </div>
