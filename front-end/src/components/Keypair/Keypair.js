@@ -1,7 +1,7 @@
 import React from 'react';
 
 function Keypair(){
-    return <div>
+    return <div className="toolsframe">
         <a>Keypair component tbd</a>
     </div>
 }

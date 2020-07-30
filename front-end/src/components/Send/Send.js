@@ -1,7 +1,7 @@
 import React from 'react'
 
 function Send() {
-    return <div>
+    return <div className="toolsframe">
         <a>Send tbd</a>
     </div>
 }
