@@ -15,6 +15,8 @@ const useStyles = makeStyles({
 
 // if material ui is good create a constants folder and put the theme there
 // + refine a good theme with currently picked colors: https://in-your-saas.github.io/material-ui-theme-editor/
+// Now: learn theming :)
+// Theming problem slider read all and understand! https://stackoverflow.com/questions/50831450/how-to-overwrite-classes-and-styles-in-material-ui-react
 const theme = createMuiTheme({
   palette: {
     primary: {
