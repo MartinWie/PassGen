@@ -9,4 +9,9 @@ export default createMuiTheme({
         main: '#edf0f1',
       }
     },
+    typography:{
+        allVariants: {
+            color: ''
+        }
+    }
   });

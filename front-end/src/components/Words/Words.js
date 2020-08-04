@@ -1,8 +1,7 @@
 import React from 'react'
 import { useForm } from "react-hook-form";
-import { Slider } from '@material-ui/core';
-import { ThemeProvider } from '@material-ui/core/styles';
-import theme from '../../config/theme';
+import { Slider,FormLabel } from '@material-ui/core';
+
 
 const {register, handleSubmit, errors} = useForm;
 
@@ -24,10 +23,8 @@ function Words() {
       <form>
 
       </form>
-    
-    <ThemeProvider theme={theme}>
       
-      <div>
+      <div className="">
         Number of words:
         <Slider
           defaultValue={4}
@@ -39,10 +36,8 @@ function Words() {
           max={8}
           valueLabelDisplay="auto"
         />
+        <FormLabel>Test label(move right to slider and display sliders value)</FormLabel>
       </div>
-    </ThemeProvider>
-
-
   </div>
 }
 
