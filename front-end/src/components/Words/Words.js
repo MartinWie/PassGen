@@ -1,14 +1,16 @@
 import React, {useState} from 'react'
 import { useForm } from "react-hook-form";
-import { Slider,FormLabel } from '@material-ui/core';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Checkbox from '@material-ui/core/Checkbox';
-import TextField from '@material-ui/core/TextField';
-import Button from '@material-ui/core/Button';
+import {Button, TextField, Checkbox, FormControlLabel, Slider,FormLabel} from '@material-ui/core/';
 import RefreshIcon from '@material-ui/icons/Refresh';
+import {makeStyles} from '@material-ui/core/styles'
 
 const {register, handleSubmit, errors} = useForm;
-
+const useStyles = makeStyles({
+  textFieldStyle: {
+    borderColor: '#edf0f1',
+    border: 1,
+  },
+});
 
 function valuetext(value) {
   return {value};
@@ -19,6 +21,7 @@ function Words() {
     checkedGer: true,
     checkedEng: true
   });
+  const classes = useStyles();
   
   return <div className="toolsframe">
       
@@ -57,11 +60,12 @@ function Words() {
           }
           label="English"
         />
-        <TextField id="outlined-separator" label="Separator" variant="outlined" />
+        <TextField className={classes.textFieldStyle} id="outlined-separator" label="Separator" variant="outlined" />
         <Button variant="contained" color="primary"> <RefreshIcon /></Button>
       </div>
       <div>
         <TextField
+          className={classes.textFieldStyle}
           placeholder="Yeah! PassWords"
           multiline
           rows={3}
@@ -70,6 +74,8 @@ function Words() {
         />
       </div>
   </div>
+
+// get theming right(color Both Textfields and button shape), than layout :)
 
 function handleChangeCheckbox(evt){
   //Using he Object spread because setCheckboxState requires a new object for rerendering(Object spread helps us to create a new Object instead of copying the reference!)
