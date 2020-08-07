@@ -10,6 +10,10 @@ const useStyles = makeStyles({
     borderColor: '#edf0f1',
     border: 1,
   },
+  inputLabelStyle:{
+    color: '#edf0f1',
+    borderColor:'#edf0f1'
+  }
 });
 
 function valuetext(value) {
@@ -60,7 +64,7 @@ function Words() {
           }
           label="English"
         />
-        <TextField className={classes.textFieldStyle} id="outlined-separator" label="Separator" variant="outlined" />
+        <TextField className={classes.textFieldStyle} InputProps={classes.inputLabelStyle} id="outlined-separator" label="Separator" variant="outlined" />
         <Button variant="contained" color="primary"> <RefreshIcon /></Button>
       </div>
       <div>
@@ -76,6 +80,10 @@ function Words() {
   </div>
 
 // get theming right(color Both Textfields and button shape), than layout :)
+
+//Debugg here: https://stackblitz.com/edit/material-ui-custom-outline-color?file=ValidField.js
+
+
 
 function handleChangeCheckbox(evt){
   //Using he Object spread because setCheckboxState requires a new object for rerendering(Object spread helps us to create a new Object instead of copying the reference!)
