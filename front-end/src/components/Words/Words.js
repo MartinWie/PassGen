@@ -6,14 +6,7 @@ import {makeStyles} from '@material-ui/core/styles'
 
 const {register, handleSubmit, errors} = useForm;
 const useStyles = makeStyles({
-  textFieldStyle: {
-    borderColor: '#edf0f1',
-    border: 1,
-  },
-  inputLabelStyle:{
-    color: '#edf0f1',
-    borderColor:'#edf0f1'
-  }
+  notchedOutline: {borderColor: "yellow !important"},
 });
 
 function valuetext(value) {
@@ -64,12 +57,19 @@ function Words() {
           }
           label="English"
         />
-        <TextField className={classes.textFieldStyle} InputProps={classes.inputLabelStyle} id="outlined-separator" label="Separator" variant="outlined" />
+        <TextField 
+          InputProps={{
+            classes: {
+              notchedOutline: classes.notchedOutline
+            }
+          }} 
+          id="outlined-separator" label="Separator" 
+          variant="outlined"
+        />
         <Button variant="contained" color="primary"> <RefreshIcon /></Button>
       </div>
       <div>
         <TextField
-          className={classes.textFieldStyle}
           placeholder="Yeah! PassWords"
           multiline
           rows={3}
