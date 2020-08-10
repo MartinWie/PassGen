@@ -81,10 +81,6 @@ function Words() {
 
 // get theming right(color Both Textfields and button shape), than layout :)
 
-//Debugg here: https://stackblitz.com/edit/material-ui-custom-outline-color?file=ValidField.js
-
-
-
 function handleChangeCheckbox(evt){
   //Using he Object spread because setCheckboxState requires a new object for rerendering(Object spread helps us to create a new Object instead of copying the reference!)
   let tmp_CheckboxState = {...checkboxState}
