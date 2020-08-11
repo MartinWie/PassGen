@@ -1,6 +1,6 @@
 .wordsConfig{
     display: flex;
-    justify-content: space-between;
+    justify-content: space-around;
 }
 
 .wordsOutput{

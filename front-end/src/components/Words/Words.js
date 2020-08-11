@@ -89,7 +89,8 @@ function Words() {
       </div>
   </div>
 
-// get theming right(color Both Textfields and button shape), than layout :)
+// improve mobile ui , maybe grid and pülace seperator and botton under chekcboxes when scree to small
+// afterwards get basic functionality in this class with helper class
 
 function handleChangeCheckbox(evt){
   //Using he Object spread because setCheckboxState requires a new object for rerendering(Object spread helps us to create a new Object instead of copying the reference!)
