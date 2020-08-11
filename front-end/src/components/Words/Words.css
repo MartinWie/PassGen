@@ -1,0 +1,8 @@
+.wordsConfig{
+    display: flex;
+    justify-content: space-between;
+}
+
+.wordsOutput{
+    margin-top: 10px;
+}

@@ -3,10 +3,12 @@ import { useForm } from "react-hook-form";
 import {Button, TextField, Checkbox, FormControlLabel, Slider,FormLabel} from '@material-ui/core/';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import {makeStyles} from '@material-ui/core/styles'
+import theme from '../../config/theme';
+import './Words.css'
 
 const {register, handleSubmit, errors} = useForm;
 const useStyles = makeStyles({
-  notchedOutline: {borderColor: "yellow !important"},
+  notchedOutline: {borderColor: theme.palette.primary.main + " !important"},
 });
 
 function valuetext(value) {
@@ -23,7 +25,7 @@ function Words() {
   return <div className="toolsframe">
       
       <span>Number of words:</span>
-      <div className="">        
+      <div className="wordsConfig">        
         <Slider
           defaultValue={4}
           getAriaValueText={valuetext}
@@ -34,7 +36,8 @@ function Words() {
           max={8}
           valueLabelDisplay="auto"
         />
-        <FormLabel>4</FormLabel>
+      </div>
+      <div className="wordsConfig">
         <FormControlLabel
           control={
             <Checkbox
@@ -68,13 +71,20 @@ function Words() {
         />
         <Button variant="contained" color="primary"> <RefreshIcon /></Button>
       </div>
-      <div>
+      <div className="wordsOutput">
         <TextField
           placeholder="Yeah! PassWords"
           multiline
-          rows={3}
+          variant="outlined"
+          rows={2}
           rowsMax={Infinity}
           fullWidth
+          InputProps={{
+            readOnly: true,
+            classes: {
+              notchedOutline: classes.notchedOutline
+            }
+          }}
         />
       </div>
   </div>
