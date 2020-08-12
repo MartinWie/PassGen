@@ -1,8 +1,15 @@
 .wordsConfig{
     display: flex;
     justify-content: space-between;
+    width: 100%;
 }
 
 .wordsOutput{
     margin-top: 10px;
+}
+
+.screenSizeContainer{
+    display: flex;
+    flex-wrap: wrap;
+    align-content: stretch;
 }

@@ -25,51 +25,53 @@ function Words() {
   return <div className="toolsframe">
       
       <span>Number of words:</span>
-      <div className="wordsConfig">        
-        <Slider
-          defaultValue={4}
-          getAriaValueText={valuetext}
-          aria-labelledby="discrete-slider-small-steps"
-          step={1}
-          marks
-          min={1}
-          max={8}
-          valueLabelDisplay="auto"
-        />
-      </div>
-      <div className="wordsConfig">
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={checkboxState.checkedGer}
-              onChange={handleChangeCheckbox}
-              name="checkedGer"
-              color="primary"
-            />
-          }
-          label="German"
-        />
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={checkboxState.checkedEng}
-              onChange={handleChangeCheckbox}
-              name="checkedEng"
-              color="primary"
-            />
-          }
-          label="English"
-        />
-        <TextField 
-          InputProps={{
-            classes: {
-              notchedOutline: classes.notchedOutline
+      <div className="screenSizeContainer">
+        <div className="wordsConfig">        
+          <Slider
+            defaultValue={4}
+            getAriaValueText={valuetext}
+            aria-labelledby="discrete-slider-small-steps"
+            step={1}
+            marks
+            min={1}
+            max={8}
+            valueLabelDisplay="auto"
+          />
+        </div>
+        <div className="wordsConfig">
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={checkboxState.checkedGer}
+                onChange={handleChangeCheckbox}
+                name="checkedGer"
+                color="primary"
+              />
             }
-          }} 
-          id="outlined-separator" label="Separator" 
-          variant="outlined"
-        />
-        <Button variant="contained" color="primary"> <RefreshIcon /></Button>
+            label="German"
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={checkboxState.checkedEng}
+                onChange={handleChangeCheckbox}
+                name="checkedEng"
+                color="primary"
+              />
+            }
+            label="English"
+          />
+          <TextField 
+            InputProps={{
+              classes: {
+                notchedOutline: classes.notchedOutline
+              }
+            }} 
+            id="outlined-separator" label="Separator" 
+            variant="outlined"
+          />
+          <Button variant="contained" color="primary"> <RefreshIcon /></Button>
+        </div>
       </div>
       <div className="wordsOutput">
         <TextField
