@@ -1,6 +1,6 @@
 import React from 'react';
 import{ BrowserRouter as Router, Switch, Route} from 'react-router-dom'
-import { BrowserView, MobileView, isBrowser, isMobile } from "react-device-detect";
+import { BrowserView, MobileView} from "react-device-detect";
 import './App.css';
 import PasswordGeneration from './components/PasswordGeneration/PasswordGeneration.js';
 import NavBar from './components/NavBar/NavBar'
