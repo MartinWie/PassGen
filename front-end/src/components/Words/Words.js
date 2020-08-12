@@ -5,6 +5,7 @@ import RefreshIcon from '@material-ui/icons/Refresh';
 import {makeStyles} from '@material-ui/core/styles'
 import theme from '../../config/theme';
 import './Words.css'
+import {MobileView} from "react-device-detect";
 
 const {register, handleSubmit, errors} = useForm;
 const useStyles = makeStyles({
@@ -25,53 +26,51 @@ function Words() {
   return <div className="toolsframe">
       
       <span>Number of words:</span>
-      <div className="screenSizeContainer">
-        <div className="wordsConfig">        
-          <Slider
-            defaultValue={4}
-            getAriaValueText={valuetext}
-            aria-labelledby="discrete-slider-small-steps"
-            step={1}
-            marks
-            min={1}
-            max={8}
-            valueLabelDisplay="auto"
-          />
-        </div>
-        <div className="wordsConfig">
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={checkboxState.checkedGer}
-                onChange={handleChangeCheckbox}
-                name="checkedGer"
-                color="primary"
-              />
+      <div className="wordsConfig">        
+        <Slider
+          defaultValue={4}
+          getAriaValueText={valuetext}
+          aria-labelledby="discrete-slider-small-steps"
+          step={1}
+          marks
+          min={1}
+          max={8}
+          valueLabelDisplay="auto"
+        />
+      </div>
+      <div className="wordsConfig">
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={checkboxState.checkedGer}
+              onChange={handleChangeCheckbox}
+              name="checkedGer"
+              color="primary"
+            />
+          }
+          label="German"
+        />
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={checkboxState.checkedEng}
+              onChange={handleChangeCheckbox}
+              name="checkedEng"
+              color="primary"
+            />
+          }
+          label="English"
+        />
+        <TextField 
+          InputProps={{
+            classes: {
+              notchedOutline: classes.notchedOutline
             }
-            label="German"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={checkboxState.checkedEng}
-                onChange={handleChangeCheckbox}
-                name="checkedEng"
-                color="primary"
-              />
-            }
-            label="English"
-          />
-          <TextField 
-            InputProps={{
-              classes: {
-                notchedOutline: classes.notchedOutline
-              }
-            }} 
-            id="outlined-separator" label="Separator" 
-            variant="outlined"
-          />
-          <Button variant="contained" color="primary"> <RefreshIcon /></Button>
-        </div>
+          }} 
+          id="outlined-separator" label="Separator" 
+          variant="outlined"
+        />
+        <Button variant="contained" color="primary"> <RefreshIcon /></Button>
       </div>
       <div className="wordsOutput">
         <TextField
@@ -91,7 +90,7 @@ function Words() {
       </div>
   </div>
 
-// improve mobile ui , maybe grid and pülace seperator and botton under chekcboxes when scree to small
+// apply custom styling (flex-direction: column;) if MobileView true
 // afterwards get basic functionality in this class with helper class
 
 function handleChangeCheckbox(evt){
@@ -100,6 +99,14 @@ function handleChangeCheckbox(evt){
   tmp_CheckboxState[evt.target.id] = !tmp_CheckboxState[evt.target.id]
 
   setCheckboxState(tmp_CheckboxState)
+}
+
+function wordsInputStylingPerDevice(){
+  if(MobileView){
+    const inputStyle = {
+
+    }
+  }
 }
 
 //found more elegant solution(replace here and in pw gen):
