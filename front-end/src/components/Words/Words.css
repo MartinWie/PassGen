@@ -13,3 +13,11 @@
     flex-wrap: wrap;
     align-content: stretch;
 }
+
+@media (orientation: portrait){
+    .screenSizeContainer{
+        display: flex;
+        flex-direction: row;
+
+    }
+}
