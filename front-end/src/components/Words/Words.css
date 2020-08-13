@@ -1,9 +1,14 @@
 .wordsConfig{
     display: flex;
-    justify-content: space-between;
-    width: 100%;
+    justify-content: space-around;
 }
 
 .wordsOutput{
     margin-top: 10px;
+}
+
+.wordsConfigCheckboxes{
+    display: flex;
+    justify-content: space-between;
+    width: 30%;
 }
