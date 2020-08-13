@@ -36,6 +36,7 @@ function Words() {
           min={1}
           max={8}
           valueLabelDisplay="auto"
+          onChangeCommitted={handleChangeSlider}
         />
       </div>
       <div style={wordsInputStylingPerDevice()}>
@@ -93,6 +94,10 @@ function Words() {
   </div>
 
 // afterwards get basic functionality in this class with helper class
+// slider to state 
+// seperator 
+// button
+// helper class 
 
 function handleChangeCheckbox(evt){
   //Using he Object spread because setCheckboxState requires a new object for rerendering(Object spread helps us to create a new Object instead of copying the reference!)
@@ -100,6 +105,10 @@ function handleChangeCheckbox(evt){
   tmp_CheckboxState[evt.target.id] = !tmp_CheckboxState[evt.target.id]
 
   setCheckboxState(tmp_CheckboxState)
+}
+
+function handleChangeSlider(evt){
+  console.log("Slider changed! " + evt)
 }
 
 function wordsInputStylingPerDevice(){
