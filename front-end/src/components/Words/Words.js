@@ -45,7 +45,7 @@ function Words() {
               <Checkbox
                 checked={checkboxState.checkedGer}
                 onChange={handleChangeCheckbox}
-                name="checkedGer"
+                id="checkedGer"
                 color="primary"
               />
             }
@@ -56,7 +56,7 @@ function Words() {
               <Checkbox
                 checked={checkboxState.checkedEng}
                 onChange={handleChangeCheckbox}
-                name="checkedEng"
+                id="checkedEng"
                 color="primary"
               />
             }
@@ -92,7 +92,6 @@ function Words() {
       </div>
   </div>
 
-// apply custom styling (flex-direction: column;) if MobileView true
 // afterwards get basic functionality in this class with helper class
 
 function handleChangeCheckbox(evt){
