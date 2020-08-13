@@ -104,14 +104,12 @@ function handleChangeCheckbox(evt){
 }
 
 function wordsInputStylingPerDevice(){
-  console.log('Fired wordsInputStylingPerDevice')
   var style = {
     display: 'flex',
     justifyContent: 'space-around'
   }
   if(isMobile){
     style.flexDirection = 'column';
-    console.log('Fired wordsInputStylingPerDevice mobile view')
   }
   return style;
 }
