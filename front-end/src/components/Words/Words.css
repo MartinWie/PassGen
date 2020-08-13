@@ -1,8 +1,3 @@
-.wordsConfig{
-    display: flex;
-    justify-content: space-around;
-}
-
 .wordsOutput{
     margin-top: 10px;
 }

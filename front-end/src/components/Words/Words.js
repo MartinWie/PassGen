@@ -1,11 +1,11 @@
 import React, {useState} from 'react'
 import { useForm } from "react-hook-form";
-import {Button, TextField, Checkbox, FormControlLabel, Slider,FormLabel} from '@material-ui/core/';
+import {Button, TextField, Checkbox, FormControlLabel, Slider,FormLabel, colors} from '@material-ui/core/';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import {makeStyles} from '@material-ui/core/styles'
 import theme from '../../config/theme';
 import './Words.css'
-import {MobileView} from "react-device-detect";
+import {isMobile} from "react-device-detect";
 
 const {register, handleSubmit, errors} = useForm;
 const useStyles = makeStyles({
@@ -22,11 +22,11 @@ function Words() {
     checkedEng: true
   });
   const classes = useStyles();
-  
+
   return <div className="toolsframe">
       
       <span>Number of words:</span>
-      <div className="wordsConfig">        
+      <div style={wordsInputStylingPerDevice()}>        
         <Slider
           defaultValue={4}
           getAriaValueText={valuetext}
@@ -38,29 +38,31 @@ function Words() {
           valueLabelDisplay="auto"
         />
       </div>
-      <div className="wordsConfig">
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={checkboxState.checkedGer}
-              onChange={handleChangeCheckbox}
-              name="checkedGer"
-              color="primary"
-            />
-          }
-          label="German"
-        />
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={checkboxState.checkedEng}
-              onChange={handleChangeCheckbox}
-              name="checkedEng"
-              color="primary"
-            />
-          }
-          label="English"
-        />
+      <div style={wordsInputStylingPerDevice()}>
+        <div className="wordsConfigCheckboxes">
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={checkboxState.checkedGer}
+                onChange={handleChangeCheckbox}
+                name="checkedGer"
+                color="primary"
+              />
+            }
+            label="German"
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={checkboxState.checkedEng}
+                onChange={handleChangeCheckbox}
+                name="checkedEng"
+                color="primary"
+              />
+            }
+            label="English"
+          />
+        </div>
         <TextField 
           InputProps={{
             classes: {
@@ -102,11 +104,16 @@ function handleChangeCheckbox(evt){
 }
 
 function wordsInputStylingPerDevice(){
-  if(MobileView){
-    const inputStyle = {
-
-    }
+  console.log('Fired wordsInputStylingPerDevice')
+  var style = {
+    display: 'flex',
+    justifyContent: 'space-around'
   }
+  if(isMobile){
+    style.flexDirection = 'column';
+    console.log('Fired wordsInputStylingPerDevice mobile view')
+  }
+  return style;
 }
 
 //found more elegant solution(replace here and in pw gen):
