@@ -17,10 +17,15 @@ function valuetext(value) {
   
 }
 function Words() {
+
   const [checkboxState, setCheckboxState] = useState({
     checkedGer: true,
     checkedEng: true
   });
+
+const [sliderState, setSliderState] = useState(4)
+const [seperatorState, setSeperatorState] = useState("")
+
   const classes = useStyles();
 
   return <div className="toolsframe">
@@ -36,7 +41,7 @@ function Words() {
           min={1}
           max={8}
           valueLabelDisplay="auto"
-          onChangeCommitted={handleChangeSlider}
+          onChangeCommitted={(evt, value) => setSliderState(value)}
         />
       </div>
       <div style={wordsInputStylingPerDevice()}>
@@ -72,6 +77,7 @@ function Words() {
           }} 
           id="outlined-separator" label="Separator" 
           variant="outlined"
+          onChange={(evt) => setSeperatorState(evt.target.value)}
         />
         <Button variant="contained" color="primary"> <RefreshIcon /></Button>
       </div>
@@ -94,8 +100,6 @@ function Words() {
   </div>
 
 // afterwards get basic functionality in this class with helper class
-// slider to state 
-// seperator 
 // button
 // helper class 
 
@@ -105,10 +109,6 @@ function handleChangeCheckbox(evt){
   tmp_CheckboxState[evt.target.id] = !tmp_CheckboxState[evt.target.id]
 
   setCheckboxState(tmp_CheckboxState)
-}
-
-function handleChangeSlider(evt){
-  console.log("Slider changed! " + evt)
 }
 
 function wordsInputStylingPerDevice(){
