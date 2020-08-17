@@ -6,6 +6,7 @@ import {makeStyles} from '@material-ui/core/styles'
 import theme from '../../config/theme';
 import './Words.css'
 import {isMobile} from "react-device-detect";
+const randomWords = require('../../utils/getRandomWords')
 
 const {register, handleSubmit, errors} = useForm;
 const useStyles = makeStyles({
@@ -23,10 +24,12 @@ function Words() {
     checkedEng: true
   });
 
-const [sliderState, setSliderState] = useState(4)
-const [seperatorState, setSeperatorState] = useState("")
+  const [sliderState, setSliderState] = useState(4)
+  const [seperatorState, setSeperatorState] = useState("")
 
   const classes = useStyles();
+
+  //console.log(randomWords(sliderState,checkboxState,"-"))
 
   return <div className="toolsframe">
       
@@ -99,9 +102,10 @@ const [seperatorState, setSeperatorState] = useState("")
       </div>
   </div>
 
-// afterwards get basic functionality in this class with helper class
+// add satet for result text field
+// helper class: fix correct number of words + cleanup atleast a bit + add use of seperator
+// remove console log 
 // button
-// helper class 
 
 function handleChangeCheckbox(evt){
   //Using he Object spread because setCheckboxState requires a new object for rerendering(Object spread helps us to create a new Object instead of copying the reference!)
