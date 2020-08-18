@@ -26,6 +26,7 @@ function Words() {
 
   const [sliderState, setSliderState] = useState(4)
   const [seperatorState, setSeperatorState] = useState("")
+  const [outputState, setOutputState] = useState("")
 
   const classes = useStyles();
 
@@ -92,6 +93,7 @@ function Words() {
           rows={2}
           rowsMax={Infinity}
           fullWidth
+          value={outputState}
           InputProps={{
             readOnly: true,
             classes: {
@@ -102,6 +104,7 @@ function Words() {
       </div>
   </div>
 
+// fix display with useEffect and add button to state change
 // add satet for result text field
 // helper class: fix correct number of words + cleanup atleast a bit + add use of seperator
 // remove console log 
@@ -113,6 +116,8 @@ function handleChangeCheckbox(evt){
   tmp_CheckboxState[evt.target.id] = !tmp_CheckboxState[evt.target.id]
 
   setCheckboxState(tmp_CheckboxState)
+
+  setOutputState(randomWords(sliderState,checkboxState,"-"))
 }
 
 function wordsInputStylingPerDevice(){
