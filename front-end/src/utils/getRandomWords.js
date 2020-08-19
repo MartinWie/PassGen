@@ -12,7 +12,7 @@ const randomWords = (length, checkboxState, seperator) => {
 
     result= getWord()
     for(var i = 1;i<length; i++){
-        result= result+ "-" + getWord()
+        result= result+ seperator + getWord()
     }
 
     return result
