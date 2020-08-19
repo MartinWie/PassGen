@@ -8,6 +8,8 @@ const randomWords = (length, checkboxState, seperator) => {
         getWord = getEnglishWord
     } else if(checkboxState.checkedGer && !(checkboxState.checkedEng)){
         getWord = getGermanWord
+    } else {
+        return ("No language selected, feel free to choose ;)")
     }
 
     result= getWord()
