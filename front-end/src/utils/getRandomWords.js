@@ -1,24 +1,21 @@
 const randomWords = (length, checkboxState, seperator) => {
     let result = ''
+    let getWord
 
-    switch(true){
-        case (checkboxState.checkedGer && checkboxState.checkedEng):
-            for(var i = 0;i<length; i++){
-                result= result + getGermanOrEnglishWord()
-            }
-
-        case (!(checkboxState.checkedGer) && checkboxState.checkedEng):
-            for(var i = 0;i<length; i++){
-                result= result + getEnglishWord()
-            }
-
-        case (checkboxState.checkedGer && !(checkboxState.checkedEng)):
-            for(var i = 0;i<length; i++){
-                result= result + getGermanWord()
-            }
+    if(checkboxState.checkedGer && checkboxState.checkedEng){
+        getWord = getGermanOrEnglishWord
+    } else if(!(checkboxState.checkedGer) && checkboxState.checkedEng){
+        getWord = getEnglishWord
+    } else if(checkboxState.checkedGer && !(checkboxState.checkedEng)){
+        getWord = getGermanWord
     }
+
+    result= getWord()
+    for(var i = 1;i<length; i++){
+        result= result+ "-" + getWord()
+    }
+
     return result
-    
 }
 
 

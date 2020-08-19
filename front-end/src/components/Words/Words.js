@@ -35,8 +35,6 @@ function Words() {
 
   const classes = useStyles();
 
-  //console.log(randomWords(sliderState,checkboxState,"-"))
-
   return <div className="toolsframe">
       
       <span>Number of words:</span>
@@ -109,11 +107,8 @@ function Words() {
       </div>
   </div>
 
-// fix display with useEffect and add button to state change
-// add satet for result text field
+
 // helper class: fix correct number of words + cleanup atleast a bit + add use of seperator
-// remove console log 
-// button
 
 function handleChangeCheckbox(evt){
   //Using he Object spread because setCheckboxState requires a new object for rerendering(Object spread helps us to create a new Object instead of copying the reference!)
