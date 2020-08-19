@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, {useState, useE, useEffect} from 'react'
 import { useForm } from "react-hook-form";
 import {Button, TextField, Checkbox, FormControlLabel, Slider,FormLabel, colors} from '@material-ui/core/';
 import RefreshIcon from '@material-ui/icons/Refresh';
@@ -28,6 +28,11 @@ function Words() {
   const [seperatorState, setSeperatorState] = useState("")
   const [outputState, setOutputState] = useState("")
 
+  useEffect(() => {
+    setOutputState(randomWords(sliderState,checkboxState,"-"))
+
+  },[checkboxState,sliderState,seperatorState])
+
   const classes = useStyles();
 
   //console.log(randomWords(sliderState,checkboxState,"-"))
@@ -45,7 +50,7 @@ function Words() {
           min={1}
           max={8}
           valueLabelDisplay="auto"
-          onChangeCommitted={(evt, value) => setSliderState(value)}
+          onChange={(evt, value) => setSliderState(value)}
         />
       </div>
       <div style={wordsInputStylingPerDevice()}>
@@ -116,8 +121,6 @@ function handleChangeCheckbox(evt){
   tmp_CheckboxState[evt.target.id] = !tmp_CheckboxState[evt.target.id]
 
   setCheckboxState(tmp_CheckboxState)
-
-  setOutputState(randomWords(sliderState,checkboxState,"-"))
 }
 
 function wordsInputStylingPerDevice(){
