@@ -107,38 +107,30 @@ function Words() {
       </div>
   </div>
 
+  function handleChangeCheckbox(evt){
+    //Using he Object spread because setCheckboxState requires a new object for rerendering(Object spread helps us to create a new Object instead of copying the reference!)
+    let tmp_CheckboxState = {...checkboxState}
+    tmp_CheckboxState[evt.target.id] = !tmp_CheckboxState[evt.target.id]
 
-// helper class: fix correct number of words + cleanup atleast a bit + add use of seperator
-
-function handleChangeCheckbox(evt){
-  //Using he Object spread because setCheckboxState requires a new object for rerendering(Object spread helps us to create a new Object instead of copying the reference!)
-  let tmp_CheckboxState = {...checkboxState}
-  tmp_CheckboxState[evt.target.id] = !tmp_CheckboxState[evt.target.id]
-
-  setCheckboxState(tmp_CheckboxState)
-}
-
-function wordsInputStylingPerDevice(){
-  var style = {
-    display: 'flex',
-    justifyContent: 'space-around'
+    setCheckboxState(tmp_CheckboxState)
   }
-  if(isMobile){
-    style.flexDirection = 'column';
+  //found more elegant solution(replace here and in pw gen):
+  /*
+    const handleChange = (event) => {
+      setState({ ...state, [event.target.name]: event.target.checked });
+    };
+  */
+
+  function wordsInputStylingPerDevice(){
+    var style = {
+      display: 'flex',
+      justifyContent: 'space-around'
+    }
+    if(isMobile){
+      style.flexDirection = 'column';
+    }
+    return style;
   }
-  return style;
-}
-
-//found more elegant solution(replace here and in pw gen):
-
-/*
-  const handleChange = (event) => {
-    setState({ ...state, [event.target.name]: event.target.checked });
-  };
-*/
-
-
-
 
 }
 
