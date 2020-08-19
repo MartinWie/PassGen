@@ -1,5 +1,4 @@
 import React, {useState, useE, useEffect} from 'react'
-import { useForm } from "react-hook-form";
 import {Button, TextField, Checkbox, FormControlLabel, Slider,FormLabel, colors} from '@material-ui/core/';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import {makeStyles} from '@material-ui/core/styles'
@@ -8,7 +7,6 @@ import './Words.css'
 import {isMobile} from "react-device-detect";
 const randomWords = require('../../utils/getRandomWords')
 
-const {register, handleSubmit, errors} = useForm;
 const useStyles = makeStyles({
   notchedOutline: {borderColor: theme.palette.primary.main + " !important"},
 });
