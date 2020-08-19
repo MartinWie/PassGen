@@ -25,11 +25,11 @@ function Words() {
   });
 
   const [sliderState, setSliderState] = useState(4)
-  const [seperatorState, setSeperatorState] = useState("")
+  const [seperatorState, setSeperatorState] = useState("-")
   const [outputState, setOutputState] = useState("")
 
   useEffect(() => {
-    setOutputState(randomWords(sliderState,checkboxState,"-"))
+    setOutputState(randomWords(sliderState,checkboxState,seperatorState))
 
   },[checkboxState,sliderState,seperatorState])
 
@@ -88,7 +88,7 @@ function Words() {
           variant="outlined"
           onChange={(evt) => setSeperatorState(evt.target.value)}
         />
-        <Button variant="contained" color="primary"> <RefreshIcon /></Button>
+        <Button variant="contained" color="primary" onClick={() => setOutputState(randomWords(sliderState,checkboxState,seperatorState)) }> <RefreshIcon /></Button>
       </div>
       <div className="wordsOutput">
         <TextField
