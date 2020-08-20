@@ -11,10 +11,6 @@ const useStyles = makeStyles({
   notchedOutline: {borderColor: theme.palette.primary.main + " !important"},
 });
 
-function valuetext(value) {
-  return {value};
-  
-}
 function Words() {
 
   const [checkboxState, setCheckboxState] = useState({
@@ -128,6 +124,11 @@ function Words() {
       style.flexDirection = 'column';
     }
     return style;
+  }
+
+  function valuetext(value) {
+    return {value};
+    
   }
 
 }
