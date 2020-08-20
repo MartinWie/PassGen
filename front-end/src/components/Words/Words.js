@@ -1,5 +1,5 @@
-import React, {useState, useE, useEffect} from 'react'
-import {Button, TextField, Checkbox, FormControlLabel, Slider,FormLabel, colors} from '@material-ui/core/';
+import React, {useState, useEffect} from 'react'
+import {Button, TextField, Checkbox, FormControlLabel, Slider} from '@material-ui/core/';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import {makeStyles} from '@material-ui/core/styles'
 import theme from '../../config/theme';
