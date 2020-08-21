@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {Button, TextField} from '@material-ui/core/';
 import RefreshIcon from '@material-ui/icons/Refresh';
-formattingimport VisibilityIcon from '@material-ui/icons/Visibility';
+import VisibilityIcon from '@material-ui/icons/Visibility';
 import {makeStyles} from '@material-ui/core/styles'
 import theme from '../../config/theme';
 import './Keypair.css'
