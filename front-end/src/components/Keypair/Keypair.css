@@ -1,0 +1,17 @@
+.key-container{
+    margin-top: 10px;
+}
+
+.private-key--block{
+    display: flex;
+}
+
+.private-key{
+    width: 95%;
+}
+
+.private-key--button{
+    width: 5%;
+    display: flex;
+    justify-content: center;
+}
