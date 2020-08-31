@@ -80,7 +80,9 @@ function Words() {
           variant="outlined"
           onChange={(evt) => setSeperatorState(evt.target.value)}
         />
-        <Button variant="contained" color="primary" onClick={() => setOutputState(randomWords(sliderState,checkboxState,seperatorState)) }> <RefreshIcon /></Button>
+        <Button variant="contained" color="primary" onClick={
+            () => setOutputState(randomWords(sliderState,checkboxState,seperatorState)) 
+          }> <RefreshIcon /></Button>
       </div>
       <div className="wordsOutput">
         <TextField

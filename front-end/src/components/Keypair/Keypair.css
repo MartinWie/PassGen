@@ -1,13 +1,21 @@
+.key-attributes{
+    display: flex;
+    justify-content: left;
+}
+
 .key-container{
     margin-top: 10px;
 }
 
 .private-key--block{
     display: flex;
+    justify-content: space-between;
 }
 
 .private-key{
-    width: 95%;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
 }
 
 .private-key--button{
