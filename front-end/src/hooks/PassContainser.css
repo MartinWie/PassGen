@@ -1,0 +1,14 @@
+.passcontainer{
+    margin-top: 10px;
+}
+
+.passcontainer--block{
+    display: flex;
+    justify-content: space-between;
+}
+
+.passcontainer-text{
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
