@@ -7,6 +7,7 @@ import AssignmentIcon from '@material-ui/icons/Assignment';
 import {makeStyles} from '@material-ui/core/styles'
 import theme from '../../config/theme';
 import './Keypair.css'
+import PassContainer from '../../hooks/PassContainer'
 
 const useStyles = makeStyles({
     notchedOutline: {borderColor: theme.palette.primary.main + " !important"},
@@ -79,6 +80,7 @@ function Keypair(){
           <Button variant="contained" color="primary" onClick={() => console.log(`copy private key! ${nameState}`) }> <AssignmentIcon /></Button>
         </div>
       </div>
+      <PassContainer />
     </div>
 }
 

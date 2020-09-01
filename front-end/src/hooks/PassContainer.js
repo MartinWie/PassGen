@@ -2,8 +2,17 @@ import React, {useState} from 'react'
 import VisibilityIcon from '@material-ui/icons/Visibility';
 import AssignmentIcon from '@material-ui/icons/Assignment';
 import './PassContainer.css'
+import {makeStyles} from '@material-ui/core/styles'
+import theme from '../config/theme';
+import {Button, TextField} from '@material-ui/core/';
+
+const useStyles = makeStyles({
+    notchedOutline: {borderColor: theme.palette.primary.main + " !important"},
+});
 
 function PassContainer() {
+    const classes = useStyles();
+    const [nameState,setNameState] = useState("key")
 
     return(
         <div className="passcontainer">
