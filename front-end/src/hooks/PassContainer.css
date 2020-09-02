@@ -12,3 +12,8 @@
     justify-content: space-between;
     width: 100%;
 }
+
+#passcontainerShowButton{
+    margin: 0px 3px 0px 3px;
+}
+

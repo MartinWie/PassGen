@@ -16,5 +16,8 @@ export default createMuiTheme({
         allVariants: {
             color: ''
         }
+    },
+    shape:{
+      borderRadius:20,
     }
   });

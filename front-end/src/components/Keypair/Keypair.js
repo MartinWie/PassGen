@@ -33,7 +33,7 @@ function Keypair(){
           variant="outlined"
           onChange={(evt) => setNameState(evt.target.value)}
         />
-        <Button variant="contained" color="primary" onClick={() => console.log(`Download keypair! ${nameState}`) }><CloudDownloadIcon /></Button>
+        <Button id="keypairDownloadButton" variant="contained" color="primary" onClick={() => console.log(`Download keypair! ${nameState}`) }><CloudDownloadIcon /></Button>
         <Button variant="contained" color="primary" onClick={() => console.log(`Gen keypair! ${nameState}`) }> <RefreshIcon /></Button>
       </div>
         
@@ -54,31 +54,6 @@ function Keypair(){
             }
           }}
         />
-      </div>
-
-      <div className="key-container">
-        Private key:
-        <div className="private-key--block">
-          <div className="private-key">
-            <TextField
-              placeholder="Yeah! PassWords"
-              multiline
-              variant="outlined"
-              rows={2}
-              fullWidth
-              rowsMax={Infinity}
-              value=""
-              InputProps={{
-                readOnly: true,
-                classes: {
-                  notchedOutline: classes.notchedOutline
-                }
-              }}
-            />
-          </div>
-          <Button variant="contained" color="primary" onClick={() => console.log(`Show private key! ${nameState}`) }> <VisibilityIcon /></Button>
-          <Button variant="contained" color="primary" onClick={() => console.log(`copy private key! ${nameState}`) }> <AssignmentIcon /></Button>
-        </div>
       </div>
       <PassContainer />
     </div>
