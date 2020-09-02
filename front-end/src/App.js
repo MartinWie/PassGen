@@ -40,6 +40,7 @@ function App() {
 
 export default App;
   
+// styling of words.js (retry button margin top mobile ) + checkboxes add equal spacing between
 // rewrite PassGen page with material-ui
 // change style of toolsfram + add headings for every component
 // about page / impressum nicht vergessen ;)
