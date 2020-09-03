@@ -14,20 +14,21 @@ function PassContainer() {
     const classes = useStyles();
     const [nameState,setNameState] = useState("key")
     const [inputState,setInputState] = useState("")
+    const [passwordHiddenState,setPasswordHiddenState] = useState(true)
 
     return(
         <div className="passcontainer">
         Private key:
         <div className="passcontainer--block">
           <div className="passcontainer-text">
-            <TextField
+            <TextField 
               placeholder="Yeah! PassWords"
-              multiline
               variant="outlined"
               rows={2}
               fullWidth
               rowsMax={Infinity}
               value={inputState}
+              type={passwordHiddenState ? 'password' : 'text'}
               InputProps={{
                 readOnly: true,
                 classes: {
@@ -36,7 +37,7 @@ function PassContainer() {
               }}
             />
           </div>
-          <Button id="passcontainerShowButton" variant="contained" color="primary" onClick={() => console.log(`Show private key! ${nameState}`) }> <VisibilityIcon /></Button>
+          <Button id="passcontainerShowButton" variant="contained" color="primary" onClick={() => setPasswordHiddenState(!passwordHiddenState) }> <VisibilityIcon /></Button>
           <Button variant="contained" color="primary" onClick={() => console.log(`copy private key! ${nameState}`) }> <AssignmentIcon /></Button>
         </div>
       </div>
