@@ -13,8 +13,6 @@ const useStyles = makeStyles({
     notchedOutline: {borderColor: theme.palette.primary.main + " !important"},
 });
 
-//next: move private key to own component and reuse it for public key (do not forget state for show, text(heading))
-
 function Keypair(){
 
     const classes = useStyles();
