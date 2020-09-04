@@ -55,7 +55,7 @@ function Keypair(){
           }}
         />
       </div>
-      <PassContainer />
+      <PassContainer title="Private key:" hidden value="" />
     </div>
 }
 

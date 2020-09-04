@@ -11,16 +11,15 @@ const useStyles = makeStyles({
     notchedOutline: {borderColor: theme.palette.primary.main + " !important"},
 });
 
-function PassContainer() {
+function PassContainer(props) {
     const classes = useStyles();
     const [nameState,setNameState] = useState("key")
-    const [inputState,setInputState] = useState("")
-    const [passwordHiddenState,setPasswordHiddenState] = useState(true)
-    const [passTextState,setPassTextState] = useState("Test")
+    const [inputState,setInputState] = useState(props.value)
+    const [passwordHiddenState,setPasswordHiddenState] = useState(props.hidden)
 
     return(
         <div className="passcontainer">
-        Private key:
+        <span>{props.title}</span>
         <div className="passcontainer--block">
           <div className="passcontainer-text">
             <TextField 
@@ -41,7 +40,7 @@ function PassContainer() {
           </div>
           <Button id="passcontainerShowButton" variant="contained" color="primary" onClick={() => setPasswordHiddenState(!passwordHiddenState) }> <VisibilityIcon /></Button>
           <Tooltip title="Copy to clipboard" placement="top">
-            <Button variant="contained" color="primary" onClick={() => navigator.clipboard.writeText(passTextState) }> <AssignmentIcon /></Button>
+            <Button variant="contained" color="primary" onClick={() => navigator.clipboard.writeText(inputState) }> <AssignmentIcon /></Button>
           </Tooltip>
         </div>
       </div>
