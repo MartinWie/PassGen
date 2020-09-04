@@ -1,10 +1,11 @@
 import React, {useState} from 'react'
 import VisibilityIcon from '@material-ui/icons/Visibility';
 import AssignmentIcon from '@material-ui/icons/Assignment';
-import './PassContainer.css'
+import {Button, TextField} from '@material-ui/core/';
 import {makeStyles} from '@material-ui/core/styles'
+import Tooltip from "@material-ui/core/Tooltip";
+import './PassContainer.css'
 import theme from '../config/theme';
-import {Button, TextField, Hidden} from '@material-ui/core/';
 
 const useStyles = makeStyles({
     notchedOutline: {borderColor: theme.palette.primary.main + " !important"},
@@ -15,6 +16,7 @@ function PassContainer() {
     const [nameState,setNameState] = useState("key")
     const [inputState,setInputState] = useState("")
     const [passwordHiddenState,setPasswordHiddenState] = useState(true)
+    const [passTextState,setPassTextState] = useState("Test")
 
     return(
         <div className="passcontainer">
@@ -38,7 +40,9 @@ function PassContainer() {
             />
           </div>
           <Button id="passcontainerShowButton" variant="contained" color="primary" onClick={() => setPasswordHiddenState(!passwordHiddenState) }> <VisibilityIcon /></Button>
-          <Button variant="contained" color="primary" onClick={() => console.log(`copy private key! ${nameState}`) }> <AssignmentIcon /></Button>
+          <Tooltip title="Copy to clipboard" placement="top">
+            <Button variant="contained" color="primary" onClick={() => navigator.clipboard.writeText(passTextState) }> <AssignmentIcon /></Button>
+          </Tooltip>
         </div>
       </div>
     )   
