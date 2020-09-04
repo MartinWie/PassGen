@@ -37,24 +37,7 @@ function Keypair(){
         <Button variant="contained" color="primary" onClick={() => console.log(`Gen keypair! ${nameState}`) }> <RefreshIcon /></Button>
       </div>
         
-      <div className="key-container">
-        Public key:
-        <TextField
-          placeholder="Yeah! PassWords"
-          multiline
-          variant="outlined"
-          rows={2}
-          rowsMax={Infinity}
-          fullWidth
-          value=""
-          InputProps={{
-            readOnly: true,
-            classes: {
-              notchedOutline: classes.notchedOutline
-            }
-          }}
-        />
-      </div>
+      <PassContainer title="Public key:" value="" />
       <PassContainer title="Private key:" hidden value="" />
     </div>
 }

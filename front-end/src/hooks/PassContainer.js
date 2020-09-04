@@ -46,5 +46,5 @@ function PassContainer(props) {
       </div>
     )   
 }
-//Next step add clipboard functionality then get props from parent(Heading, pwhiddenornot, value)
+
 export default PassContainer
