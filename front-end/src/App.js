@@ -39,7 +39,9 @@ function App() {
 }
 
 export default App;
-  
+
+// Word: cleanup / read comment and improve code
+// Keypair: add ppk / pem  auch noch in der key file seite anzeigen sobald es dafürendpoints gibt 
 // styling of words.js (retry button margin top mobile ) + checkboxes add equal spacing between
 // rewrite PassGen page with material-ui
 // change style of toolsfram + add headings for every component
