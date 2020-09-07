@@ -2,8 +2,6 @@ import React, {useState, useEffect} from 'react';
 import {Button, TextField} from '@material-ui/core/';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
-import VisibilityIcon from '@material-ui/icons/Visibility';
-import AssignmentIcon from '@material-ui/icons/Assignment';
 import {makeStyles} from '@material-ui/core/styles'
 import theme from '../../config/theme';
 import './Keypair.css'
