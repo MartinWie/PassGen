@@ -41,5 +41,5 @@ function Send() {
         </Paper>
     </div>
 }
-
+// rmove this and work with a simple radio button 
 export default Send;
