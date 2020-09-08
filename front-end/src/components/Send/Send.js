@@ -1,45 +1,44 @@
 import React, {useState} from 'react'
 import './Send.css'
-import { makeStyles } from '@material-ui/core/styles';
-import Paper from '@material-ui/core/Paper';
-import Tabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
+import Radio from '@material-ui/core/Radio';
+import RadioGroup from '@material-ui/core/RadioGroup';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormControl from '@material-ui/core/FormControl';
+import FormLabel from '@material-ui/core/FormLabel';
 
-const useStyles = makeStyles({
-    root: {
-      flexGrow: 1,
-      backgroundColor: "transparent",
-    },
-    palette: {
-        text: {
-          primary: "#FFFFFF"
-        }
-    },
-  });
 
 function Send() {
-    const classes = useStyles();
-    const [value, setValue] = useState(0);
+    const [radioState, setRadioState] = useState(0);
 
-    const handleChange = (event, newValue) => {
-        setValue(newValue);
+    const handleRadioChange = (event, newValue) => {
+        setRadioState(event.target.value);
+        console.log(event.target.value)
     };
     
     
     return <div className="toolsframe">
-        <Paper className={classes.root}>
-        <Tabs
-            value={value}
-            onChange={handleChange}
-            indicatorColor="primary"
-            textColor="primary"
-            centered
-        >
-            <Tab label="Password" value="Test"/>
-            <Tab label="Keypair" />
-        </Tabs>
-        </Paper>
+        <div>
+            <FormControl component="fieldset">
+                <RadioGroup row aria-label="position" name="position" defaultValue="password">
+                    <FormControlLabel
+                    value="password"
+                    control={<Radio color="primary" />}
+                    label="Password"
+                    labelPlacement="top"
+                    onChange={handleRadioChange}
+                    />
+                    <FormControlLabel
+                    value="key"
+                    control={<Radio color="primary" />}
+                    label="Key"
+                    labelPlacement="top"
+                    onChange={handleRadioChange}
+                    />
+                </RadioGroup>
+            </FormControl>
+        </div>
+       
     </div>
 }
-// rmove this and work with a simple radio button 
+// center the radio buttons  with flex and then create the ui for send
 export default Send;
