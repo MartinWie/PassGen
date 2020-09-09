@@ -8,7 +8,7 @@ import FormLabel from '@material-ui/core/FormLabel';
 
 
 function Send() {
-    const [radioState, setRadioState] = useState(0);
+    const [radioState, setRadioState] = useState("password");
 
     const handleRadioChange = (event, newValue) => {
         setRadioState(event.target.value);
@@ -17,9 +17,9 @@ function Send() {
     
     
     return <div className="toolsframe">
-        <div>
+        <div className="send-radio">
             <FormControl component="fieldset">
-                <RadioGroup row aria-label="position" name="position" defaultValue="password">
+                <RadioGroup row aria-label="position" name="position" defaultValue={radioState}>
                     <FormControlLabel
                     value="password"
                     control={<Radio color="primary" />}
@@ -37,8 +37,17 @@ function Send() {
                 </RadioGroup>
             </FormControl>
         </div>
-       
+        {getSendUI()}
     </div>
+
+    function getSendUI() {
+        if(radioState == "password") {
+            return "PW UI"
+        } else {
+            return "key UI"
+        }
+    }
+
 }
-// center the radio buttons  with flex and then create the ui for send
+// implement send key/pw UI
 export default Send;
