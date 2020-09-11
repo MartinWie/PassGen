@@ -1,13 +1,18 @@
-import React from 'react'
+import React,{useEffect, useState} from 'react'
 import PassContainer from './PassContainer'
 
 function SendGenerator(props) {
+    const [sendGeneratorTypeState,setSendGeneratorTypeState] = useState("")
     
+    useEffect(() => {
+        setSendGeneratorTypeState(props.value)
+    }, [props.value])
+
     return(
         <div>
             {props.type}  
             <PassContainer value="Link to share the credential" />
-            {props.value == "password" ? <PassContainer value="Public key" /> : null}
+            {sendGeneratorTypeState != String ? <PassContainer value="Public key" /> : null}
         </div>
     )
 }
