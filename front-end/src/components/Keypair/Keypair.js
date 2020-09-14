@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import {Button, TextField} from '@material-ui/core/';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
