@@ -4,7 +4,7 @@ import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
-import SendGenerator from '../../hooks/SendGenerator'
+import SendOutput from '../../hooks/SendOutput'
 
 
 function Send() {
@@ -37,7 +37,7 @@ function Send() {
                 </RadioGroup>
             </FormControl>
         </div>
-        <SendGenerator type={radioState}/>
+        <SendOutput type={radioState}/>
     </div>
 }
 // implement send key/pw UI

@@ -1,7 +1,7 @@
 import React,{useEffect, useState} from 'react'
 import PassContainer from './PassContainer'
 
-function SendGenerator(props) {
+function SendOutput(props) {
     const [sendGeneratorTypeState,setSendGeneratorTypeState] = useState(props.type)
     
     useEffect(() => {
@@ -16,4 +16,4 @@ function SendGenerator(props) {
     )
 }
 
-export default SendGenerator
+export default SendOutput
