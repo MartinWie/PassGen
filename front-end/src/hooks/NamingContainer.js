@@ -47,4 +47,5 @@ function NamingContainer(props) {
     
 }
 // complete parameters than replace(Placeholder for keynbame/input and parameter for buttons) keypair css and jas input with this compononent
+// rename Naming Container to InputContainer and add prop for Changing the label(default "Input")
 export default NamingContainer
