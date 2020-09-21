@@ -27,13 +27,15 @@ function NamingContainer(props) {
                 variant="outlined"
                 onChange={(evt) => setNameState(evt.target.value)}
             />
-            <Button id="keypairDownloadButton" 
-                variant="contained" 
-                color="primary" 
-                onClick={() => console.log(`Download keypair! ${nameState}`) }
-                >
-                    <CloudDownloadIcon />
-            </Button>
+            { props.hideDownloadbutton == null &&
+                <Button id="keypairDownloadButton" 
+                    variant="contained" 
+                    color="primary" 
+                    onClick={() => console.log(`Download keypair! ${nameState}`) }
+                    >
+                        <CloudDownloadIcon />
+                </Button>
+            }
             <Button variant="contained" 
                 color="primary" 
                 onClick={() => console.log(`Gen keypair! ${nameState}`) }
@@ -44,5 +46,5 @@ function NamingContainer(props) {
     )
     
 }
-// complete parameters than replace keypair css and jas input with this compononent
+// complete parameters than replace(Placeholder for keynbame/input and parameter for buttons) keypair css and jas input with this compononent
 export default NamingContainer
