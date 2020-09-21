@@ -37,9 +37,9 @@ function Send() {
                 </RadioGroup>
             </FormControl>
         </div>
-        <NamingContainer />
+        <NamingContainer hideDownloadbutton />
         <SendOutput type={radioState}/>
     </div>
 }
-// implement send key/pw UI
+
 export default Send;
