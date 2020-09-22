@@ -41,13 +41,12 @@ function App() {
 export default App;
 
 // rebuild PasswordGeneration component
-// Word: cleanup / read comment and improve code
+// cleanup / read all comments and improve code
 // Keypair: add ppk / pem  auch noch in der key file seite anzeigen sobald es dafürendpoints gibt 
 // styling of words.js (retry button margin top mobile ) + checkboxes add equal spacing between
 // rewrite PassGen page with material-ui
 // change style of toolsfram + add headings for every component
 // about page / impressum nicht vergessen ;)
-// Logo und Favicon nicht vergessen
 // cleanup css : https://www.freecodecamp.org/news/css-naming-conventions-that-will-save-you-hours-of-debugging-35cea737d849/
 // clear / work through warnings 
 // add JS/react linter
