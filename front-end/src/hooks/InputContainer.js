@@ -4,13 +4,13 @@ import RefreshIcon from '@material-ui/icons/Refresh';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import {makeStyles} from '@material-ui/core/styles'
 import theme from '../config/theme';
-import './NamingContainer.css'
+import './InputContainer.css'
 
 const useStyles = makeStyles({
     notchedOutline: {borderColor: theme.palette.primary.main + " !important"},
 });
 
-function NamingContainer(props) {
+function InputContainer(props) {
     const classes = useStyles();
     const [nameState,setNameState] = useState("key")
 
@@ -49,4 +49,4 @@ function NamingContainer(props) {
 // complete parameters than replace(Placeholder for keynbame/input and parameter for buttons) keypair css and jas input with this compononent
 // rename Naming Container to InputContainer and add prop for Changing the label(default "Input")
 // After that refactor main page and look for comments to improve and then start backend :)
-export default NamingContainer
+export default InputContainer

@@ -5,7 +5,7 @@ import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
 import SendOutput from '../../hooks/SendOutput'
-import NamingContainer from '../../hooks/NamingContainer'
+import InputContainer from '../../hooks/InputContainer'
 
 function Send() {
     const [radioState, setRadioState] = useState("password");
@@ -37,7 +37,7 @@ function Send() {
                 </RadioGroup>
             </FormControl>
         </div>
-        <NamingContainer hideDownloadbutton />
+        <InputContainer hideDownloadbutton />
         <SendOutput type={radioState}/>
     </div>
 }
