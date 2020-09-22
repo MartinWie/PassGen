@@ -37,7 +37,7 @@ function Send() {
                 </RadioGroup>
             </FormControl>
         </div>
-        <InputContainer hideDownloadbutton />
+        <InputContainer hideDownloadbutton outlinedName={radioState == "key" ? "Name for the key" : "Password"} />
         <SendOutput type={radioState}/>
     </div>
 }

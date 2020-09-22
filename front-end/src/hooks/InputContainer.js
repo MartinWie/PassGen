@@ -23,7 +23,7 @@ function InputContainer(props) {
                     notchedOutline: classes.notchedOutline
                     }
                 }} 
-                id="outlined-name" label="Name" 
+                id="outlined-name" label={props.outlinedName ? props.outlinedName : "Name"} 
                 variant="outlined"
                 onChange={(evt) => setNameState(evt.target.value)}
             />
@@ -46,7 +46,5 @@ function InputContainer(props) {
     )
     
 }
-// complete parameters than replace(Placeholder for keynbame/input and parameter for buttons) keypair css and jas input with this compononent
-// rename Naming Container to InputContainer and add prop for Changing the label(default "Input")
-// After that refactor main page and look for comments to improve and then start backend :)
+
 export default InputContainer
