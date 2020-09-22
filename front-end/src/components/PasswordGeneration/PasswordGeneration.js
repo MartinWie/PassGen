@@ -65,5 +65,6 @@ function PasswordGeneration() {
     }
   }
 }
+  // switch Input withInputContainer and add onChangeHandler to its props
 
 export default PasswordGeneration;
