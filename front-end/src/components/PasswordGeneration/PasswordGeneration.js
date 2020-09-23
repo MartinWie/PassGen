@@ -65,6 +65,7 @@ function PasswordGeneration() {
     }
   }
 }
+  // change Input Container to slider -> create slider Container and use it here and in words
   // switch Input withInputContainer and add onChangeHandler to its props
 
 export default PasswordGeneration;
