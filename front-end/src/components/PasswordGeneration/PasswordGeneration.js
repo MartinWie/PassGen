@@ -23,7 +23,7 @@ function PasswordGeneration() {
   return <div className="toolsframe">
       <h3>Enter a length for your password</h3>
 
-      <SliderContainer min={1} max={42} setSliderValue={setPwLength} sliderValue={pwLength} redoButtonFunction={regenPassword}/>
+      <SliderContainer min={1} max={42} defaultValue={pwLength} setSliderValue={setPwLength} sliderValue={pwLength} redoButtonFunction={regenPassword}/>
 
       <div className="HorizontalLayout" >
         <Form.Check id="checkboxNumbers" onChange={handleChangeCheckbox} className="PWGenCheckbox" type="checkbox" label=" 0-9" checked={checkboxState.checkboxNumbers} />
