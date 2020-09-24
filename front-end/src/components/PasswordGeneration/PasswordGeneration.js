@@ -1,7 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import './PasswordGeneration.css';
-import { FormControl, Button, InputGroup, Form } from 'react-bootstrap';
-import { ArrowClockwise } from 'react-bootstrap-icons';
+import { Form } from 'react-bootstrap';
 import SliderContainer from '../../hooks/SliderContainer'
 
 const randomString = require('../../utils/getRandomString')
