@@ -1,34 +1,31 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import './PasswordGeneration.css';
 import { FormControl, Button, InputGroup, Form } from 'react-bootstrap';
 import { ArrowClockwise } from 'react-bootstrap-icons';
+import SliderContainer from '../../hooks/SliderContainer'
+
 const randomString = require('../../utils/getRandomString')
+
 
 function PasswordGeneration() {
 
   const [password,setPassword] = useState("Choose a length!");
-  const [pwLength,setPwLength] = useState("length");
+  const [pwLength,setPwLength] = useState(42);
   const [checkboxState, setCheckboxState] = useState({
     checkboxNumbers: true,
     checkboxSpecialChars: true,
     checkboxUpper: true,
     checkboxLower:true
   });
+  useEffect(() => {
+    regenPassword()
+  },[pwLength]);
 
   return <div className="toolsframe">
       <h3>Enter a length for your password</h3>
 
-      <div className="HorizontalLayout">
-        <FormControl className="Fullwidth"
-          placeholder={pwLength}
-          aria-label={pwLength}
-          aria-describedby="basic-addon2"
-          onChange={evt => handleChange(evt)}
-        />
-        <InputGroup.Append>
-          <Button onClick={handleClick} variant="outline-secondary"><ArrowClockwise className="ButtonImage" /></Button>
-        </InputGroup.Append>
-      </div>
+      <SliderContainer min={1} max={100} setSliderValue={setPwLength} sliderValue={pwLength} redoButtonFunction={regenPassword}/>
+
       <div className="HorizontalLayout" >
         <Form.Check id="checkboxNumbers" onChange={handleChangeCheckbox} className="PWGenCheckbox" type="checkbox" label=" 0-9" checked={checkboxState.checkboxNumbers} />
         <Form.Check id="checkboxSpecialChars" onChange={handleChangeCheckbox} className="PWGenCheckbox" type="checkbox" label=" !/%..." checked={checkboxState.checkboxSpecialChars} />
@@ -49,7 +46,7 @@ function PasswordGeneration() {
     setCheckboxState(tmp_CheckboxState)
   }
 
-  function handleClick() {
+  function regenPassword() {
     setPassword(randomString(pwLength,checkboxState))
   }
 
@@ -65,7 +62,6 @@ function PasswordGeneration() {
     }
   }
 }
-  // change Input Container to slider -> create slider Container and use it here and in words
-  // switch Input withInputContainer and add onChangeHandler to its props
+  // make slider Container more pretty and use in words compoent
 
 export default PasswordGeneration;
