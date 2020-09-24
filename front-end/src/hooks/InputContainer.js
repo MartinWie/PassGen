@@ -1,4 +1,4 @@
-import React,{useState} from 'react'
+import React from 'react'
 import {Button, TextField} from '@material-ui/core/';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
@@ -12,7 +12,6 @@ const useStyles = makeStyles({
 
 function InputContainer(props) {
     const classes = useStyles();
-    const [nameState,setNameState] = useState("key")
 
     return(
         <div className="naming-container--attributes">
@@ -25,20 +24,21 @@ function InputContainer(props) {
                 }} 
                 id="outlined-name" label={props.outlinedName ? props.outlinedName : "Name"} 
                 variant="outlined"
-                onChange={(evt) => setNameState(evt.target.value)}
+                onChange={(evt) => props.inputChange(evt.target.value)}
+                value={props.inputValue}
             />
             { props.hideDownloadbutton == null &&
                 <Button id="keypairDownloadButton" 
                     variant="contained" 
                     color="primary" 
-                    onClick={() => console.log(`Download keypair! ${nameState}`) }
+                    onClick={() => console.log(`Download keypair!`) }
                     >
                         <CloudDownloadIcon />
                 </Button>
             }
             <Button variant="contained" 
                 color="primary" 
-                onClick={() => console.log(`Gen keypair! ${nameState}`) }
+                onClick={props.redoFunction}
                 > 
                 <RefreshIcon />
             </Button>

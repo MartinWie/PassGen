@@ -1,27 +1,21 @@
-import React, {useState} from 'react'
-import {Button, TextField, Checkbox, FormControlLabel, Slider} from '@material-ui/core/';
-import {isMobile} from "react-device-detect";
-
-
-const useStyles = makeStyles({
-  notchedOutline: {borderColor: theme.palette.primary.main + " !important"},
-});
+import React from 'react'
+import {Slider} from '@material-ui/core/';
+import InputContainer from './InputContainer'
 
 function SliderContainer(props) {
 
-  const [sliderState, setSliderState] = useState(4)
-
   return <div>
-      <Slider
-        defaultValue={props.defaultValue}
-        aria-labelledby="discrete-slider-small-steps"
-        step={1}
-        marks
-        min={props.min}
-        max={props.max}
-        valueLabelDisplay="auto"
-        onChange={(evt, value) => setSliderState(value)}
+    <Slider
+      defaultValue={props.defaultValue ? props.defaultValue : 0}
+      aria-labelledby="discrete-slider-small-steps"
+      step={1}
+      marks
+      min={props.min}
+      max={props.max}
+      valueLabelDisplay="auto"
+      onChange={(evt, value) => props.setSliderValue(value)}
     />
+    <InputContainer hideDownloadbutton outlinedName="Length" inputChange={props.setSliderValue} redoFunction={props.redoButtonFunction} inputValue={props.sliderValue} />
       
   </div>
 
