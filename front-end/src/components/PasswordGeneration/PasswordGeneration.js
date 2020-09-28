@@ -61,6 +61,6 @@ function PasswordGeneration() {
     }
   }
 }
-  // make slider Container more pretty and use in words compoent
+  // further cleanup (chekcboxes and output text)
 
 export default PasswordGeneration;
