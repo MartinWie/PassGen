@@ -34,7 +34,7 @@ function Words() {
       <span>Number of words:</span>
       <div style={wordsInputStylingPerDevice()}>        
         <Slider
-          defaultValue={sliderState}
+          defaultValue={4}
           aria-labelledby="discrete-slider-small-steps"
           step={1}
           marks
