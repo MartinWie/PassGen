@@ -22,10 +22,6 @@ function SliderContainer(props) {
     <InputContainer hideDownloadbutton outlinedName="Length" inputChange={props.setSliderValue} redoFunction={props.redoButtonFunction} inputValue={props.sliderValue} />
       
   </div>
-
-  // remove state and pass ind props (including handling function(lookup how this works with react))
-  // add texfield/text that shows the current number + regen button
-
 }
 
 export default SliderContainer;

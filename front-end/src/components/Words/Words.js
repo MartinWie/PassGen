@@ -5,6 +5,7 @@ import {makeStyles} from '@material-ui/core/styles'
 import theme from '../../config/theme';
 import './Words.css'
 import {isMobile} from "react-device-detect";
+import SliderContainer from '../../hooks/SliderContainer'
 const randomWords = require('../../utils/getRandomWords')
 
 const useStyles = makeStyles({
@@ -29,21 +30,21 @@ function Words() {
 
   const classes = useStyles();
 
+  function regenPassword(){
+    setOutputState(randomWords(sliderState,checkboxState,seperatorState))
+  }
+
   return <div className="toolsframe">
       
       <span>Number of words:</span>
-      <div style={wordsInputStylingPerDevice()}>        
-        <Slider
-          defaultValue={4}
-          aria-labelledby="discrete-slider-small-steps"
-          step={1}
-          marks
-          min={1}
-          max={8}
-          valueLabelDisplay="auto"
-          onChange={(evt, value) => setSliderState(value)}
-        />
-      </div>
+      <SliderContainer min={1} 
+        max={8} 
+        defaultValue={4} 
+        setSliderValue={setSliderState} 
+        sliderValue={sliderState} 
+        redoButtonFunction={regenPassword}
+      />
+
       <div style={wordsInputStylingPerDevice()}>
         <div className="wordsConfigCheckboxes">
           <FormControlLabel
@@ -69,20 +70,17 @@ function Words() {
             label="English"
           />
         </div>
-        <TextField 
-          InputProps={{
-            classes: {
-              notchedOutline: classes.notchedOutline
-            }
-          }} 
-          id="outlined-separator" label="Separator" 
-          variant="outlined"
-          onChange={(evt) => setSeperatorState(evt.target.value)}
-        />
-        <Button variant="contained" color="primary" onClick={
-            () => setOutputState(randomWords(sliderState,checkboxState,seperatorState)) 
-          }> <RefreshIcon /></Button>
       </div>
+      <TextField 
+        InputProps={{
+          classes: {
+            notchedOutline: classes.notchedOutline
+          }
+        }} 
+        id="outlined-separator" label="Separator" 
+        variant="outlined"
+        onChange={(evt) => setSeperatorState(evt.target.value)}
+      />
       <div className="wordsOutput">
         <TextField
           placeholder="Yeah! PassWords"
