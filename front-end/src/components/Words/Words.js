@@ -6,6 +6,7 @@ import './Words.css'
 import {isMobile} from "react-device-detect";
 import SliderContainer from '../../hooks/SliderContainer'
 import InputContainer from '../../hooks/InputContainer'
+import CheckboxContainer from '../../hooks/CheckboxContainer'
 const randomWords = require('../../utils/getRandomWords')
 
 const useStyles = makeStyles({
@@ -37,6 +38,9 @@ function Words() {
   return <div className="toolsframe">
       
       <span>Number of words:</span>
+      
+      <CheckboxContainer items={[]} />
+      
       <SliderContainer min={1} 
         max={8} 
         defaultValue={4} 
