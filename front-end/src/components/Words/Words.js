@@ -1,10 +1,11 @@
 import React, {useState, useEffect} from 'react'
-import {Button, TextField, Checkbox, FormControlLabel, Slider} from '@material-ui/core/';
+import {TextField, Checkbox, FormControlLabel} from '@material-ui/core/';
 import {makeStyles} from '@material-ui/core/styles'
 import theme from '../../config/theme';
 import './Words.css'
 import {isMobile} from "react-device-detect";
 import SliderContainer from '../../hooks/SliderContainer'
+import InputContainer from '../../hooks/InputContainer'
 const randomWords = require('../../utils/getRandomWords')
 
 const useStyles = makeStyles({
@@ -44,15 +45,16 @@ function Words() {
         redoButtonFunction={regenPassword}
       />
 
+
       <div style={wordsInputStylingPerDevice()}>
         <div className="wordsConfigCheckboxes">
           <FormControlLabel
             control={
               <Checkbox
-                checked={checkboxState.checkedGer}
-                onChange={handleChangeCheckbox}
-                id="checkedGer"
-                color="primary"
+              checked={checkboxState.checkedGer}
+              onChange={handleChangeCheckbox}
+              id="checkedGer"
+              color="primary"
               />
             }
             label="German"
@@ -60,26 +62,22 @@ function Words() {
           <FormControlLabel
             control={
               <Checkbox
-                checked={checkboxState.checkedEng}
-                onChange={handleChangeCheckbox}
-                id="checkedEng"
-                color="primary"
+              checked={checkboxState.checkedEng}
+              onChange={handleChangeCheckbox}
+              id="checkedEng"
+              color="primary"
               />
             }
             label="English"
           />
         </div>
       </div>
-      <TextField 
-        InputProps={{
-          classes: {
-            notchedOutline: classes.notchedOutline
-          }
-        }} 
-        id="outlined-separator" label="Separator" 
-        variant="outlined"
-        onChange={(evt) => setSeperatorState(evt.target.value)}
+
+      <InputContainer outlinedName="Separator" 
+        inputChange={setSeperatorState} 
+        hideRefreshbutton hideDownloadbutton
       />
+      
       <div className="wordsOutput">
         <TextField
           placeholder="Yeah! PassWords"
@@ -132,6 +130,5 @@ function Words() {
 }
 
  // fix styling (create component for checkboxes and use here and in Passgen)
- // look how to proper place seperator + use inputcontainer for it 
 
 export default Words;

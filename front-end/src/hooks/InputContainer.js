@@ -15,8 +15,7 @@ function InputContainer(props) {
 
     return(
         <div className="naming-container--attributes">
-            <TextField 
-                fullWidth
+            <TextField fullWidth
                 InputProps={{
                     classes: {
                     notchedOutline: classes.notchedOutline
@@ -27,6 +26,7 @@ function InputContainer(props) {
                 onChange={(evt) => props.inputChange(evt.target.value)}
                 value={props.inputValue}
             />
+
             { props.hideDownloadbutton == null &&
                 <Button id="keypairDownloadButton" 
                     variant="contained" 
@@ -36,12 +36,15 @@ function InputContainer(props) {
                         <CloudDownloadIcon />
                 </Button>
             }
-            <Button variant="contained" 
-                color="primary" 
-                onClick={props.redoFunction}
-                > 
-                <RefreshIcon />
-            </Button>
+
+            { props.hideRefreshbutton == null && 
+                <Button variant="contained" 
+                    color="primary" 
+                    onClick={props.redoFunction}
+                    > 
+                    <RefreshIcon />
+                </Button>
+            }
       </div>
     )
     
