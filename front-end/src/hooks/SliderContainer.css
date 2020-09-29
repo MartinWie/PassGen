@@ -1,5 +1,5 @@
 .slidercontainer{
-    display: flex;
+    display: grid;
 }
 
 .slidercontainer__slider{
