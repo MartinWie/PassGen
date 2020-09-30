@@ -14,7 +14,6 @@ const useStyles = makeStyles({
 function PassContainer(props) {
     const classes = useStyles();
     const [nameState,setNameState] = useState("key")
-    const [inputState,setInputState] = useState(props.value)
     const [passwordHiddenState,setPasswordHiddenState] = useState(props.hidden)
 
     return(
@@ -28,7 +27,7 @@ function PassContainer(props) {
               rows={2}
               fullWidth
               rowsMax={Infinity}
-              value={inputState}
+              value={props.value}
               type={passwordHiddenState ? 'password' : 'text'}
               InputProps={{
                 readOnly: true,
@@ -40,7 +39,7 @@ function PassContainer(props) {
           </div>
           <Button id="passcontainerShowButton" variant="contained" color="primary" onClick={() => setPasswordHiddenState(!passwordHiddenState) }> <VisibilityIcon /></Button>
           <Tooltip title="Copy to clipboard" placement="top">
-            <Button variant="contained" color="primary" onClick={() => navigator.clipboard.writeText(inputState) }> <AssignmentIcon /></Button>
+            <Button variant="contained" color="primary" onClick={() => navigator.clipboard.writeText(props.value) }> <AssignmentIcon /></Button>
           </Tooltip>
         </div>
       </div>

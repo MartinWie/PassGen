@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import './PasswordGeneration.css';
 import { Form } from 'react-bootstrap';
+import PassContainer from '../../hooks/PassContainer'
 import SliderContainer from '../../hooks/SliderContainer'
 
 const randomString = require('../../utils/getRandomString')
@@ -20,7 +21,8 @@ function PasswordGeneration() {
     regenPassword()
   },[pwLength]);
 
-  return <div className="toolsframe">
+  return (
+    <div className="toolsframe">
       <h3>Enter a length for your password</h3>
 
       <SliderContainer min={1} max={42} defaultValue={42} setSliderValue={setPwLength} sliderValue={pwLength} redoButtonFunction={regenPassword}/>
@@ -31,10 +33,9 @@ function PasswordGeneration() {
         <Form.Check id="checkboxUpper" onChange={handleChangeCheckbox} className="PWGenCheckbox" type="checkbox" label=" A-Z" checked={checkboxState.checkboxUpper} />
         <Form.Check id="checkboxLower" onChange={handleChangeCheckbox} className="PWGenCheckbox" type="checkbox" label=" a-z" checked={checkboxState.checkboxLower} />
       </div>
-      <div className="HorizontalLayout">
-        <Form.Control className="Fullwidth" as="textarea" rows="8" readOnly={true} value={password} />
-      </div>
-    </div>;
+      <PassContainer title="Password:" hidden value={password} />
+    </div>
+  );
 
 
   function handleChangeCheckbox(evt){
