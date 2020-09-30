@@ -23,7 +23,7 @@ function PasswordGeneration() {
 
   return (
     <div className="toolsframe">
-      <h3>Enter a length for your password</h3>
+      <h3>Classical password</h3>
 
       <SliderContainer min={1} max={42} defaultValue={42} setSliderValue={setPwLength} sliderValue={pwLength} redoButtonFunction={regenPassword}/>
 

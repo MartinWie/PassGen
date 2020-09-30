@@ -17,6 +17,7 @@ function Send() {
     
     
     return <div className="toolsframe">
+        <h3>Send credentials with one time links!</h3>
         <div className="send-radio">
             <FormControl component="fieldset">
                 <RadioGroup row aria-label="position" name="position" defaultValue={radioState}>
