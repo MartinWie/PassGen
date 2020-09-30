@@ -10,7 +10,7 @@ function SendOutput(props) {
 
     return(
         <div>
-            <PassContainer value="Link to share the credential" />
+            <PassContainer title="Link to share the credential:" value="" />
             {sendGeneratorTypeState == "key" ? <PassContainer value="Public key" /> : null}
         </div>
     )
