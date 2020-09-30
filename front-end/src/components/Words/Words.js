@@ -1,17 +1,13 @@
 import React, {useState, useEffect} from 'react'
-import {TextField, Checkbox, FormControlLabel} from '@material-ui/core/';
-import {makeStyles} from '@material-ui/core/styles'
-import theme from '../../config/theme';
+import {Checkbox, FormControlLabel} from '@material-ui/core/';
 import './Words.css'
 import {isMobile} from "react-device-detect";
 import SliderContainer from '../../hooks/SliderContainer'
 import InputContainer from '../../hooks/InputContainer'
 import CheckboxContainer from '../../hooks/CheckboxContainer'
-const randomWords = require('../../utils/getRandomWords')
+import PassContainer from '../../hooks/PassContainer'
 
-const useStyles = makeStyles({
-  notchedOutline: {borderColor: theme.palette.primary.main + " !important"},
-});
+const randomWords = require('../../utils/getRandomWords')
 
 function Words() {
 
@@ -28,8 +24,6 @@ function Words() {
     setOutputState(randomWords(sliderState,checkboxState,seperatorState))
 
   },[checkboxState,sliderState,seperatorState])
-
-  const classes = useStyles();
 
   function regenPassword(){
     setOutputState(randomWords(sliderState,checkboxState,seperatorState))
@@ -81,24 +75,9 @@ function Words() {
         inputChange={setSeperatorState} 
         hideRefreshbutton hideDownloadbutton
       />
-      
-      <div className="wordsOutput">
-        <TextField
-          placeholder="Yeah! PassWords"
-          multiline
-          variant="outlined"
-          rows={2}
-          rowsMax={Infinity}
-          fullWidth
-          value={outputState}
-          InputProps={{
-            readOnly: true,
-            classes: {
-              notchedOutline: classes.notchedOutline
-            }
-          }}
-        />
-      </div>
+
+      <PassContainer title="Password:" value={outputState} />
+
   </div>
 
   function handleChangeCheckbox(evt){
