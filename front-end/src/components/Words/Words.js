@@ -113,5 +113,6 @@ function Words() {
 }
 
  // fix styling (create component for checkboxes and use here and in Passgen)
+ // put seperator and checkboxes in a good order
 
 export default Words;
