@@ -112,6 +112,8 @@ function Words() {
 
 }
 
+ // send component add title for public key
+ // rewrite slidercontainer and build it something, make it more general, that the seperator also can fit in there
  // fix styling (create component for checkboxes and use here and in Passgen)
  // put seperator and checkboxes in a good order
 
