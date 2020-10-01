@@ -3,7 +3,6 @@ import {Checkbox, FormControlLabel} from '@material-ui/core/';
 import './Words.css'
 import {isMobile} from "react-device-detect";
 import SliderContainer from '../../hooks/SliderContainer'
-import InputContainer from '../../hooks/InputContainer'
 import CheckboxContainer from '../../hooks/CheckboxContainer'
 import PassContainer from '../../hooks/PassContainer'
 
@@ -32,7 +31,7 @@ function Words() {
   return <div className="toolsframe">
       <h3>Generate a passWord!</h3>
       
-      <CheckboxContainer items={[]} />
+      <CheckboxContainer items={{test:1,test2:2}} />
       
       <SliderContainer min={1} 
         max={8} 
@@ -102,6 +101,7 @@ function Words() {
 
 }
 
+ // make checkbox container work
  // fix styling (create component for checkboxes and use here and in Passgen)
 
 export default Words;

@@ -1,7 +1,8 @@
 import React from 'react'
 
 function CheckboxContainer(props) {
-    const checkboxItems = props.items.map(item => <li>{item}</li>);
+    const checkboxArray = Array.from(props.items)
+    const checkboxItems = checkboxArray.map(item => <li>{item}</li>);
 
     return <div>
         {checkboxItems}
