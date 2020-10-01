@@ -41,6 +41,7 @@ function Words() {
         setSliderValue={setSliderState} 
         sliderValue={sliderState} 
         redoButtonFunction={regenPassword}
+        setSeperatorState={setSeperatorState}
       />
 
 
@@ -71,11 +72,6 @@ function Words() {
         </div>
       </div>
 
-      <InputContainer outlinedName="Separator" 
-        inputChange={setSeperatorState} 
-        hideRefreshbutton hideDownloadbutton
-      />
-
       <PassContainer title="Password:" value={outputState} />
 
   </div>
@@ -105,16 +101,8 @@ function Words() {
     return style;
   }
 
-  function valuetext(value) {
-    return {value};
-    
-  }
-
 }
 
- // send component add title for public key
- // rewrite slidercontainer and build it something, make it more general, that the seperator also can fit in there
  // fix styling (create component for checkboxes and use here and in Passgen)
- // put seperator and checkboxes in a good order
 
 export default Words;

@@ -19,8 +19,17 @@ function SliderContainer(props) {
         onChange={(evt, value) => props.setSliderValue(value)}
       />
     </div>
-    
-    <InputContainer hideDownloadbutton outlinedName="Length" inputChange={props.setSliderValue} redoFunction={props.redoButtonFunction} inputValue={props.sliderValue} />
+    <div className="slidercontainer__inputs">
+      { props.hideSeperatorInput == null &&
+        <InputContainer outlinedName="Separator" inputChange={props.setSeperatorState} hideRefreshbutton hideDownloadbutton/>
+      }
+      <InputContainer hideDownloadbutton 
+        outlinedName="Length" 
+        inputChange={props.setSliderValue} 
+        redoFunction={props.redoButtonFunction} 
+        inputValue={props.sliderValue} 
+      />
+    </div>
       
   </div>
 
@@ -38,5 +47,4 @@ function SliderContainer(props) {
 
 }
 
- // Add mobile UI check and do display: flex; for desktop and grid for mobile
 export default SliderContainer;
