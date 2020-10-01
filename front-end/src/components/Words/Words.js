@@ -31,7 +31,6 @@ function Words() {
 
   return <div className="toolsframe">
       <h3>Generate a passWord!</h3>
-      <span>Number of words:</span>
       
       <CheckboxContainer items={[]} />
       
