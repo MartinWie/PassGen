@@ -31,7 +31,7 @@ function Words() {
   return <div className="toolsframe">
       <h3>Generate a passWord!</h3>
       
-      <CheckboxContainer items={{test:1,test2:2}} />
+      <CheckboxContainer items={checkboxState} /> 
       
       <SliderContainer min={1} 
         max={8} 
