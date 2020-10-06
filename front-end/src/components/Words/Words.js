@@ -49,9 +49,9 @@ function Words() {
   
   </div>
 
-function helperSetCheckboxState(state){
-  setCheckboxState(state)
-}
+  function helperSetCheckboxState(state){
+    setCheckboxState(state)
+  }
 
 }
 

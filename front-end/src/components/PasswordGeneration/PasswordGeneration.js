@@ -1,6 +1,5 @@
 import React, {useState, useEffect} from 'react';
 import './PasswordGeneration.css';
-import { Form } from 'react-bootstrap';
 import PassContainer from '../../hooks/PassContainer'
 import SliderContainer from '../../hooks/SliderContainer'
 import CheckboxContainer from '../../hooks/CheckboxContainer'
@@ -73,6 +72,5 @@ function PasswordGeneration() {
     }
   }
 }
-  // further cleanup (chekcboxes and output text)
 
 export default PasswordGeneration;
