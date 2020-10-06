@@ -5,7 +5,7 @@ function CheckboxContainer(props) {
     
     const checkboxes = createCheckboxObjectsFromParentState(props.items)
 
-    return (<div>
+    return (<div style={wordsInputStylingPerDevice()}>
         {checkboxes}
     </div>);
 
@@ -30,6 +30,15 @@ function CheckboxContainer(props) {
         return checkboxes
 
     }
+
+    function wordsInputStylingPerDevice(){
+        var style = {
+          display: 'flex',
+          justifyContent: 'space-around',
+          margin: "5px"
+        }
+        return style;
+      }
 }
 
 export default CheckboxContainer
