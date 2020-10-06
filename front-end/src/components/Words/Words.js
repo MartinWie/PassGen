@@ -1,7 +1,4 @@
 import React, {useState, useEffect} from 'react'
-import {Checkbox, FormControlLabel} from '@material-ui/core/';
-import './Words.css'
-import {isMobile} from "react-device-detect";
 import SliderContainer from '../../hooks/SliderContainer'
 import CheckboxContainer from '../../hooks/CheckboxContainer'
 import PassContainer from '../../hooks/PassContainer'
@@ -40,34 +37,6 @@ function Words() {
         setSeperatorState={setSeperatorState}
       />
 
-
-      <div style={wordsInputStylingPerDevice()}>
-        <div className="wordsConfigCheckboxes">
-          <FormControlLabel
-            control={
-              <Checkbox
-              checked={checkboxState.German}
-              onChange={handleChangeCheckbox}
-              id="checkedGer"
-              color="primary"
-              />
-            }
-            label="German"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-              checked={checkboxState.English}
-              onChange={handleChangeCheckbox}
-              id="checkedEng"
-              color="primary"
-              />
-            }
-            label="English"
-          />
-        </div>
-      </div>
-
       <CheckboxContainer items={checkboxState} handleChangeCheckbox={handleChangeCheckbox} checkboxState={checkboxState} /> 
 
       <PassContainer title="Password:" value={outputState} />
@@ -87,17 +56,6 @@ function Words() {
       setState({ ...state, [event.target.name]: event.target.checked });
     };
   */
-
-  function wordsInputStylingPerDevice(){
-    var style = {
-      display: 'flex',
-      justifyContent: 'space-around'
-    }
-    if(isMobile){
-      style.flexDirection = 'column';
-    }
-    return style;
-  }
 
 }
 
