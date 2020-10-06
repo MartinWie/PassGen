@@ -59,7 +59,4 @@ function Words() {
 
 }
 
- // make checkbox container work
- // fix styling (create component for checkboxes and use here and in Passgen)
-
 export default Words;
