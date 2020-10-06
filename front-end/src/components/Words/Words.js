@@ -37,7 +37,7 @@ function Words() {
         setSeperatorState={setSeperatorState}
       />
 
-      <CheckboxContainer items={checkboxState} handleChangeCheckbox={handleChangeCheckbox} checkboxState={checkboxState} /> 
+      <CheckboxContainer items={checkboxState} handleChangeCheckbox={handleChangeCheckbox} /> 
 
       <PassContainer title="Password:" value={outputState} />
   
