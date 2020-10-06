@@ -8,8 +8,14 @@ const randomWords = require('../../utils/getRandomWords')
 function Words() {
 
   const [checkboxState, setCheckboxState] = useState({
-    German: true,
-    English: true
+    German: {
+      value: true,
+      label: "German"
+    },
+    English: {
+      value: true,
+      label: "English"
+    }
   });
 
   const [sliderState, setSliderState] = useState(4)
@@ -37,25 +43,15 @@ function Words() {
         setSeperatorState={setSeperatorState}
       />
 
-      <CheckboxContainer items={checkboxState} handleChangeCheckbox={handleChangeCheckbox} /> 
+      <CheckboxContainer items={checkboxState} handleChangeCheckbox={helperSetCheckboxState} /> 
 
       <PassContainer title="Password:" value={outputState} />
   
   </div>
 
-  function handleChangeCheckbox(evt){
-    //Using he Object spread because setCheckboxState requires a new object for rerendering(Object spread helps us to create a new Object instead of copying the reference!)
-    let tmp_CheckboxState = {...checkboxState}
-    tmp_CheckboxState[evt.target.id] = !tmp_CheckboxState[evt.target.id]
-
-    setCheckboxState(tmp_CheckboxState)
-  }
-  //found more elegant solution(replace here and in pw gen):
-  /*
-    const handleChange = (event) => {
-      setState({ ...state, [event.target.name]: event.target.checked });
-    };
-  */
+function helperSetCheckboxState(state){
+  setCheckboxState(state)
+}
 
 }
 

@@ -3,6 +3,7 @@ import './PasswordGeneration.css';
 import { Form } from 'react-bootstrap';
 import PassContainer from '../../hooks/PassContainer'
 import SliderContainer from '../../hooks/SliderContainer'
+import CheckboxContainer from '../../hooks/CheckboxContainer'
 
 const randomString = require('../../utils/getRandomString')
 
@@ -12,14 +13,26 @@ function PasswordGeneration() {
   const [password,setPassword] = useState("Choose a length!");
   const [pwLength,setPwLength] = useState(42);
   const [checkboxState, setCheckboxState] = useState({
-    checkboxNumbers: true,
-    checkboxSpecialChars: true,
-    checkboxUpper: true,
-    checkboxLower:true
+    checkboxNumbers: {
+      value: true,
+      label: "0-9"
+    },
+    checkboxSpecialChars: {
+      value: true,
+      label: "!/%..."
+    },
+    checkboxUpper: {
+      value: true,
+      label: "A-Z"
+    },
+    checkboxLower:{
+      value: true,
+      label: "a-z"
+    }
   });
   useEffect(() => {
     regenPassword()
-  },[pwLength]);
+  },[pwLength,checkboxState]);
 
   return (
     <div className="toolsframe">
@@ -34,23 +47,14 @@ function PasswordGeneration() {
         hideSeperatorInput
       />
 
-      <div className="HorizontalLayout" >
-        <Form.Check id="checkboxNumbers" onChange={handleChangeCheckbox} className="PWGenCheckbox" type="checkbox" label=" 0-9" checked={checkboxState.checkboxNumbers} />
-        <Form.Check id="checkboxSpecialChars" onChange={handleChangeCheckbox} className="PWGenCheckbox" type="checkbox" label=" !/%..." checked={checkboxState.checkboxSpecialChars} />
-        <Form.Check id="checkboxUpper" onChange={handleChangeCheckbox} className="PWGenCheckbox" type="checkbox" label=" A-Z" checked={checkboxState.checkboxUpper} />
-        <Form.Check id="checkboxLower" onChange={handleChangeCheckbox} className="PWGenCheckbox" type="checkbox" label=" a-z" checked={checkboxState.checkboxLower} />
-      </div>
+      <CheckboxContainer items={checkboxState} handleChangeCheckbox={helperSetCheckboxState} />
+
       <PassContainer title="Password:" hidden value={password} />
     </div>
   );
-
-
-  function handleChangeCheckbox(evt){
-    //Using the Object spread because setCheckboxState requires a new object for rerendering(Object spread helps us to create a new Object instead of copying the reference!)
-    let tmp_CheckboxState = {...checkboxState}
-    tmp_CheckboxState[evt.target.id] = !tmp_CheckboxState[evt.target.id]
-
-    setCheckboxState(tmp_CheckboxState)
+  
+  function helperSetCheckboxState(state){
+    setCheckboxState(state)
   }
 
   function regenPassword() {

@@ -2,11 +2,11 @@ const randomWords = (length, checkboxState, seperator) => {
     let result = ''
     let getWord
 
-    if(checkboxState.German && checkboxState.English){
+    if(checkboxState.German.value && checkboxState.English.value){
         getWord = getGermanOrEnglishWord
-    } else if(!(checkboxState.German) && checkboxState.English){
+    } else if(!(checkboxState.German.value) && checkboxState.English.value){
         getWord = getEnglishWord
-    } else if(checkboxState.German && !(checkboxState.English)){
+    } else if(checkboxState.German.value && !(checkboxState.English.value)){
         getWord = getGermanWord
     } else {
         return ("No language selected, feel free to choose ;)")

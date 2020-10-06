@@ -6,10 +6,10 @@ const randomString = (length,checkboxState) => {
     const lowerChars = 'abcdefghijklmnopqrstuvwxyz'
     let characters = ''
 
-    if(checkboxState.checkboxNumbers) characters += numbers
-    if(checkboxState.checkboxSpecialChars) characters += specialChars
-    if(checkboxState.checkboxUpper) characters += upperChars
-    if(checkboxState.checkboxLower) characters += lowerChars
+    if(checkboxState.checkboxNumbers.value) characters += numbers
+    if(checkboxState.checkboxSpecialChars.value) characters += specialChars
+    if(checkboxState.checkboxUpper.value) characters += upperChars
+    if(checkboxState.checkboxLower.value) characters += lowerChars
 
     const charactersLength = characters.length;
     for ( var i = 0; i < length; i++ ) {
