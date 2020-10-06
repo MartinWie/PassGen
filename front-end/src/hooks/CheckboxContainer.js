@@ -1,22 +1,33 @@
 import React from 'react'
+import {Checkbox, FormControlLabel} from '@material-ui/core/';
 
 function CheckboxContainer(props) {
     
-    const entriesMap = getMapfromCheckboxObject(props.items)
-
-    console.log(entriesMap)
+    const checkboxes = createCheckboxObjectsFromParentState(props.items)
 
     return (<div>
-
+        {checkboxes}
     </div>);
 
-    function getMapfromCheckboxObject(checkboxObject) {
-        const checkboxMap = new Map();
+    function createCheckboxObjectsFromParentState(checkboxObject) {
+        const checkboxes = []
         for(const [key, value] of Object.entries(checkboxObject)){
-            checkboxMap.set(key,value)
+            checkboxes.push(
+                <FormControlLabel
+                    control={
+                        <Checkbox
+                            checked={value}
+                            onChange={props.handleChangeCheckbox}
+                            id={key}
+                            color="primary"
+                        />
+                    }
+                    label={key}
+                />
+            )
         }
 
-        return checkboxMap
+        return checkboxes
 
     }
 }
