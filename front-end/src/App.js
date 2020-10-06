@@ -40,7 +40,6 @@ function App() {
 
 export default App;
 
-// remove bootstrap(not the icons) 
 // cleanup / read all comments and improve code
 // cleanup css : https://www.freecodecamp.org/news/css-naming-conventions-that-will-save-you-hours-of-debugging-35cea737d849/
 // about page / impressum nicht vergessen ;)
