@@ -11,8 +11,8 @@ const randomWords = require('../../utils/getRandomWords')
 function Words() {
 
   const [checkboxState, setCheckboxState] = useState({
-    checkedGer: true,
-    checkedEng: true
+    German: true,
+    English: true
   });
 
   const [sliderState, setSliderState] = useState(4)
@@ -31,8 +31,6 @@ function Words() {
   return <div className="toolsframe">
       <h3>Generate a passWord!</h3>
       
-      <CheckboxContainer items={checkboxState} /> 
-      
       <SliderContainer min={1} 
         max={8} 
         defaultValue={4} 
@@ -48,7 +46,7 @@ function Words() {
           <FormControlLabel
             control={
               <Checkbox
-              checked={checkboxState.checkedGer}
+              checked={checkboxState.German}
               onChange={handleChangeCheckbox}
               id="checkedGer"
               color="primary"
@@ -59,7 +57,7 @@ function Words() {
           <FormControlLabel
             control={
               <Checkbox
-              checked={checkboxState.checkedEng}
+              checked={checkboxState.English}
               onChange={handleChangeCheckbox}
               id="checkedEng"
               color="primary"
@@ -70,8 +68,10 @@ function Words() {
         </div>
       </div>
 
-      <PassContainer title="Password:" value={outputState} />
+      <CheckboxContainer items={checkboxState} handleChangeCheckbox={handleChangeCheckbox} checkboxState={checkboxState} /> 
 
+      <PassContainer title="Password:" value={outputState} />
+  
   </div>
 
   function handleChangeCheckbox(evt){
