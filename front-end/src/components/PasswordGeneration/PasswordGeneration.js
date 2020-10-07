@@ -38,7 +38,7 @@ function PasswordGeneration() {
       <h3>Classical password</h3>
 
       <SliderContainer min={1} 
-        max={42} 
+        max={62} 
         defaultValue={42} 
         setSliderValue={setPwLength} 
         sliderValue={pwLength} 
