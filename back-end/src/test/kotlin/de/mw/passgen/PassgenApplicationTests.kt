@@ -1,13 +1,18 @@
 package de.mw.passgen
 
-import org.junit.jupiter.api.Test
-import org.springframework.boot.test.context.SpringBootTest
+import org.junit.Assert
+import org.junit.Ignore
+import org.junit.Test
 
-@SpringBootTest
 class PassgenApplicationTests {
 
 	@Test
 	fun contextLoads() {
 	}
 
+	@Ignore
+	@Test
+	fun testIfTestsCanFail(){
+		Assert.assertEquals(2,3)
+	}
 }
