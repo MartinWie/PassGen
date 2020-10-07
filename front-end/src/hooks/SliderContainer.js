@@ -16,7 +16,7 @@ function SliderContainer(props) {
         min={props.min}
         max={props.max}
         valueLabelDisplay="auto"
-        onChangeCommitted={(evt, value) => props.setSliderValue(value)}
+        onChange={(evt, value) => props.setSliderValue(value)}
       />
     </div>
     <div className="slidercontainer__inputs">
