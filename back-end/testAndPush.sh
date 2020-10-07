@@ -7,6 +7,6 @@ if mvn test; then
   echo "Pushing to master."
   git push
 else
-    echo "Test failed.
+    echo "Test failed."
     exit 1
 fi
