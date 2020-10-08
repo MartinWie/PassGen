@@ -4,7 +4,7 @@ import org.junit.Assert
 import org.junit.Ignore
 import org.junit.Test
 
-class PassgenApplicationTests {
+class PassgenApplicationTest {
 
 	@Test
 	fun contextLoads() {
