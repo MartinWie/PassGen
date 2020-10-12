@@ -15,4 +15,6 @@ class PassgenApplicationTest {
 	fun testIfTestsCanFail(){
 		Assert.assertEquals(2,3)
 	}
+
+	//currently learning about spring structure, so not much to commit here
 }
