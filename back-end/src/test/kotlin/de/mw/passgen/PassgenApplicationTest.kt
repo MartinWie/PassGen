@@ -16,7 +16,6 @@ class PassgenApplicationTest {
 		Assert.assertEquals(2,3)
 	}
 
-	// currently learning about spring structure, so not much to commit here
-	// Handlers are the names for controller classes + Service classes for logic
-	// http client for testing handlers + normal tests for services
+	// add first handler (part which handles the http logic) + service
+	// choose http client for testing handlers + normal tests for services
 }
