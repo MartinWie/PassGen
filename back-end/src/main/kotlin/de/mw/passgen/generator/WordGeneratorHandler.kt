@@ -4,10 +4,12 @@ import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.GetMapping
 
 @Controller
-class WordGenerator {
+class WordGeneratorHandler(
+        val wordGeneratorService: WordGeneratorService
+) {
 
     @GetMapping("/word")
     fun getRandomWord():String{
-        return "Word"
+        return wordGeneratorService.getRandomWord()
     }
 }
