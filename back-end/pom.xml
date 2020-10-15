@@ -49,8 +49,11 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-
-
+		<dependency>
+			<groupId>io.github.microutils</groupId>
+			<artifactId>kotlin-logging</artifactId>
+			<version>1.12.0</version>
+		</dependency>
 
 	</dependencies>
 
