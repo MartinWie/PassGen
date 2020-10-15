@@ -34,3 +34,5 @@ class WordGeneratorService {
     }
 
 }
+
+ // add br initialisation to companion or in the constructor
