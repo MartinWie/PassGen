@@ -35,4 +35,4 @@ class WordGeneratorService {
 
 }
 
- // add br initialisation to companion or in the constructor
+ // disable h2 console!
