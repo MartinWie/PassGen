@@ -1,0 +1,1 @@
+INSERT INTO word(Id,language,value) VALUES (2,'german','Test');
