@@ -4,9 +4,10 @@ import javax.persistence.*
 
 @Entity
 @Table(name="Word")
-public class Word(
+@SequenceGenerator(name="wordSeq", initialValue=0, allocationSize=100)
+class Word(
         @Id
-        @GeneratedValue(strategy = GenerationType.AUTO)
+        @GeneratedValue(strategy=GenerationType.SEQUENCE, generator="wordSeq")
         val id: Long,
 
         @Column(name = "language")

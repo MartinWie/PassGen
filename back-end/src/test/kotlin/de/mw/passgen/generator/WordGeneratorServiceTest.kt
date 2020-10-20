@@ -1,6 +1,7 @@
 package de.mw.passgen.generator
 
 import org.junit.Assert
+import org.junit.Ignore
 import org.junit.Test
 
 class WordGeneratorServiceTest {
@@ -12,7 +13,7 @@ class WordGeneratorServiceTest {
         val randString = wordGeneratorService.getRandomWord()
         Assert.assertEquals(String().javaClass.kotlin.simpleName,randString.javaClass.kotlin.simpleName)
     }
-
+    @Ignore
     @Test
     fun checkIfWordsAreReallyRandom(){
         val w1 = wordGeneratorService.getRandomWord()
