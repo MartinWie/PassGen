@@ -1,14 +1,13 @@
 package de.mw.passgen.model
 
+import java.util.*
 import javax.persistence.*
 
 @Entity
 @Table(name="Word")
-@SequenceGenerator(name="wordSeq", initialValue=0, allocationSize=100)
 class Word(
         @Id
-        @GeneratedValue(strategy=GenerationType.SEQUENCE, generator="wordSeq")
-        val id: Long,
+        val uuid: UUID,
 
         @Column(name = "language")
         val language: String,
@@ -17,7 +16,7 @@ class Word(
         val value: String
 ){
     override fun toString(): String {
-        return "${id},${language},${value}"
+        return "${uuid},${language},${value}"
     }
 
-}
+} // hibernate uses reflection to initiate the bean (this means it uses the default/empty constructor and fills them with getters and setters) figure a suitable solution
