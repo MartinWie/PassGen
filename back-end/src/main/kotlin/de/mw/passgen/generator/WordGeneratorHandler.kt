@@ -6,9 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import java.util.*
 
-@Controller
+@RestController
 class WordGeneratorHandler(
         val wordGeneratorService: WordGeneratorService
 ) {
@@ -16,13 +17,13 @@ class WordGeneratorHandler(
     @Autowired
     lateinit var wordRepository: WordRepository
 
-    @RequestMapping("/word")
+    @GetMapping("/word")
     fun getRandomWord():String{
         //return wordGeneratorService.getRandomWord()
         return "Word"
     }
 
-    @RequestMapping("/setup")
+    @GetMapping("/setup")
     fun setup():String{
         wordRepository.save(Word("Wort1","german"))
         wordRepository.save(Word( "Wort2","german"))
