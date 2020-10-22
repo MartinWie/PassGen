@@ -5,6 +5,7 @@ import de.mw.passgen.repository.WordRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestMapping
 import java.util.*
 
 @Controller
@@ -15,15 +16,16 @@ class WordGeneratorHandler(
     @Autowired
     lateinit var wordRepository: WordRepository
 
-    @GetMapping("/word")
+    @RequestMapping("/word")
     fun getRandomWord():String{
-        return wordGeneratorService.getRandomWord()
+        //return wordGeneratorService.getRandomWord()
+        return "Word"
     }
 
-    @GetMapping("/setup")
+    @RequestMapping("/setup")
     fun setup():String{
-        wordRepository.save(Word(UUID.randomUUID() ,"Wort1","german"))
-        wordRepository.save(Word( UUID.randomUUID(),"Wort2","german"))
+        wordRepository.save(Word("Wort1","german"))
+        wordRepository.save(Word( "Wort2","german"))
         return "done"
     }
 }

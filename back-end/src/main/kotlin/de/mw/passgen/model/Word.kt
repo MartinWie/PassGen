@@ -1,22 +1,30 @@
 package de.mw.passgen.model
 
+import java.io.Serializable
 import java.util.*
 import javax.persistence.*
 
 @Entity
 @Table(name="Word")
-class Word(
-        @Id
-        val uuid: UUID,
+class Word: Serializable{
+    @Id
+    val uuid: UUID = UUID.randomUUID()
 
-        @Column(name = "language")
-        val language: String,
+    @Column(name = "language")
+    var language: String? = null
 
-        @Column(name = "value")
-        val value: String
-){
+    @Column(name = "value")
+    var value: String? = null
+
     override fun toString(): String {
         return "${uuid},${language},${value}"
     }
 
-} // hibernate uses reflection to initiate the bean (this means it uses the default/empty constructor and fills them with getters and setters) figure a suitable solution
+    constructor(language: String?, value: String?) {
+        this.language = language
+        this.value = value
+    }
+
+    constructor() {}
+
+}
