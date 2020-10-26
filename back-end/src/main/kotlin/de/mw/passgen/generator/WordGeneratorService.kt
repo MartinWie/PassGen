@@ -23,28 +23,13 @@ class WordGeneratorService {
     }
 
     fun setup() : String{
-        val languages = mapOf<String,String>(
-                "german" to "src/main/kotlin/de/mw/passgen/generator/resources/deutsch.txt",
-                "english" to "src/main/kotlin/de/mw/passgen/generator/resources/english.txt"
-        )
 
         val result = wordRepository.findByValue("Wort")
 
         if(result.isEmpty()){
-            logger.info("Initial setup")
+            logger.info("Starting initial setup")
 
-            languages.map { language ->
-                val lineList = mutableListOf<Word>()
-
-                bufferedReaderFromFile(language.value)?.useLines { lines -> lines.forEach { line -> lineList.add(Word(language.key,line)) } }
-
-                logger.info { "Starting reading from BufferedReader" }
-
-                logger.info { "Words in list: ${lineList.size}" }
-
-                wordRepository.saveAll(lineList)
-
-            }
+            initialSetup()
 
             return "done"
         }
@@ -66,7 +51,30 @@ class WordGeneratorService {
         return br
     }
 
+    private fun initialSetup(){
+        val languages = mapOf<String,String>(
+                "german" to "src/main/kotlin/de/mw/passgen/generator/resources/deutsch.txt",
+                "english" to "src/main/kotlin/de/mw/passgen/generator/resources/english.txt"
+        )
+
+        languages.map { language ->
+            val lineList = mutableListOf<Word>()
+
+            bufferedReaderFromFile(language.value)?.useLines { lines ->
+                lines.forEach { line ->
+                    lineList.add(Word(language.key,line))
+                }
+            }
+
+            logger.info { "Starting reading from BufferedReader" }
+            logger.info { "Words in list: ${lineList.size}" }
+
+            wordRepository.saveAll(lineList)
+
+        }
+
+    }
+
 }
 
- // clenup saving / loading into different methodes
  // disable h2 console!
