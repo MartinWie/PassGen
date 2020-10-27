@@ -10,14 +10,14 @@ class WordGeneratorServiceTest {
 
     @Test
     fun testWordgenertorReturnsString(){
-        val randString = wordGeneratorService.getRandomWord()
+        val randString = wordGeneratorService.getRandomWord("german")
         Assert.assertEquals(String().javaClass.kotlin.simpleName,randString.javaClass.kotlin.simpleName)
     }
     @Ignore
     @Test
     fun checkIfWordsAreReallyRandom(){
-        val w1 = wordGeneratorService.getRandomWord()
-        val w2 = wordGeneratorService.getRandomWord()
+        val w1 = wordGeneratorService.getRandomWord("german")
+        val w2 = wordGeneratorService.getRandomWord("german")
 
         Assert.assertNotEquals(w1,w2)
     }

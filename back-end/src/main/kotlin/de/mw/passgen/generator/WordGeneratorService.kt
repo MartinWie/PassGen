@@ -8,6 +8,7 @@ import java.io.IOException
 import de.mw.passgen.repository.WordRepository
 import org.springframework.beans.factory.annotation.Autowired
 import java.io.File
+import javax.annotation.PostConstruct
 
 
 @Service
@@ -18,11 +19,18 @@ class WordGeneratorService {
     @Autowired
     lateinit var wordRepository: WordRepository
 
-    fun getRandomWord():String{
-        return "random"
-    }
+    val languages = mapOf<String,String>(
+            "german" to "src/main/kotlin/de/mw/passgen/generator/resources/deutsch.txt",
+            "english" to "src/main/kotlin/de/mw/passgen/generator/resources/english.txt"
+    )
 
-    fun setup() : String{
+    val languagesWordAmounts = mutableMapOf<String,Int>(
+            "german" to 0,
+            "english" to 0
+    )
+
+    @PostConstruct
+    fun setup(){
 
         val result = wordRepository.findByValue("Wort")
 
@@ -31,11 +39,15 @@ class WordGeneratorService {
 
             initialSetup()
 
-            return "done"
+            logger.info("Setup done!")
+        } else {
+            logger.info("DB already initialized nothing todo!")
         }
 
-        return "nothing to do"
+    }
 
+    fun getRandomWord(lang: String):String{
+        return wordRepository.findByLanguageAndWordNumberLanguageBase(lang, (0 .. 100000).random()).first().value!!
     }
 
     private fun bufferedReaderFromFile(lang: String): BufferedReader? {
@@ -52,18 +64,18 @@ class WordGeneratorService {
     }
 
     private fun initialSetup(){
-        val languages = mapOf<String,String>(
-                "german" to "src/main/kotlin/de/mw/passgen/generator/resources/deutsch.txt",
-                "english" to "src/main/kotlin/de/mw/passgen/generator/resources/english.txt"
-        )
+        var wordNumberLanguageBaseCounter: Int
 
         languages.map { language ->
             val lineList = mutableListOf<Word>()
+            wordNumberLanguageBaseCounter = 0
 
             bufferedReaderFromFile(language.value)?.useLines { lines ->
                 lines.forEach { line ->
-                    lineList.add(Word(language.key,line))
+                    lineList.add(Word(language.key,line,wordNumberLanguageBaseCounter))
+                    wordNumberLanguageBaseCounter++
                 }
+                languagesWordAmounts[language.key] = wordNumberLanguageBaseCounter
             }
 
             logger.info { "Starting reading from BufferedReader" }

@@ -20,7 +20,7 @@ class WordGeneratorServiceSpringTest {
 
     @Test
     fun testWordgenertorReturnsString(){
-        val randString = wordGeneratorService.getRandomWord()
+        val randString = wordGeneratorService.getRandomWord("german")
         Assert.assertEquals(String().javaClass.kotlin.simpleName,randString.javaClass.kotlin.simpleName)
     }
 }

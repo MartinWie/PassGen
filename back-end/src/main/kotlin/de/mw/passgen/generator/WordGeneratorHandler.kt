@@ -10,12 +10,7 @@ class WordGeneratorHandler(
 
     @GetMapping("/word")
     fun getRandomWord():String{
-        //return wordGeneratorService.getRandomWord()
-        return "Word"
+        return wordGeneratorService.getRandomWord("german")
     }
 
-    @GetMapping("/setup")
-    fun setup():String{
-        return wordGeneratorService.setup()
-    }
 }
