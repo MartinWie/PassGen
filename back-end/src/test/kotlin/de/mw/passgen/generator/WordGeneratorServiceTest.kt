@@ -13,7 +13,7 @@ class WordGeneratorServiceTest {
         val randString = wordGeneratorService.getRandomWord("german")
         Assert.assertEquals(String().javaClass.kotlin.simpleName,randString.javaClass.kotlin.simpleName)
     }
-    @Ignore
+
     @Test
     fun checkIfWordsAreReallyRandom(){
         val w1 = wordGeneratorService.getRandomWord("german")
