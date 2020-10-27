@@ -7,4 +7,6 @@ interface WordRepository: CrudRepository<Word,Long>{
     fun findByValue(value: String): List<Word>
 
     fun findByLanguage(language: String): List<Word>
+
+    fun findByLanguageAndWordNumberLanguageBase(language: String, wordNumberLanguageBase: Int): List<Word>
 }

@@ -16,13 +16,17 @@ class Word: Serializable{
     @Column(name = "value")
     var value: String? = null
 
+    @Column(name = "wordNumberLanguageBase")
+    var wordNumberLanguageBase: Int? = null
+
     override fun toString(): String {
-        return "${uuid},${language},${value}"
+        return "${uuid},${language},${value},${wordNumberLanguageBase}"
     }
 
-    constructor(language: String?, value: String?) {
+    constructor(language: String?, value: String?,wordNumberLanguageBase: Int?) {
         this.language = language
         this.value = value
+        this.wordNumberLanguageBase = wordNumberLanguageBase
     }
 
     constructor() {}
