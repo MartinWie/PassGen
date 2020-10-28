@@ -1,12 +1,20 @@
 package de.mw.passgen.generator
 
+import de.mw.passgen.PassgenApplication
+import de.mw.passgen.repository.WordRepository
 import org.junit.Assert
 import org.junit.Ignore
 import org.junit.Test
-
+import org.junit.runner.RunWith
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.junit4.SpringRunner
+@SpringBootTest(classes = [PassgenApplication::class])
+@RunWith(SpringRunner::class)
 class WordGeneratorServiceTest {
 
-    val wordGeneratorService : WordGeneratorService = WordGeneratorService()
+    @Autowired
+    lateinit var wordGeneratorService : WordGeneratorService
 
     @Test
     fun testWordgenertorReturnsString(){

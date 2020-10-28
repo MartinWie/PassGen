@@ -10,7 +10,6 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.junit4.SpringRunner
 
 //Testing in spring context
-@Ignore
 @SpringBootTest(classes = [PassgenApplication::class]) // Show Spring where spring configuration is
 @RunWith(SpringRunner::class)
 class WordGeneratorServiceSpringTest {
