@@ -92,4 +92,3 @@ class WordGeneratorService {
  // disable h2 console!
  // implement constants for languages + implement full random method ((0 .. 100000).random() includes 0 and 100000)
  // cleanup this mess write better tests
- // tests fail, bacause spring context is not loaded, go figure how to solve this
