@@ -19,16 +19,6 @@ class WordGeneratorService {
     @Autowired
     lateinit var wordRepository: WordRepository
 
-    val languages = mapOf<String,String>(
-            "german" to "src/main/kotlin/de/mw/passgen/generator/resources/deutsch.txt",
-            "english" to "src/main/kotlin/de/mw/passgen/generator/resources/english.txt"
-    )
-
-    val languagesWordAmounts = mutableMapOf<String,Int>(
-            "german" to 0,
-            "english" to 0
-    )
-
     @PostConstruct
     fun setup(){
 
@@ -50,6 +40,8 @@ class WordGeneratorService {
         return wordRepository.findByLanguageAndWordNumberLanguageBase(lang, (0 .. 100000).random()).first().value!!
     }
 
+
+
     private fun bufferedReaderFromFile(lang: String): BufferedReader? {
         val br: BufferedReader?
 
@@ -66,16 +58,16 @@ class WordGeneratorService {
     private fun initialSetup(){
         var wordNumberLanguageBaseCounter: Int
 
-        languages.map { language ->
+        Languages.values().map { language ->
             val lineList = mutableListOf<Word>()
             wordNumberLanguageBaseCounter = 0
 
-            bufferedReaderFromFile(language.value)?.useLines { lines ->
+            bufferedReaderFromFile(language.path)?.useLines { lines ->
                 lines.forEach { line ->
-                    lineList.add(Word(language.key,line,wordNumberLanguageBaseCounter))
+                    lineList.add(Word(language.value,line,wordNumberLanguageBaseCounter))
                     wordNumberLanguageBaseCounter++
                 }
-                languagesWordAmounts[language.key] = wordNumberLanguageBaseCounter
+                language.wordsAmount = wordNumberLanguageBaseCounter
             }
 
             logger.info { "Starting reading from BufferedReader" }
@@ -87,8 +79,11 @@ class WordGeneratorService {
 
     }
 
+    enum class Languages(val value: String, val path: String, var wordsAmount: Int){
+        GERMAN("german","src/main/kotlin/de/mw/passgen/generator/resources/deutsch.txt",0),
+        ENGLISH("english","src/main/kotlin/de/mw/passgen/generator/resources/english.txt",0)
+    }
 }
 
  // disable h2 console!
  // implement constants for languages + implement full random method ((0 .. 100000).random() includes 0 and 100000)
- // cleanup this mess write better tests
