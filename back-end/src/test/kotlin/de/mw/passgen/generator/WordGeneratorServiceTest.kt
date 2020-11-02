@@ -1,6 +1,7 @@
 package de.mw.passgen.generator
 
 import de.mw.passgen.PassgenTestSpringContext
+import de.mw.passgen.repository.LanguagesRepository
 import org.junit.Assert
 import org.junit.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -9,6 +10,9 @@ class WordGeneratorServiceTest : PassgenTestSpringContext(){
 
     @Autowired
     lateinit var wordGeneratorService : WordGeneratorService
+
+    @Autowired
+    lateinit var languagesRepository: LanguagesRepository
 
     @Test
     fun testWordgenertorReturnsString(){

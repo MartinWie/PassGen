@@ -1,6 +1,8 @@
 package de.mw.passgen.generator
 
+import de.mw.passgen.model.Languages
 import de.mw.passgen.model.Word
+import de.mw.passgen.repository.LanguagesRepository
 import mu.KLogging
 import org.springframework.stereotype.Service
 import java.io.BufferedReader
@@ -18,6 +20,9 @@ class WordGeneratorService {
 
     @Autowired
     lateinit var wordRepository: WordRepository
+
+    @Autowired
+    lateinit var languagesRepository: LanguagesRepository
 
     @PostConstruct
     fun setup(){
@@ -67,23 +72,23 @@ class WordGeneratorService {
                     lineList.add(Word(language.value,line,wordNumberLanguageBaseCounter))
                     wordNumberLanguageBaseCounter++
                 }
-                language.wordsAmount = wordNumberLanguageBaseCounter
             }
 
             logger.info { "Starting reading from BufferedReader" }
             logger.info { "Words in list: ${lineList.size}" }
 
             wordRepository.saveAll(lineList)
-
+            languagesRepository.save(Languages(language.value,wordNumberLanguageBaseCounter))
         }
 
     }
 
-    enum class Languages(val value: String, val path: String, var wordsAmount: Int){
-        GERMAN("german","src/main/kotlin/de/mw/passgen/generator/resources/deutsch.txt",0),
-        ENGLISH("english","src/main/kotlin/de/mw/passgen/generator/resources/english.txt",0)
+    enum class Languages(val value: String, val path: String){
+        GERMAN("german","src/main/kotlin/de/mw/passgen/generator/resources/deutsch.txt"),
+        ENGLISH("english","src/main/kotlin/de/mw/passgen/generator/resources/english.txt")
     }
 }
 
  // disable h2 console!
  // implement constants for languages + implement full random method ((0 .. 100000).random() includes 0 and 100000)
+ // figure where spring context fails to load
