@@ -11,9 +11,6 @@ class WordGeneratorServiceTest : PassgenTestSpringContext(){
     @Autowired
     lateinit var wordGeneratorService : WordGeneratorService
 
-    @Autowired
-    lateinit var languagesRepository: LanguagesRepository
-
     @Test
     fun testWordgenertorReturnsString(){
         val randString = wordGeneratorService.getRandomWord("german")
