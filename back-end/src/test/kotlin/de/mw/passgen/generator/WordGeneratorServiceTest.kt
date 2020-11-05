@@ -25,3 +25,5 @@ class WordGeneratorServiceTest : PassgenTestSpringContext(){
         Assert.assertNotEquals(w1,w2)
     }
 }
+
+ // still same error: "Failed to load ApplicationContext" will take some time to learn spring and take the chance to improve kotlin knowledge
