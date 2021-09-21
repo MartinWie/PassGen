@@ -3,15 +3,14 @@ package de.mw.passgen.generator
 import de.mw.passgen.model.Languages
 import de.mw.passgen.model.Word
 import de.mw.passgen.repository.LanguagesRepository
+import de.mw.passgen.repository.WordRepository
 import mu.KLogging
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.BufferedReader
-import java.io.IOException
-import de.mw.passgen.repository.WordRepository
-import org.springframework.beans.factory.annotation.Autowired
 import java.io.File
+import java.io.IOException
 import javax.annotation.PostConstruct
-
 
 @Service
 class WordGeneratorService {
@@ -25,11 +24,11 @@ class WordGeneratorService {
     lateinit var languagesRepository: LanguagesRepository
 
     @PostConstruct
-    fun setup(){
+    fun setup() {
 
         val result = wordRepository.findByValue("Wort")
 
-        if(result.isEmpty()){
+        if (result.isEmpty()) {
             logger.info("Starting initial setup")
 
             initialSetup()
@@ -38,21 +37,18 @@ class WordGeneratorService {
         } else {
             logger.info("DB already initialized nothing todo!")
         }
-
     }
 
-    fun getRandomWord(lang: String):String{
-        return wordRepository.findByLanguageAndWordNumberLanguageBase(lang, (0 .. 100000).random()).first().value!!
+    fun getRandomWord(lang: String): String {
+        return wordRepository.findByLanguageAndWordNumberLanguageBase(lang, (0..100000).random()).first().value!!
     }
-
-
 
     private fun bufferedReaderFromFile(lang: String): BufferedReader? {
         val br: BufferedReader?
 
-        br = try{
+        br = try {
             File(lang).bufferedReader()
-        }catch (e:IOException){
+        } catch (e: IOException) {
             logger.error(e.toString())
             null
         }
@@ -60,7 +56,7 @@ class WordGeneratorService {
         return br
     }
 
-    private fun initialSetup(){
+    private fun initialSetup() {
         var wordNumberLanguageBaseCounter: Int
 
         Languages.values().map { language ->
@@ -69,7 +65,7 @@ class WordGeneratorService {
 
             bufferedReaderFromFile(language.path)?.useLines { lines ->
                 lines.forEach { line ->
-                    lineList.add(Word(language.value,line,wordNumberLanguageBaseCounter))
+                    lineList.add(Word(language.value, line, wordNumberLanguageBaseCounter))
                     wordNumberLanguageBaseCounter++
                 }
             }
@@ -78,17 +74,16 @@ class WordGeneratorService {
             logger.info { "Words in list: ${lineList.size}" }
 
             wordRepository.saveAll(lineList)
-            languagesRepository.save(Languages(language.value,wordNumberLanguageBaseCounter))
+            languagesRepository.save(Languages(language.value, wordNumberLanguageBaseCounter))
         }
-
     }
 
-    enum class Languages(val value: String, val path: String){
-        GERMAN("german","src/main/kotlin/de/mw/passgen/generator/resources/deutsch.txt"),
-        ENGLISH("english","src/main/kotlin/de/mw/passgen/generator/resources/english.txt")
+    enum class Languages(val value: String, val path: String) {
+        GERMAN("german", "src/main/kotlin/de/mw/passgen/generator/resources/deutsch.txt"),
+        ENGLISH("english", "src/main/kotlin/de/mw/passgen/generator/resources/english.txt")
     }
 }
 
- // disable h2 console!
- // implement constants for languages + implement full random method ((0 .. 100000).random() includes 0 and 100000)
- // figure where spring context fails to load
+// disable h2 console!
+// implement constants for languages + implement full random method ((0 .. 100000).random() includes 0 and 100000)
+// figure where spring context fails to load

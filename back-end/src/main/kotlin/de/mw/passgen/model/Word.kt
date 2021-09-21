@@ -1,12 +1,12 @@
 package de.mw.passgen.model
 
 import java.io.Serializable
-import java.util.*
-import javax.persistence.*
+import java.util.UUID
+import javax.persistence.* // ktlint-disable no-wildcard-imports
 
 @Entity
-@Table(name="Word")
-class Word: Serializable{
+@Table(name = "Word")
+class Word : Serializable {
     @Id
     val uuid: UUID = UUID.randomUUID()
 
@@ -20,15 +20,14 @@ class Word: Serializable{
     var wordNumberLanguageBase: Int? = null
 
     override fun toString(): String {
-        return "${uuid},${language},${value},${wordNumberLanguageBase}"
+        return "$uuid,$language,$value,$wordNumberLanguageBase"
     }
 
-    constructor(language: String?, value: String?,wordNumberLanguageBase: Int?) {
+    constructor(language: String?, value: String?, wordNumberLanguageBase: Int?) {
         this.language = language
         this.value = value
         this.wordNumberLanguageBase = wordNumberLanguageBase
     }
 
     constructor() {}
-
 }

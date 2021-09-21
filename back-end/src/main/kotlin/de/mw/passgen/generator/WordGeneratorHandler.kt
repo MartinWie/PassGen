@@ -5,12 +5,11 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class WordGeneratorHandler(
-        val wordGeneratorService: WordGeneratorService
+    val wordGeneratorService: WordGeneratorService
 ) {
 
     @GetMapping("/word")
-    fun getRandomWord():String{
+    fun getRandomWord(): String {
         return wordGeneratorService.getRandomWord("german")
     }
-
 }

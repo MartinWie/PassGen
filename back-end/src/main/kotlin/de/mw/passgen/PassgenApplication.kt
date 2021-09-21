@@ -8,8 +8,8 @@ import org.springframework.context.annotation.ComponentScan
 @ComponentScan("de.mw.passgen")
 class PassgenApplication
 
- // This is the "SpringConfiguration" class
+// This is the "SpringConfiguration" class
 
 fun main(args: Array<String>) {
-	runApplication<PassgenApplication>(*args)
+    runApplication<PassgenApplication>(*args)
 }
