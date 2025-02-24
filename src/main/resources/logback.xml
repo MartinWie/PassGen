@@ -1,0 +1,29 @@
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{YYYY-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+
+    <!-- Set a lower log level for JooQ and HikariPool-->
+    <logger name="org.jooq" level="INFO"/>
+    <logger name="com.zaxxer.hikari" level="INFO"/>
+
+    <!-- Set a lower log level for specific Ktor packages -->
+    <logger name="io.ktor.server" level="TRACE"/>
+    <logger name="io.ktor.application" level="TRACE"/>
+    <logger name="io.ktor.routing.Routing" level="INFO"/>
+    <logger name="io.ktor.routing.Trace" level="TRACE"/>
+    <logger name="io.ktor.server.sessions.Sessions" level="INFO"/>
+    <logger name="io.ktor.server.plugins.statuspages.StatusPages" level="INFO"/>
+    <logger name="aws.sdk.kotlin" level="DEBUG"/>
+    <logger name="io.ktor.server.auth.Authentication" level="INFO"/>
+
+    <root level="info">
+        <appender-ref ref="STDOUT"/>
+    </root>
+
+    <logger name="org.eclipse.jetty" level="INFO"/>
+    <logger name="io.netty" level="INFO"/>
+</configuration>
