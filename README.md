@@ -13,7 +13,7 @@ Entr: trigger action on file change, for details checkout 'startServer.sh'
 Aenv: load app environment varibles form the aws parameter store
 
 ```Terminal
-npm install -D tailwindcss
+npm install -D tailwindcss@3
 npm install -D @tailwindcss/typography
 npm install postcss franken-ui@latest
 npx franken-ui init -p
@@ -81,10 +81,12 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 
 ## Todo's
 
-- Install tooling like tailwind
+- get icons working
+- Test if minified is smaller frankenUI is smaller
+- Get them set in header function
 - get base page with franke-UI setup and working
-- get simple placeholder 
-- get logo done
+- get simple placeholder base page
+- get logo done(check franken-ui icons)
 - get favicons working
 
 
