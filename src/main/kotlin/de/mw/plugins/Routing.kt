@@ -1,6 +1,6 @@
 package de.mw.plugins
 
-import de.mw.frontend.pages.getSaasLandingPage
+import de.mw.frontend.pages.getLandingPage
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
@@ -17,7 +17,7 @@ fun Application.configureRouting() {
     }
     routing {
         get("/") {
-            call.respondText(getSaasLandingPage("PassGen"), ContentType.Text.Html)
+            call.respondText(getLandingPage("PassGen"), ContentType.Text.Html)
         }
 
         get("/health") {

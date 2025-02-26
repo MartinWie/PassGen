@@ -81,12 +81,9 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 
 ## Todo's
 
-- get icons working
-- Test if minified is smaller frankenUI is smaller
-- Get them set in header function
-- get base page with franke-UI setup and working
+- get base page with daisy-UI setup and working
 - get simple placeholder base page
-- get logo done(check franken-ui icons)
+- get logo done
 - get favicons working
 
 
