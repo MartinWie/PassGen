@@ -37,8 +37,33 @@ fun getLandingPage(pageTitle: String): String {
                                     classes = setOf("font-medium mb-2")
                                     +"Settings"
                                 }
+                                // Language picker
+                                div("form-control mb-2") {
+                                    label {
+                                        classes = setOf("label py-1")
+                                        span {
+                                            classes = setOf("label-text text-xs")
+                                            +"Language"
+                                        }
+                                    }
+                                    select {
+                                        id = "model-select"
+                                        classes = setOf("select select-sm select-bordered w-full")
+                                        option {
+                                            value = "ENG"
+                                            +"English"
+                                        }
+                                        option {
+                                            value = "GER"
+                                            +"Deutsch"
+                                        }
+                                    }
+                                }
+                                // Amount slider
+                                div("form-control mb-2") {
+                                    // TODO: add
+                                }
                             }
-                            // TODO: continue implementation
                         }
                     }
                 }
