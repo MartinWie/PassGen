@@ -81,9 +81,7 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 
 ## Todo's
 
-- Checkout daisyui new version and custom theme(especially sizing adjustments)
-- get simple placeholder base page
-- Improve styling maybe with theme adjustments
+- Improve styling maybe with theme adjustments or just text sizing and colors
 - Implement mobile UI 
 - get logo done
 - get favicons working
