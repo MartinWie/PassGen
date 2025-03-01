@@ -82,9 +82,23 @@ fun getLandingPage(pageTitle: String): String {
                                         max = "20"
                                         step = "1"
                                         value = "4"
-                                        id = "temperature-slider"
-                                        classes = setOf("range")
-                                        attributes["oninput"] = "document.getElementById('word-amount').textContent = this.value"
+                                        id = "word-amount-slider"
+                                        classes = setOf("range mb-3")
+                                        attributes["oninput"] = """
+                                            document.getElementById('word-amount').textContent = this.value
+                                            document.getElementById('word-input').value = this.value
+                                        """.trimIndent()
+                                    }
+                                    input(InputType.number) {
+                                        min = "1"
+                                        max = "50"
+                                        value = "4"
+                                        id = "word-input"
+                                        classes = setOf("input", "input-bordered", "w-full")
+                                        attributes["oninput"] = """
+                                            document.getElementById('word-amount').textContent = this.value;
+                                            document.getElementById('word-amount-slider').value = this.value;
+                                        """.trimIndent()
                                     }
                                 }
                             }
