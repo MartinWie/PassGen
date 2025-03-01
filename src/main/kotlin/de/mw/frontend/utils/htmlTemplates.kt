@@ -51,6 +51,19 @@ fun TagConsumer<StringBuilder>.getPageHead(pageTitle: String = "") {
             href = "/static/output.css"
         }
 
+        // Default font and font smoothing styles
+        style {
+            unsafe {
+                raw("""
+                    body {
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+                        -webkit-font-smoothing: antialiased;
+                        -moz-osx-font-smoothing: grayscale;
+                    }
+                """.trimIndent())
+            }
+        }
+
         script(type = ScriptType.textJavaScript) {
             unsafe {
                 // Using unsafe{}.raw() to insert raw HTML/JS.

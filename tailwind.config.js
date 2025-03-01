@@ -2,7 +2,22 @@
 module.exports = {
     content: ["./src/**/*.{html,js,kt}"],
     theme: {
-        extend: {},
+        extend: {
+            fontFamily: {
+                'sans': [
+                    '-apple-system',
+                    'BlinkMacSystemFont',
+                    'Segoe UI',
+                    'Roboto',
+                    'Helvetica Neue',
+                    'Arial',
+                    'sans-serif',
+                    'Apple Color Emoji',
+                    'Segoe UI Emoji',
+                    'Segoe UI Symbol'
+                ],
+            },
+        },
     },
     plugins: [
         require('@tailwindcss/typography'),
