@@ -81,8 +81,10 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 
 ## Todo's
 
-- Improve styling maybe with theme adjustments or just text sizing and colors
-- Implement mobile UI 
+- Upgrade Project dependencies
+  - HTMX migrate to V2
+  - Tailwind and Daisy-UI
+  - Gradle plugins / kotlin version?
 - get logo done
 - get favicons working
 - Implement endpoint to fetch a new password
