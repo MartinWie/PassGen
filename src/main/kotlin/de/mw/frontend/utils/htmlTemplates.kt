@@ -51,6 +51,15 @@ fun TagConsumer<StringBuilder>.getPageHead(pageTitle: String = "") {
             href = "/static/output.css"
         }
 
+        meta {
+            name = "viewport"
+            content = "width=device-width, initial-scale=1.0"
+        }
+
+        meta {
+            charset = "UTF-8"
+        }
+
         // Default font and font smoothing styles
         style {
             unsafe {
