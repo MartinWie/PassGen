@@ -82,9 +82,8 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 ## Todo's
 
 - Upgrade Project dependencies
-  - HTMX migrate to V2
   - Tailwind and Daisy-UI
-  - Gradle plugins / kotlin version?
+  - Gradle plugins / kotlin and gradle version?
 - get logo done
 - get favicons working
 - Implement endpoint to fetch a new password

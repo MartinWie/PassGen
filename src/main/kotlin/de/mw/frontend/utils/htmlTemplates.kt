@@ -39,11 +39,8 @@ fun TagConsumer<StringBuilder>.getPageHead(pageTitle: String = "") {
             href = "/static/site.webmanifest"
         }
 
-        // HTMX 1.9.12 minified
+        // HTMX 2.0.4 minified
         script { src = "/static/htmx.min.js" }
-
-        // HTMX 1.9.12 loading states extension
-        script { src = "/static/loading-states.js" }
 
         // CSS (mainly Tailwind)
         link {

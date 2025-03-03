@@ -129,7 +129,7 @@ fun HTMLTag.hxOn(
     @Language("JavaScript")
     jsCode: String
 ) {
-    attributes += "hx-on::$event" to jsCode
+    attributes += "hx-on:$event" to jsCode
 }
 
 /**
