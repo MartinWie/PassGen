@@ -3,7 +3,7 @@
 # echo "Start timestamp: $(date)"
 
 # Compile Tailwind CSS
-npx tailwindcss -i ./src/main/resources/static/input.css -o ./src/main/resources/static/output.css || { echo "Tailwind CSS compilation failed"; exit 1; }
+npx @tailwindcss/cli -i ./src/main/resources/static/input.css -o ./src/main/resources/static/output.css || { echo "Tailwind CSS compilation failed"; exit 1; }
 
 PID_FILE="./server.pid"
 BS_PID_FILE="./browser-sync.pid"

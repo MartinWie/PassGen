@@ -82,14 +82,14 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 ## Todo's
 
 - Upgrade Project dependencies
-  - Tailwind and Daisy-UI
   - Gradle plugins / kotlin and gradle version?
+- Fix coloring(text color according to current theme)
 - get logo done
 - get favicons working
 - Implement endpoint to fetch a new password
 - Implement share functionality(add password to link and do not store it in DB so only the link can decrypt the password and make sure we can max send 5000 chars)
 - Really delete the password after max visits are done
-- Check if we can grab system setting based light/night mode(default dark mode)
+- Add toggle for dark/light mode
 - add required footer stuff 
 - Add donation(keep the service running) button and Github link to the project
 

@@ -24,7 +24,7 @@ check_status "Dependency refresh"
 
 # Compile Tailwind CSS
 echo "Compiling Tailwind CSS..."
-npx tailwindcss -i ./src/main/resources/static/input.css -o ./src/main/resources/static/output.css || { echo "Tailwind CSS compilation failed"; exit 1; }
+npx @tailwindcss/cli -i ./src/main/resources/static/input.css -o ./src/main/resources/static/output.css || { echo "Tailwind CSS compilation failed"; exit 1; }
 check_status "Tailwind CSS compilation"
 
 # Run Flyway migrations

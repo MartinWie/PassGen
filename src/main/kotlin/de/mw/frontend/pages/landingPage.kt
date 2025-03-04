@@ -10,10 +10,10 @@ fun getLandingPage(pageTitle: String): String {
     return getBasePage(pageTitle) {
         div("flex items-center justify-center min-h-screen p-4 md:p-6") {
             div("w-full max-w-3xl mx-auto") {
-                div("flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-3 border border-gray-200 rounded-xl p-2 md:p-3 focus-within:ring-1 focus-within:ring-primary focus-within:border-primary shadow-sm") {
+                div("flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-3 border border-gray-200 rounded-xl p-2 md:p-3 focus-within:ring-1 focus-within:ring-primary focus-within:border-primary shadow-xs") {
                     textArea {
                         id = "password-input"
-                        classes = setOf("flex-grow resize-none h-14 min-h-[56px] border-none focus:outline-none text-gray-700 bg-transparent px-2 box-border text-base align-middle leading-[1.5] py-[14px] md:py-[14px]")
+                        classes = setOf("grow resize-none h-14 min-h-[56px] border-none focus:outline-hidden text-gray-700 bg-transparent px-2 box-border text-base align-middle leading-[1.5] py-[14px] md:py-[14px]")
                         placeholder = "Type or generate content..."
                     }
 
@@ -33,7 +33,7 @@ fun getLandingPage(pageTitle: String): String {
                                     """.trimIndent()
                                 }
                             }
-                            div("dropdown-content z-[1] menu p-4 shadow-lg bg-base-100 rounded-xl w-64 md:w-72 text-base") {
+                            div("dropdown-content z-1 menu p-4 shadow-lg bg-base-100 rounded-xl w-64 md:w-72 text-base") {
                                 tabIndex = "0"
                                 h3 {
                                     classes = setOf("font-medium", "text-gray-700", "mb-3", "text-lg")
@@ -155,7 +155,7 @@ fun getBasePage(
             // Saas Navbar
 
             div {
-                classes = setOf("flex-grow")
+                classes = setOf("grow")
                 bodyTags()
             }
 
