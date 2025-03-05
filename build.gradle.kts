@@ -2,22 +2,24 @@ val ktor_version: String by project
 val kotlin_version: String by project
 val logback_version: String by project
 val jooq_version: String by project
+val postgresql_version: String by project
+val flyway_version: String by project
 
 buildscript {
     repositories {
         mavenCentral()
     }
     dependencies {
-        classpath("org.flywaydb:flyway-database-postgresql:11.1.1")
+        classpath("org.flywaydb:flyway-database-postgresql:11.3.4")
     }
 }
 
 plugins {
-    kotlin("jvm") version "2.1.0"
+    kotlin("jvm") version "2.1.10"
     id("io.ktor.plugin") version "2.3.13"
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.1.0"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.1.10"
     id("nu.studer.jooq") version "9.0"
-    id("org.flywaydb.flyway") version "11.1.0"
+    id("org.flywaydb.flyway") version "11.3.4"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
@@ -43,9 +45,9 @@ repositories {
 
 dependencies {
     implementation("io.ktor:ktor-server-html-builder-jvm:$ktor_version")
-    implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.12.0")
     implementation("io.ktor:ktor-server-core-jvm:$ktor_version")
-    implementation("org.jetbrains:kotlin-css-jvm:1.0.0-pre.129-kotlin-1.4.20")
+    implementation("org.jetbrains.kotlin-wrappers:kotlin-css-jvm:2025.3.2")
     implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-call-logging-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-host-common-jvm:$ktor_version")
@@ -59,25 +61,18 @@ dependencies {
     // Logging
     implementation("ch.qos.logback:logback-classic:$logback_version")
 
-    // Image processing
-    implementation("com.sksamuel.scrimage:scrimage-core:4.1.3")
-    implementation("com.sksamuel.scrimage:scrimage-webp:4.1.3")
-
-    // QR-Code generation - https://github.com/g0dkar/qrcode-kotlin
-    implementation("io.github.g0dkar:qrcode-kotlin:4.1.1")
-
     // Database
     implementation("org.jooq:jooq:$jooq_version")
     jooqGenerator("org.jooq:jooq-meta:$jooq_version")
     jooqGenerator("org.jooq:jooq-codegen:$jooq_version")
-    jooqGenerator("org.postgresql:postgresql:42.7.4")
+    jooqGenerator("org.postgresql:postgresql:$postgresql_version")
 
     // Flyway dependency for database migrations
-    implementation("org.flywaydb:flyway-database-postgresql:11.1.1")
-    implementation("org.postgresql:postgresql:42.7.4")
+    implementation("org.flywaydb:flyway-database-postgresql:11.3.4")
+    implementation("org.postgresql:postgresql:$postgresql_version")
 
     // Database connection pooling
-    implementation("com.zaxxer:HikariCP:5.1.0")
+    implementation("com.zaxxer:HikariCP:6.2.1")
 
     // bcrypt https://mvnrepository.com/artifact/at.favre.lib/bcrypt
     implementation("at.favre.lib:bcrypt:0.10.2")
@@ -88,7 +83,7 @@ dependencies {
 }
 
 jooq {
-    version.set("3.19.1")  // default (can be omitted)
+    version.set(jooq_version)  // default (can be omitted)
     edition.set(nu.studer.gradle.jooq.JooqEdition.OSS)
 
     configurations {

@@ -81,8 +81,7 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 
 ## Todo's
 
-- Upgrade Project dependencies
-  - Gradle plugins / kotlin and gradle version?
+- Check ktor version bump
 - Fix coloring(text color according to current theme)
 - get logo done
 - get favicons working
