@@ -41,8 +41,16 @@ val dsl = DSL.using(dataSource, SQLDialect.POSTGRES)
 fun main() {
     logger.info("Starting Ktor application...")
 
-    embeddedServer(Netty, port = 8080, host = envHost, module = Application::module)
-        .start(wait = true)
+    embeddedServer(
+        factory = Netty,
+        configure = {
+            connector {
+                port = 8080
+                host = envHost
+            }
+        },
+        module = Application::module
+    ).start(wait = true)
 }
 
 fun Application.module() {

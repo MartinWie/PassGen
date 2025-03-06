@@ -16,11 +16,10 @@ buildscript {
 
 plugins {
     kotlin("jvm") version "2.1.10"
-    id("io.ktor.plugin") version "2.3.13"
+    id("io.ktor.plugin") version "3.1.1"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.1.10"
     id("nu.studer.jooq") version "9.0"
     id("org.flywaydb.flyway") version "11.3.4"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 group = "de.mw"
