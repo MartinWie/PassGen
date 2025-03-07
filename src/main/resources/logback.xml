@@ -12,9 +12,9 @@
 
     <!-- Set a lower log level for specific Ktor packages -->
     <logger name="io.ktor.server" level="TRACE"/>
-    <logger name="io.ktor.application" level="TRACE"/>
-    <logger name="io.ktor.routing.Routing" level="INFO"/>
-    <logger name="io.ktor.routing.Trace" level="TRACE"/>
+    <logger name="io.ktor.server.routing.Routing" level="INFO"/>
+    <logger name="io.ktor.server.routing.Trace" level="INFO"/>
+    <logger name="io.ktor.server.application" level="TRACE"/>
     <logger name="io.ktor.server.sessions.Sessions" level="INFO"/>
     <logger name="io.ktor.server.plugins.statuspages.StatusPages" level="INFO"/>
     <logger name="aws.sdk.kotlin" level="DEBUG"/>

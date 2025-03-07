@@ -81,9 +81,6 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 
 ## Todo's
 
-- Check ktor version bump
-  - Fix build and reload script(waiting for output probably does not work anymore)
-  - Fix logging(probably just get rid of trace from routung and keep info or warning)
 - Fix coloring(text color according to current theme)
 - get logo done
 - get favicons working

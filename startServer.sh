@@ -53,7 +53,7 @@ tail -f ./server.log | while IFS= read -r line; do
         echo "false" > $SERVER_START_SUCCESS_FILE
         pkill -P $$ tail
         break
-    elif [[ "$line" == *"INFO  ktor.application - Responding at"* ]]; then
+    elif [[ "$line" == *"INFO  io.ktor.server.Application - Application started in"* ]]; then
         echo "Server started and is now responding."
         echo "true" > $SERVER_START_SUCCESS_FILE
         pkill -P $$ tail
