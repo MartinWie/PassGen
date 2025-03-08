@@ -81,7 +81,6 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 
 ## Todo's
 
-- Fix coloring(text color according to current theme)
 - get logo done
 - get favicons working
 - Implement endpoint to fetch a new password
