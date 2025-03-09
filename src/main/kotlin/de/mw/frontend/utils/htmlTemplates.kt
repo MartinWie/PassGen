@@ -33,8 +33,18 @@ fun TagConsumer<StringBuilder>.getPageHead(pageTitle: String = "") {
     head {
         title = pageTitle
 
+        link {
+            rel = "icon"
+            href = "/static/favicon.ico"
+            sizes = "any"
+        }
+        link {
+            rel = "apple-touch-icon"
+            href = "/static/apple-touch-icon.png"
+        }
+
         // Web Application Manifest
-        link { // TODO: get this fixed and add the other icons to the page head
+        link {
             rel = "manifest"
             href = "/static/site.webmanifest"
         }
