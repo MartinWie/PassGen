@@ -87,6 +87,8 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 - Add toggle for dark/light mode
 - add required footer stuff 
 - Add donation(keep the service running) button and Github link to the project
+- Add option to generate Public/Private Keypair in browser client(some sort of toggle)
+- Generate a link where user genarate a private key and the creator gets the public link
 
 
 https://p.7mw.de/
