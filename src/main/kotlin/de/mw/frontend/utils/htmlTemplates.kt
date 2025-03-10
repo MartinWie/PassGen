@@ -1,11 +1,8 @@
 package de.mw.frontend.utils
 
-import de.mw.utils.*
 import kotlinx.html.*
 import kotlinx.html.stream.appendHTML
 import java.time.Year
-import java.util.*
-import kotlin.collections.set
 
 /**
  * Builds an HTML string using the provided builder action.

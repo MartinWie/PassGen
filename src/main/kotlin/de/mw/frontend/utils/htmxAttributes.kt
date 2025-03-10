@@ -1,5 +1,7 @@
-package de.mw.utils
+@file:Suppress("unused")
+package de.mw.frontend.utils
 
+import de.mw.utils.HtmxExtension
 import kotlinx.html.HTMLTag
 import org.intellij.lang.annotations.Language
 

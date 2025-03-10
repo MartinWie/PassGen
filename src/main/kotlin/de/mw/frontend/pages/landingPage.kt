@@ -1,8 +1,6 @@
 package de.mw.frontend.pages
 
-import de.mw.frontend.utils.buildHTMLString
-import de.mw.frontend.utils.getFooter
-import de.mw.frontend.utils.getPageHead
+import de.mw.frontend.utils.*
 import de.mw.utils.*
 import kotlinx.html.*
 
