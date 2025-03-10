@@ -38,6 +38,7 @@ fun TagConsumer<StringBuilder>.getPageHead(pageTitle: String = "") {
             href = "/static/favicon.ico"
             sizes = "any"
         }
+
         link {
             rel = "apple-touch-icon"
             href = "/static/apple-touch-icon.png"
@@ -47,6 +48,24 @@ fun TagConsumer<StringBuilder>.getPageHead(pageTitle: String = "") {
         link {
             rel = "manifest"
             href = "/static/site.webmanifest"
+        }
+
+        meta {
+            name = "description"
+            content = "A simple password tool."
+        }
+
+        meta {
+            name = "apple-mobile-web-app-capable"
+            content = "yes"
+        }
+        meta {
+            name = "apple-mobile-web-app-status-bar-style"
+            content = "black-translucent"
+        }
+        meta {
+            name = "apple-mobile-web-app-title"
+            content = "PassGen"
         }
 
         // HTMX 2.0.4 minified
