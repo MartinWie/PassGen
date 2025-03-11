@@ -44,3 +44,8 @@ fun getUUIDorNull(id: String?): UUID? {
 
     return boardUUID
 }
+
+enum class WordLanguage{
+    ENG,
+    GER
+}
