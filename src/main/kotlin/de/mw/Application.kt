@@ -2,7 +2,9 @@ package de.mw
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import de.mw.daos.PasswordDao
 import de.mw.plugins.configureRouting
+import de.mw.services.PasswordService
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
@@ -37,6 +39,12 @@ val dataSource: DataSource = HikariDataSource(hikariConfig)
 
 // JOOQ dsl context setup
 val dsl = DSL.using(dataSource, SQLDialect.POSTGRES)
+
+// DAO setup
+val passwordDao = PasswordDao(dsl)
+
+// Service setup
+val passwordService = PasswordService(passwordDao)
 
 fun main() {
     logger.info("Starting Ktor application...")

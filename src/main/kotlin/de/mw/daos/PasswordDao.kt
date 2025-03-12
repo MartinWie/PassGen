@@ -25,4 +25,14 @@ class PasswordDao(dsl: DSLContext) {
                 .fetchOne(PASSWORDWORD.VALUE)
         }
     }
+
+    fun insert(words: List<String>, language: WordLanguage) {
+        dsl.batch(
+            words.map { value ->
+                dsl.insertInto(PASSWORDWORD)
+                    .set(PASSWORDWORD.VALUE, value)
+                    .set(PASSWORDWORD.LANGUAGE, language.name)
+            }
+        ).execute()
+    }
 }
