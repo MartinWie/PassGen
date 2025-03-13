@@ -106,7 +106,7 @@ fun getLandingPage(pageTitle: String): String {
                             hxGet("/word")
                             hxTrigger("click")
                             hxTarget("#password-input")
-                            hxSwap(HxSwapOption.INNER_HTML)
+                            hxSwap(HxSwapOption.OUTER_HTML)
                             hxInclude("[id='language-select'], [id='word-amount']") // TODO: check if "id" works, if not use name= and add names
                             title = "Generate"
                             unsafe {
