@@ -1,6 +1,7 @@
 package de.mw.plugins
 
 import de.mw.frontend.pages.getLandingPage
+import de.mw.plugins.routes.passwordRouting
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
@@ -23,6 +24,8 @@ fun Application.configureRouting() {
         get("/health") {
             call.respondText(status = HttpStatusCode.OK, text = "OK")
         }
+
+        passwordRouting()
 
         staticResources("/static", "static")
     }
