@@ -11,11 +11,13 @@ import java.util.concurrent.atomic.AtomicInteger
 class PasswordService(private val passwordDao: PasswordDao) : CoroutineScope by CoroutineScope(Dispatchers.Default) {
     private val logger = LoggerFactory.getLogger(this::class.java)
     private var cachedWords: List<List<String>> = emptyList()
-    private val counter = AtomicInteger(20)
+    private var lastRefreshTime: Long = 0
+    private val refreshIntervalMs = 1 * 60 * 1000 // 1 min
 
     init {
         // Initialize cache after constructor
         loadWords()
+        lastRefreshTime = System.currentTimeMillis()
     }
 
     fun getWords(amount: Int = 1, language: WordLanguage): List<String> {
@@ -52,9 +54,10 @@ class PasswordService(private val passwordDao: PasswordDao) : CoroutineScope by 
     }
 
     private fun fetchedWords() {
-        if (counter.incrementAndGet() > 20) {
-            counter.set(0)
-            logger.info("Word cache refreshed!")
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastRefreshTime > refreshIntervalMs) {
+            lastRefreshTime = currentTime
+            logger.info("Word cache refreshed after ${refreshIntervalMs / 60000} minutes!")
             cachedWords = WordLanguage.entries.map {
                 try {
                     passwordDao.get(500, it)
