@@ -49,6 +49,7 @@ fun getLandingPage(pageTitle: String): String {
                                     select {
                                         id = "language-select"
                                         classes = setOf("select", "select-bordered", "w-full")
+                                        attributes["onchange"] = "document.getElementById('regen-button').click()"
                                         option {
                                             value = "ENG"
                                             selected = true
@@ -84,6 +85,7 @@ fun getLandingPage(pageTitle: String): String {
                                         attributes["oninput"] = """
                                             document.getElementById('word-amount').textContent = this.value
                                             document.getElementById('word-input').value = this.value
+                                            document.getElementById('regen-button').click()
                                         """.trimIndent()
                                     }
                                     input(InputType.number) {
@@ -95,6 +97,7 @@ fun getLandingPage(pageTitle: String): String {
                                         attributes["oninput"] = """
                                             document.getElementById('word-amount').textContent = this.value;
                                             document.getElementById('word-amount-slider').value = this.value;
+                                            document.getElementById('regen-button').click()
                                         """.trimIndent()
                                     }
                                 }
@@ -103,6 +106,7 @@ fun getLandingPage(pageTitle: String): String {
 
                         // Generate Button
                         button(classes = "btn btn-ghost") {
+                            id = "regen-button"
                             hxGet("/word")
                             hxTrigger("click")
                             hxTarget("#password-input")
