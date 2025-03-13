@@ -1,7 +1,6 @@
 package de.mw.frontend.pages
 
 import de.mw.frontend.utils.*
-import de.mw.utils.*
 import kotlinx.html.*
 
 fun getLandingPage(pageTitle: String): String {
@@ -104,7 +103,7 @@ fun getLandingPage(pageTitle: String): String {
 
                         // Generate Button
                         button(classes = "btn btn-ghost") {
-                            hxGet("/generate") // Note, just return the string
+                            hxGet("/word")
                             hxTrigger("click")
                             hxTarget("#password-input")
                             hxSwap(HxSwapOption.INNER_HTML)
@@ -148,8 +147,6 @@ fun getBasePage(
             classes = setOf(
                 "min-h-screen flex flex-col"
             )
-
-            hxExt(HtmxExtension.LOADING_STATES)
 
             div {
                 classes = setOf("grow")
