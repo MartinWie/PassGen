@@ -82,9 +82,10 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 ## Todo's
 
 - Implement endpoint to fetch a new password
-  - Add option to get random words
-  - Add option to batch insert words
-  - Load in both big word lists
+  - Load password on pageload
+  - Add copy button to input field(reorder buttons)
+  - Fix bug once typed replace does not work
+  - Implement base functionality(amount, language, lenght)
   - Disable insert endpoint
 - Implement share functionality(add password to link and do not store it in DB so only the link can decrypt the password and make sure we can max send 5000 chars)
 - Really delete the password after max visits are done
