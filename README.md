@@ -82,11 +82,15 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 ## Todo's
 
 - Implement endpoint to fetch a new password
-  - Load password on page load
   - Add copy button to input field(reorder buttons)
   - Implement base functionality(amount, language, lenght)
+- Fix README.MD
 - Implement share functionality(add password to link and do not store it in DB so only the link can decrypt the password and make sure we can max send 5000 chars)
-- Really delete the password after max visits are done
+  - DAO and service
+    - Create, fetch and drop(include the crypt with a UUID or password that is not stored and only part of the returned link )
+    - Service make sure we only allow certain chars and lenght
+    - Service, delete password from DB before client gets the value
+  - Page that has the option to reveal the password which then drops the password from the DB
 - Add toggle for dark/light mode
   - Add toggle button
   - Store state for that
@@ -95,6 +99,7 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 - Add donation(keep the service running) button and Github link to the project
 - Add option to generate Public/Private Keypair in browser client(some sort of toggle)
 - Generate a link where user genarate a private key and the creator gets the public link
+- Think about cleanup
 
 
 https://p.7mw.de/

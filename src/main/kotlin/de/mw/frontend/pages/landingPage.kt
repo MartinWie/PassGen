@@ -11,7 +11,9 @@ fun getLandingPage(pageTitle: String): String {
                     textArea {
                         id = "password-input"
                         classes = setOf("grow resize-none h-14 min-h-[56px] border-none focus:outline-hidden bg-transparent px-2 box-border text-base align-middle leading-[1.5] py-[14px] md:py-[14px]")
-                        placeholder = "Type or generate content..."
+                        hxGet("/word")
+                        hxSwap(HxSwapOption.OUTER_HTML)
+                        hxTrigger("intersect once")
                     }
 
                     div("flex justify-center md:justify-end gap-2 md:gap-3 mt-1 md:mt-0") {
