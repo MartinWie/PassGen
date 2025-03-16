@@ -17,6 +17,64 @@ fun getLandingPage(pageTitle: String): String {
                     }
 
                     div("flex justify-center md:justify-end gap-2 md:gap-3 mt-1 md:mt-0") {
+
+                        script(ScriptType.textJavaScript) {
+                        // Copy JS helper
+                            unsafe {
+                                raw("""
+                                    function copyToClipboard() {
+                                        const textarea = document.getElementById('password-input');
+                                        textarea.select();
+                                        document.execCommand('copy');
+                                        
+                                        // Show copy success tooltip
+                                        const tooltip = document.getElementById('copy-tooltip');
+                                        tooltip.classList.remove('hidden');
+                                        
+                                        // Hide tooltip after 2 seconds
+                                        setTimeout(() => {
+                                            tooltip.classList.add('hidden');
+                                        }, 2000);
+                                    }
+                                """.trimIndent())
+                            }
+                        }
+
+                        // Copy button
+                        button(classes = "btn btn-ghost") {
+                            title = "Copy to clipboard"
+                            attributes["onclick"] = "copyToClipboard()"
+                            unsafe {
+                            +"""
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                                </svg>
+                            """.trimIndent()
+                            }
+                        }
+                        div("hidden absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-800 text-white text-xs rounded shadow-lg whitespace-nowrap") {
+                            id = "copy-tooltip"
+                            +"Copied!"
+                        }
+
+                        // Generate Button
+                        button(classes = "btn btn-ghost") {
+                            id = "regen-button"
+                            hxGet("/word")
+                            hxTrigger("click")
+                            hxTarget("#password-input")
+                            hxSwap(HxSwapOption.OUTER_HTML)
+                            hxInclude("[id='language-select'], [id='word-amount']") // TODO: check if "id" works, if not use name= and add names
+                            title = "Generate"
+                            unsafe {
+                                +"""
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                """.trimIndent()
+                            }
+                        }
+
                         // Settings Dropdown
                         div("dropdown dropdown-top md:dropdown-end") {
                             label {
@@ -103,24 +161,6 @@ fun getLandingPage(pageTitle: String): String {
                                         """.trimIndent()
                                     }
                                 }
-                            }
-                        }
-
-                        // Generate Button
-                        button(classes = "btn btn-ghost") {
-                            id = "regen-button"
-                            hxGet("/word")
-                            hxTrigger("click")
-                            hxTarget("#password-input")
-                            hxSwap(HxSwapOption.OUTER_HTML)
-                            hxInclude("[id='language-select'], [id='word-amount']") // TODO: check if "id" works, if not use name= and add names
-                            title = "Generate"
-                            unsafe {
-                                +"""
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                    </svg>
-                                """.trimIndent()
                             }
                         }
 
