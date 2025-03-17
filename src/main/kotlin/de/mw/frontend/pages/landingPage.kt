@@ -6,6 +6,18 @@ import kotlinx.html.*
 fun getLandingPage(pageTitle: String): String {
     return getBasePage(pageTitle) {
         div("flex items-center justify-center min-h-screen p-4 md:p-6") {
+
+            div {
+                classes = setOf("toast toast-top toast-center")
+                div {
+                    id = "copy-tooltip"
+                    classes = setOf("alert alert-success hidden")
+                    span {
+                        +"Copy successful!"
+                    }
+                }
+            }
+
             div("w-full max-w-3xl mx-auto") {
                 div("flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-3 border border-gray-200 rounded-xl p-2 md:p-3 focus-within:ring-1 focus-within:ring-primary focus-within:border-primary shadow-xs") {
                     textArea {
