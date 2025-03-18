@@ -97,6 +97,8 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 - add required footer stuff 
 - Add donation(keep the service running) button and Github link to the project
 - Add option to generate Public/Private Keypair in browser client(some sort of toggle)
+  - Figure out how to generate the pair on the client
+  - Text field for the public key use something like this -> https://cruip.com/auto-growing-textarea-with-tailwind-css/ 
 - Generate a link where user genarate a private key and the creator gets the public link
 - Think about cleanup
 
