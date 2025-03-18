@@ -82,7 +82,6 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 ## Todo's
 
 - Implement endpoint to fetch a new password
-  - Fix text are sizing to match the content size
   - Implement base functionality(amount, language, length)
 - Fix README.MD
 - Implement share functionality(add password to link and do not store it in DB so only the link can decrypt the password and make sure we can max send 5000 chars)
