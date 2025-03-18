@@ -31,7 +31,7 @@ fun getLandingPage(pageTitle: String): String {
                     div("flex justify-center md:justify-end gap-2 md:gap-3 mt-1 md:mt-0") {
 
                         script(ScriptType.textJavaScript) {
-                        // Copy JS helper
+                        // Maybe move into own JS file and import it here
                             unsafe {
                                 raw("""
                                     function copyToClipboard() {
