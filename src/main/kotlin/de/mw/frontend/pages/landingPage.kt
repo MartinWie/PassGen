@@ -24,6 +24,7 @@ fun getLandingPage(pageTitle: String): String {
                         id = "password-input"
                         classes = setOf("grow resize-none h-14 min-h-[56px] border-none focus:outline-hidden bg-transparent px-2 box-border text-base align-middle leading-[1.5] py-[14px] md:py-[14px]")
                         hxGet("/word")
+                        hxInclude("[name='language-select'], [name='word-amount-slider']")
                         hxSwap(HxSwapOption.OUTER_HTML)
                         hxTrigger("intersect once")
                     }
@@ -76,7 +77,7 @@ fun getLandingPage(pageTitle: String): String {
                             hxTrigger("click")
                             hxTarget("#password-input")
                             hxSwap(HxSwapOption.OUTER_HTML)
-                            hxInclude("[id='language-select'], [id='word-amount']") // TODO: check if "id" works, if not use name= and add names
+                            hxInclude("[name='language-select'], [name='word-amount-slider']")
                             title = "Generate"
                             unsafe {
                                 +"""
@@ -119,7 +120,7 @@ fun getLandingPage(pageTitle: String): String {
                                         }
                                     }
                                     select {
-                                        id = "language-select"
+                                        name = "language-select"
                                         classes = setOf("select", "select-bordered", "w-full")
                                         attributes["onchange"] = "document.getElementById('regen-button').click()"
                                         option {
@@ -148,8 +149,9 @@ fun getLandingPage(pageTitle: String): String {
                                         }
                                     }
                                     input(InputType.range) {
+                                        name = "word-amount-slider"
                                         min = "1"
-                                        max = "20"
+                                        max = "50"
                                         step = "1"
                                         value = "4"
                                         id = "word-amount-slider"
@@ -167,6 +169,7 @@ fun getLandingPage(pageTitle: String): String {
                                         id = "word-input"
                                         classes = setOf("input", "input-bordered", "w-full")
                                         attributes["oninput"] = """
+                                            if(this.value > 50) this.value = 50
                                             document.getElementById('word-amount').textContent = this.value;
                                             document.getElementById('word-amount-slider').value = this.value;
                                             document.getElementById('regen-button').click()
