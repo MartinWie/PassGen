@@ -176,6 +176,40 @@ fun getLandingPage(pageTitle: String): String {
                                         """.trimIndent()
                                     }
                                 }
+                                // Checkbox include numbers
+                                div {
+                                    classes = setOf("form-control")
+                                    label {
+                                        classes = setOf("label cursor-pointer justify-start gap-2 py-1")
+                                        input {
+                                            type = InputType.checkBox
+                                            id = "include-numbers"
+                                            classes = setOf("checkbox checkbox-sm")
+                                            checked = false
+                                        }
+                                        span {
+                                            classes = setOf("label-text text-sm text-gray-600")
+                                            +"Include numbers"
+                                        }
+                                    }
+                                }
+                                // Checkbox include numbers
+                                div {
+                                    classes = setOf("form-control")
+                                    label {
+                                        classes = setOf("label cursor-pointer justify-start gap-2 py-1")
+                                        input {
+                                            type = InputType.checkBox
+                                            id = "include-special"
+                                            classes = setOf("checkbox checkbox-sm")
+                                            checked = false
+                                        }
+                                        span {
+                                            classes = setOf("label-text text-sm text-gray-600")
+                                            +"Include special characters"
+                                        }
+                                    }
+                                }
                             }
                         }
 

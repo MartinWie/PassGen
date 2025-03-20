@@ -1,4 +1,4 @@
-/*! tailwindcss v4.0.14 | MIT License | https://tailwindcss.com */
+/*! tailwindcss v4.0.15 | MIT License | https://tailwindcss.com */
 @layer theme, base, components, utilities;
 @layer theme {
   :root, :host {
@@ -7,6 +7,7 @@
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
       "Courier New", monospace;
     --color-gray-200: oklch(0.928 0.006 264.531);
+    --color-gray-600: oklch(0.446 0.03 256.802);
     --color-gray-800: oklch(0.278 0.033 256.848);
     --color-black: #000;
     --color-white: #fff;
@@ -1608,6 +1609,9 @@
       outline-offset: 2px;
     }
   }
+  .cursor-pointer {
+    cursor: pointer;
+  }
   .resize {
     resize: both;
   }
@@ -1625,6 +1629,9 @@
   }
   .justify-center {
     justify-content: center;
+  }
+  .justify-start {
+    justify-content: flex-start;
   }
   .gap-2 {
     gap: calc(var(--spacing) * 2);
@@ -1659,6 +1666,10 @@
   }
   .bg-transparent {
     background-color: transparent;
+  }
+  .checkbox-sm {
+    padding: 0.1875rem;
+    --size: calc(var(--size-selector, 0.25rem) * 5);
   }
   .p-2 {
     padding: calc(var(--spacing) * 2);
@@ -1707,6 +1718,9 @@
   }
   .whitespace-nowrap {
     white-space: nowrap;
+  }
+  .text-gray-600 {
+    color: var(--color-gray-600);
   }
   .text-white {
     color: var(--color-white);
