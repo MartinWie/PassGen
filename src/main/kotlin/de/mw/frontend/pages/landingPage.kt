@@ -103,7 +103,7 @@ fun getLandingPage(pageTitle: String): String {
                                     """.trimIndent()
                                 }
                             }
-                            div("dropdown-content z-1 menu p-4 shadow-lg bg-base-100 rounded-xl w-64 md:w-72 text-base") {
+                            div("dropdown-content z-1 menu p-4 shadow-lg bg-base-100 rounded-xl w-48 md:w-64 text-base") {
                                 tabIndex = "0"
                                 h3 {
                                     classes = setOf("font-medium", "mb-3", "text-lg")
@@ -180,7 +180,7 @@ fun getLandingPage(pageTitle: String): String {
                                 div {
                                     classes = setOf("form-control")
                                     label {
-                                        classes = setOf("label cursor-pointer justify-start gap-2 py-1")
+                                        classes = setOf("label cursor-pointer flex justify-between gap-2 py-1")
                                         input {
                                             type = InputType.checkBox
                                             id = "include-numbers"
@@ -188,16 +188,16 @@ fun getLandingPage(pageTitle: String): String {
                                             checked = false
                                         }
                                         span {
-                                            classes = setOf("label-text text-sm text-gray-600")
+                                            classes = setOf("label-text text-sm")
                                             +"Include numbers"
                                         }
                                     }
                                 }
-                                // Checkbox include numbers
+                                // Checkbox for special characters
                                 div {
                                     classes = setOf("form-control")
                                     label {
-                                        classes = setOf("label cursor-pointer justify-start gap-2 py-1")
+                                        classes = setOf("label cursor-pointer flex justify-between gap-2 py-1")
                                         input {
                                             type = InputType.checkBox
                                             id = "include-special"
@@ -205,7 +205,7 @@ fun getLandingPage(pageTitle: String): String {
                                             checked = false
                                         }
                                         span {
-                                            classes = setOf("label-text text-sm text-gray-600")
+                                            classes = setOf("label-text text-sm")
                                             +"Include special characters"
                                         }
                                     }
