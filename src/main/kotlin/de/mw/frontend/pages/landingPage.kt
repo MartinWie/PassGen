@@ -89,7 +89,7 @@ fun getLandingPage(pageTitle: String): String {
                         }
 
                         // Settings Dropdown
-                        div("dropdown dropdown-top md:dropdown-end") {
+                        div("dropdown md:dropdown-top dropdown-left") {
                             label {
                                 tabIndex = "0"
                                 classes = setOf("btn", "btn-ghost")

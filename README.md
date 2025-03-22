@@ -83,13 +83,12 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 
 - Implement endpoint to fetch a new password
   - Add option to include numbers and special chars(just add a random one of them to the end of very word)
-    - Setting menu is outside of normal view on mobile(center it)
     - Use them in request + fetch on change
 - Fix README.MD
 - Implement share functionality(add password to link and do not store it in DB so only the link can decrypt the password and make sure we can max send 5000 chars)
   - DAO and service
     - Create, fetch and drop(include the crypt with a UUID or password that is not stored and only part of the returned link )
-    - Service make sure we only allow certain chars and lenght
+    - Service make sure we only allow certain chars and length
     - Service, delete password from DB before client gets the value
   - Page that has the option to reveal the password which then drops the password from the DB
 - Add toggle for dark/light mode

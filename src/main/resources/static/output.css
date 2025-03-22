@@ -1287,12 +1287,14 @@
   .static {
     position: static;
   }
-  .dropdown-top {
-    --anchor-v: top;
+  .dropdown-left {
+    --anchor-h: left;
+    --anchor-v: span-bottom;
     .dropdown-content {
-      top: auto;
-      bottom: 100%;
-      transform-origin: bottom;
+      inset-inline-end: 100%;
+      top: calc(0.25rem * 0);
+      bottom: auto;
+      transform-origin: right;
     }
   }
   .bottom-full {
@@ -1779,27 +1781,13 @@
       }
     }
   }
-  .md\:dropdown-end {
+  .md\:dropdown-top {
     @media (width >= 48rem) {
-      --anchor-h: span-left;
-      :where(.dropdown-content) {
-        inset-inline-end: calc(0.25rem * 0);
-      }
-      &.dropdown-left {
-        --anchor-h: left;
-        --anchor-v: span-top;
-        .dropdown-content {
-          top: auto;
-          bottom: calc(0.25rem * 0);
-        }
-      }
-      &.dropdown-right {
-        --anchor-h: right;
-        --anchor-v: span-top;
-        .dropdown-content {
-          top: auto;
-          bottom: calc(0.25rem * 0);
-        }
+      --anchor-v: top;
+      .dropdown-content {
+        top: auto;
+        bottom: 100%;
+        transform-origin: bottom;
       }
     }
   }
