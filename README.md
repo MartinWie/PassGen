@@ -84,6 +84,7 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 - Implement endpoint to fetch a new password
   - Add option to include numbers and special chars(just add a random one of them to the end of very word)
     - Use them in request + fetch on change
+  - Add input for custom separator
 - Fix README.MD
 - Implement share functionality(add password to link and do not store it in DB so only the link can decrypt the password and make sure we can max send 5000 chars)
   - DAO and service
@@ -101,6 +102,7 @@ aenv -e Prod -s Passgen bash fullBuild.sh
   - Figure out how to generate the pair on the client
   - Text field for the public key use something like this -> https://cruip.com/auto-growing-textarea-with-tailwind-css/ 
 - Generate a link where user genarate a private key and the creator gets the public link
+- simple pw on ssh hostname
 - Think about cleanup
 
 

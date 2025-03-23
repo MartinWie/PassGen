@@ -24,7 +24,7 @@ fun getLandingPage(pageTitle: String): String {
                         id = "password-input"
                         classes = setOf("grow resize-none h-14 min-h-[56px] border-none focus:outline-hidden bg-transparent px-2 box-border text-base align-middle leading-[1.5] py-[14px] md:py-[14px]")
                         hxGet("/word")
-                        hxInclude("[name='language-select'], [name='word-amount-slider']")
+                        hxInclude("[name='language-select'], [name='word-amount-slider'], [name='include-special'], [name='include-numbers']")
                         hxSwap(HxSwapOption.OUTER_HTML)
                         hxTrigger("intersect once")
                     }
@@ -77,7 +77,7 @@ fun getLandingPage(pageTitle: String): String {
                             hxTrigger("click")
                             hxTarget("#password-input")
                             hxSwap(HxSwapOption.OUTER_HTML)
-                            hxInclude("[name='language-select'], [name='word-amount-slider']")
+                            hxInclude("[name='language-select'], [name='word-amount-slider'], [name='include-special'], [name='include-numbers']")
                             title = "Generate"
                             unsafe {
                                 +"""
@@ -183,7 +183,7 @@ fun getLandingPage(pageTitle: String): String {
                                         classes = setOf("label cursor-pointer flex justify-between gap-2 py-1")
                                         input {
                                             type = InputType.checkBox
-                                            id = "include-numbers"
+                                            name = "include-numbers"
                                             classes = setOf("checkbox checkbox-sm")
                                             checked = false
                                         }
@@ -200,7 +200,7 @@ fun getLandingPage(pageTitle: String): String {
                                         classes = setOf("label cursor-pointer flex justify-between gap-2 py-1")
                                         input {
                                             type = InputType.checkBox
-                                            id = "include-special"
+                                            name = "include-special"
                                             classes = setOf("checkbox checkbox-sm")
                                             checked = false
                                         }
