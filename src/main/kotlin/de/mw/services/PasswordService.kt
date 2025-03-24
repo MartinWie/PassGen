@@ -14,6 +14,7 @@ class PasswordService(private val passwordDao: PasswordDao) : CoroutineScope by 
     private var cachedWords: List<List<String>> = emptyList()
     private var lastRefreshTime: Long = 0
     private val refreshIntervalMs = 1 * 60 * 1000 // 1 min
+    private var refreshInProgress = false
 
     init {
         // Initialize cache after constructor
@@ -32,7 +33,18 @@ class PasswordService(private val passwordDao: PasswordDao) : CoroutineScope by 
         )
         launch {
             synchronized(this@PasswordService) {
-                fetchedWords()
+                if (!refreshInProgress) {
+                    refreshInProgress = true
+                    launch {
+                        try {
+                            fetchedWords()
+                        } finally {
+                            synchronized(this@PasswordService) {
+                                refreshInProgress = false
+                            }
+                        }
+                    }
+                }
             }
         }
         var words = cachedWords[language.ordinal].shuffled().take(amount)
