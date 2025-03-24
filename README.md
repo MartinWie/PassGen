@@ -82,8 +82,6 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 ## Todo's
 
 - Implement endpoint to fetch a new password
-  - Add option to include numbers and special chars(just add a random one of them to the end of very word)
-    - Use them in request + fetch on change
   - Add input for custom separator
 - Fix README.MD
 - Implement share functionality(add password to link and do not store it in DB so only the link can decrypt the password and make sure we can max send 5000 chars)

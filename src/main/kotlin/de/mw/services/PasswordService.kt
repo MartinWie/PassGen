@@ -2,10 +2,12 @@ package de.mw.services
 
 import de.mw.daos.PasswordDao
 import de.mw.models.WordLanguage
+import de.mw.services.utils.SPECIAL_CHARS
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
+import kotlin.random.Random
 
 class PasswordService(private val passwordDao: PasswordDao) : CoroutineScope by CoroutineScope(Dispatchers.Default) {
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -19,14 +21,35 @@ class PasswordService(private val passwordDao: PasswordDao) : CoroutineScope by 
         lastRefreshTime = System.currentTimeMillis()
     }
 
-    fun getWords(amount: Int = 1, language: WordLanguage): List<String> {
-        logger.info("Retrieving $amount words in language ${language.name}")
+    fun getWords(
+        amount: Int = 1,
+        language: WordLanguage,
+        specialChars: Boolean,
+        numbers: Boolean
+    ): List<String> {
+        logger.info(
+            "Retrieving $amount words in language ${language.name} include special chars: $specialChars, include numbers: $numbers"
+        )
         launch {
             synchronized(this@PasswordService) {
                 fetchedWords()
             }
         }
-        return cachedWords[language.ordinal].shuffled().take(amount)
+        var words = cachedWords[language.ordinal].shuffled().take(amount)
+
+        if(specialChars) {
+            words = words.map {
+                it+SPECIAL_CHARS[Random.nextInt(SPECIAL_CHARS.length)]
+            }
+        }
+
+        if(numbers) {
+            words = words.map {
+                it+Random.nextInt(0,10)
+            }
+        }
+
+        return words
     }
 
     fun insertWords(words: List<String>, language: WordLanguage) {

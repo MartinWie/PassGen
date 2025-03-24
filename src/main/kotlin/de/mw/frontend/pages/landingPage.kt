@@ -186,6 +186,7 @@ fun getLandingPage(pageTitle: String): String {
                                             name = "include-numbers"
                                             classes = setOf("checkbox checkbox-sm")
                                             checked = false
+                                            attributes["onchange"] = "document.getElementById('regen-button').click()"
                                         }
                                         span {
                                             classes = setOf("label-text text-sm")
@@ -203,6 +204,7 @@ fun getLandingPage(pageTitle: String): String {
                                             name = "include-special"
                                             classes = setOf("checkbox checkbox-sm")
                                             checked = false
+                                            attributes["onchange"] = "document.getElementById('regen-button').click()"
                                         }
                                         span {
                                             classes = setOf("label-text text-sm")
