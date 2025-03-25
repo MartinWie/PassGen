@@ -31,22 +31,11 @@ class PasswordService(private val passwordDao: PasswordDao) : CoroutineScope by 
         logger.info(
             "Retrieving $amount words in language ${language.name} include special chars: $specialChars, include numbers: $numbers"
         )
+
         launch {
-            synchronized(this@PasswordService) {
-                if (!refreshInProgress) {
-                    refreshInProgress = true
-                    launch {
-                        try {
-                            fetchedWords()
-                        } finally {
-                            synchronized(this@PasswordService) {
-                                refreshInProgress = false
-                            }
-                        }
-                    }
-                }
-            }
+            refreshCashIfNeeded()
         }
+
         var words = cachedWords[language.ordinal].shuffled().take(amount)
 
         if(specialChars) {
@@ -75,6 +64,19 @@ class PasswordService(private val passwordDao: PasswordDao) : CoroutineScope by 
         }
     }
 
+    private fun refreshCashIfNeeded() {
+        synchronized(this@PasswordService) {
+            if (!refreshInProgress && System.currentTimeMillis() - lastRefreshTime > refreshIntervalMs) {
+                refreshInProgress = true
+                try {
+                    fetchedWords()
+                } finally {
+                    refreshInProgress = false
+                }
+            }
+        }
+    }
+
     private fun loadWords() {
         cachedWords = WordLanguage.entries.map {
             logger.info("Initial loading of 50 words in language ${it.name}")
@@ -88,17 +90,14 @@ class PasswordService(private val passwordDao: PasswordDao) : CoroutineScope by 
     }
 
     private fun fetchedWords() {
-        val currentTime = System.currentTimeMillis()
-        if (currentTime - lastRefreshTime > refreshIntervalMs) {
-            lastRefreshTime = currentTime
-            logger.info("Word cache refreshed after ${refreshIntervalMs / 60000} minutes!")
-            cachedWords = WordLanguage.entries.map {
-                try {
-                    passwordDao.get(500, it)
-                } catch (e: Exception) {
-                    logger.error("Failed to refresh cache for ${it.name}", e)
-                    cachedWords.getOrElse(it.ordinal) { emptyList() }
-                }
+        lastRefreshTime = System.currentTimeMillis()
+        logger.info("Word cache refreshed after ${refreshIntervalMs / 60000} minutes!")
+        cachedWords = WordLanguage.entries.map {
+            try {
+                passwordDao.get(500, it)
+            } catch (e: Exception) {
+                logger.error("Failed to refresh cache for ${it.name}", e)
+                cachedWords.getOrElse(it.ordinal) { emptyList() }
             }
         }
     }
