@@ -24,7 +24,7 @@ fun getLandingPage(pageTitle: String): String {
                         id = "password-input"
                         classes = setOf("grow resize-none h-14 min-h-[56px] border-none focus:outline-hidden bg-transparent px-2 box-border text-base align-middle leading-[1.5] py-[14px] md:py-[14px]")
                         hxGet("/word")
-                        hxInclude("[name='language-select'], [name='word-amount-slider'], [name='include-special'], [name='include-numbers']")
+                        hxInclude("[name='language-select'], [name='word-amount-slider'], [name='include-special'], [name='include-numbers'], [name='separator']")
                         hxSwap(HxSwapOption.OUTER_HTML)
                         hxTrigger("intersect once")
                     }
@@ -77,7 +77,7 @@ fun getLandingPage(pageTitle: String): String {
                             hxTrigger("click")
                             hxTarget("#password-input")
                             hxSwap(HxSwapOption.OUTER_HTML)
-                            hxInclude("[name='language-select'], [name='word-amount-slider'], [name='include-special'], [name='include-numbers']")
+                            hxInclude("[name='language-select'], [name='word-amount-slider'], [name='include-special'], [name='include-numbers'], [name='separator']")
                             title = "Generate"
                             unsafe {
                                 +"""
@@ -176,6 +176,25 @@ fun getLandingPage(pageTitle: String): String {
                                         """.trimIndent()
                                     }
                                 }
+
+                                div("form-control mb-3") {
+                                    label {
+                                        classes = setOf("label", "py-1")
+                                        span {
+                                            classes = setOf("label-text", "text-sm")
+                                            +"Separator:"
+                                        }
+                                    }
+                                    input(InputType.text) {
+                                        name = "separator"
+                                        maxLength = 1.toString()
+                                        value = "-"
+                                        id = "word-amount-slider"
+                                        classes = setOf("input", "input-bordered", "w-full")
+                                        attributes["oninput"] = "document.getElementById('regen-button').click()"
+                                    }
+                                }
+
                                 // Checkbox include numbers
                                 div {
                                     classes = setOf("form-control")

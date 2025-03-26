@@ -27,6 +27,8 @@ fun Route.passwordRouting(){
 
         val numbers = parameters["include-numbers"]?.let { it.uppercase() == "ON" } ?: false
 
+        val separator = parameters["separator"]?.let { it.first().toString() } ?: "-"
+
         if (wordAmount > 50) return@get call.respond(
             HttpStatusCode.BadRequest,"Why Waste Time When Few Word Do Trick"
         )
@@ -35,7 +37,7 @@ fun Route.passwordRouting(){
             textArea {
                 id = "password-input"
                 classes = setOf("grow resize-none h-14 min-h-[56px] border-none focus:outline-hidden bg-transparent px-2 box-border text-base align-middle leading-[1.5] py-[14px] md:py-[14px]")
-                +passwordService.getWords(wordAmount, language, spacialChars, numbers).joinToString("-")
+                +passwordService.getWords(wordAmount, language, spacialChars, numbers).joinToString(separator)
             }
         }
         call.respondText(textarea, ContentType.Text.Html)
