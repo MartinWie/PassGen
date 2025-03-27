@@ -2,21 +2,18 @@
 
 ![logo](https://github.com/MartinWie/PassGen/blob/master/logo.png)
 
-A small tool to eliminate some personal pain points build with Kotlin + HTMX and Tailwind/franken-ui
+A small tool to eliminate some personal pain points build with Kotlin + HTMX and Tailwind/daisy-ui
 
 ### Install tooling:
 
 Tailwind: for CSS generation
-Franken-ui: for simpler base styling
+DaisyUi: for simpler base styling
 Browser-sync: auto refresh browser on changes, for details checkout 'startServer.sh'
 Entr: trigger action on file change, for details checkout 'startServer.sh'
 Aenv: load app environment varibles form the aws parameter store
 
 ```Terminal
-npm install -D tailwindcss@3
-npm install -D @tailwindcss/typography
-npm install postcss franken-ui@latest
-npx franken-ui init -p
+npm install tailwindcss@latest @tailwindcss/cli@latest daisyui@latest
 npm install -g browser-sync 
 brew install entr
 pip install aenv
@@ -81,7 +78,6 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 
 ## Todo's
 
-- Fix README.MD
 - Implement share functionality(add password to link and do not store it in DB so only the link can decrypt the password and make sure we can max send 5000 chars)
   - DAO and service
     - Create, fetch and drop(include the crypt with a UUID or password that is not stored and only part of the returned link )
