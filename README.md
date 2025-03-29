@@ -80,7 +80,7 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 
 - Implement share functionality(add password to link and do not store it in DB so only the link can decrypt the password and make sure we can max send 5000 chars)
   - DAO and service
-    - Service use crypt-lib to bcrypt value and not key, just generate another UUID that is part of the link
+    - Service use javax.crypto value and not key, just generate another UUID that is part of the link
     - Service make sure we only allow certain chars and length
     - Service, delete password from DB before client gets the value
   - Page that has the option to reveal the password which then drops the password from the DB

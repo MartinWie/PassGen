@@ -73,9 +73,6 @@ dependencies {
     // Database connection pooling
     implementation("com.zaxxer:HikariCP:6.2.1")
 
-    // bcrypt https://mvnrepository.com/artifact/at.favre.lib/bcrypt
-    implementation("at.favre.lib:bcrypt:0.10.2")
-
     testImplementation("io.ktor:ktor-server-test-host:$ktor_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
 }

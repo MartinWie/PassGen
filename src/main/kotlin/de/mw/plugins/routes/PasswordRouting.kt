@@ -10,7 +10,6 @@ import kotlinx.html.classes
 import kotlinx.html.id
 import kotlinx.html.textArea
 
-// TODO: add request parameters
 fun Route.passwordRouting(){
     get("/word") {
         val parameters = call.queryParameters
