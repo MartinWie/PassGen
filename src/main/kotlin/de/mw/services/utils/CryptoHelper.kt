@@ -38,7 +38,22 @@ class CryptoHelper {
         }
 
         fun decrypt(encryptedText: String, token: String, salt: String): String {
-            return "" // TODO: implement(extract IV and data, then derive key and decrypt)
+            val combined = Base64.getUrlDecoder().decode(encryptedText)
+
+            val iv = ByteArray(IV_LENGTH)
+            System.arraycopy(combined, 0, iv, 0, iv.size)
+
+            val encryptedBytes = ByteArray(combined.size - iv.size)
+            System.arraycopy(combined, iv.size, encryptedBytes, 0, encryptedBytes.size)
+
+            val secretKey = deriveKey(token, salt)
+
+            val cipher = Cipher.getInstance(TRANSFORMATION)
+            val gcmSpec = GCMParameterSpec(128, iv)
+            cipher.init(Cipher.DECRYPT_MODE, secretKey, gcmSpec)
+
+            val decryptedBytes = cipher.doFinal(encryptedBytes)
+            return String(decryptedBytes, Charsets.UTF_8)
         }
 
         // Derive a strong encryption key from the UUID token and salt
