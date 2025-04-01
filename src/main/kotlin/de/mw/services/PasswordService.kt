@@ -1,12 +1,17 @@
 package de.mw.services
 
 import de.mw.daos.PasswordDao
+import de.mw.models.SharePassword
 import de.mw.models.WordLanguage
+import de.mw.services.utils.CryptoHelper
 import de.mw.services.utils.SPECIAL_CHARS
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
+import java.math.BigDecimal
+import java.time.LocalDateTime
+import java.util.UUID
 import kotlin.random.Random
 
 class PasswordService(private val passwordDao: PasswordDao) : CoroutineScope by CoroutineScope(Dispatchers.Default) {
@@ -100,5 +105,36 @@ class PasswordService(private val passwordDao: PasswordDao) : CoroutineScope by 
                 cachedWords.getOrElse(it.ordinal) { emptyList() }
             }
         }
+    }
+
+
+    fun createShare(value: String, remainingViews: BigDecimal = BigDecimal.ONE): Pair<String, String>? {
+        if (value.length > 5000) return null
+        val id = UUID.randomUUID()
+        val salt = UUID.randomUUID()
+        val valueCrypted = CryptoHelper.encrypt(value, id.toString(), salt.toString())
+        val sharePassword = SharePassword(id, LocalDateTime.now(), valueCrypted, remainingViews)
+        passwordDao.createShare(sharePassword)
+        return id.toString() to salt.toString()
+    }
+
+    fun getShare(id: UUID, salt: UUID): String? {
+        val share = passwordDao.getShare(id) ?: return null
+
+        val decryptedValue = CryptoHelper.decrypt(
+            share.value,
+            id.toString(),
+            salt.toString()
+        )
+
+        val remainingViews = share.remainingViews.minus(BigDecimal.ONE)
+
+        if (remainingViews <= BigDecimal.ZERO) {
+            passwordDao.deleteShare(id)
+        } else {
+            passwordDao.setRemainingViewsShare(id, remainingViews)
+        }
+
+        return decryptedValue
     }
 }
