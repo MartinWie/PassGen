@@ -41,4 +41,29 @@ fun Route.passwordRouting(){
         }
         call.respondText(textarea, ContentType.Text.Html)
     }
+
+    // TODO: implement routing(get for base page and post to fetch and delete the entry + null handling)
+    post("/share") {
+        // TODO: implement method to create a share
+    }
+
+    get("/share") {
+        // TODO: implement to get share page
+    }
+
+    post("/share/{shareId}/{salt}") {
+        val shareId = getUUIDorNull(call.parameters["shareId"]) ?: return@post call.respond(
+            HttpStatusCode.BadRequest, "Invalid share ID format"
+        )
+
+        val salt = getUUIDorNull(call.parameters["salt"]) ?: return@post call.respond(
+            HttpStatusCode.BadRequest, "Invalid salt format"
+        )
+
+        val decryptedValue = passwordService.getShare(shareId, salt) ?: return@post call.respond(
+            HttpStatusCode.NotFound, "Share not found or expired"
+        )
+
+        call.respondText(decryptedValue)
+    }
 }
