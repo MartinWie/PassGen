@@ -22,7 +22,8 @@ fun getLandingPage(pageTitle: String): String {
                 div("flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-3 border border-gray-200 rounded-xl p-2 md:p-3 focus-within:ring-1 focus-within:ring-primary focus-within:border-primary shadow-xs") {
                     textArea {
                         id = "password-input"
-                        classes = setOf("grow resize-none h-14 min-h-[56px] border-none focus:outline-hidden bg-transparent px-2 box-border text-base align-middle leading-[1.5] py-[14px] md:py-[14px]")
+                        classes =
+                            setOf("grow resize-none h-14 min-h-[56px] border-none focus:outline-hidden bg-transparent px-2 box-border text-base align-middle leading-[1.5] py-[14px] md:py-[14px]")
                         hxGet("/word")
                         hxInclude("[name='language-select'], [name='word-amount-slider'], [name='include-special'], [name='include-numbers'], [name='separator']")
                         hxSwap(HxSwapOption.OUTER_HTML)
@@ -30,35 +31,12 @@ fun getLandingPage(pageTitle: String): String {
                     }
 
                     div("flex justify-center md:justify-end gap-2 md:gap-3 mt-1 md:mt-0") {
-
-                        script(ScriptType.textJavaScript) {
-                        // Maybe move into own JS file and import it here
-                            unsafe {
-                                raw("""
-                                    function copyToClipboard() {
-                                        const textarea = document.getElementById('password-input');
-                                        textarea.select();
-                                        document.execCommand('copy');
-                                        
-                                        // Show copy success tooltip
-                                        const tooltip = document.getElementById('copy-tooltip');
-                                        tooltip.classList.remove('hidden');
-                                        
-                                        // Hide tooltip after 2 seconds
-                                        setTimeout(() => {
-                                            tooltip.classList.add('hidden');
-                                        }, 2000);
-                                    }
-                                """.trimIndent())
-                            }
-                        }
-
                         // Copy button
                         button(classes = "btn btn-ghost") {
                             title = "Copy to clipboard"
                             attributes["onclick"] = "copyToClipboard()"
                             unsafe {
-                            +"""
+                                +"""
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
                                 </svg>
