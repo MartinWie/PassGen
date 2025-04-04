@@ -113,3 +113,19 @@ fun TagConsumer<StringBuilder>.getFooter() {
         }
     }
 }
+
+fun HTMLTag.embedSvg(svgPath: String) {
+    unsafe { +SvgLoader.loadSvg(svgPath) }
+}
+
+object SvgLoader {
+    /**
+     * Loads SVG content from a file in the resources directory
+     */
+    fun loadSvg(path: String): String {
+        val resource = SvgLoader::class.java.getResourceAsStream(path)
+            ?: throw IllegalArgumentException("SVG file not found: $path")
+
+        return resource.bufferedReader().use { it.readText() }
+    }
+}
