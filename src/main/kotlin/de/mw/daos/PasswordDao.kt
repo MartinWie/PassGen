@@ -1,6 +1,5 @@
 package de.mw.daos
 
-import de.mw.dsl
 import de.mw.generated.Tables
 import de.mw.generated.Tables.PASSWORDWORD
 import de.mw.generated.tables.records.SharePasswordRecord
@@ -10,7 +9,7 @@ import org.jooq.DSLContext
 import java.math.BigDecimal
 import java.util.*
 
-class PasswordDao(dsl: DSLContext) {
+class PasswordDao(private val dsl: DSLContext) {
     fun get(amount: Int = 1, language: WordLanguage): List<String> {
         val count = dsl.selectCount()
             .from(PASSWORDWORD)

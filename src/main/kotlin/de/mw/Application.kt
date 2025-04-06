@@ -38,10 +38,10 @@ val hikariConfig = HikariConfig().apply {
 val dataSource: DataSource = HikariDataSource(hikariConfig)
 
 // JOOQ dsl context setup
-val dsl = DSL.using(dataSource, SQLDialect.POSTGRES)
+val jooqDsl = DSL.using(dataSource, SQLDialect.POSTGRES)
 
 // DAO setup
-val passwordDao = PasswordDao(dsl)
+val passwordDao = PasswordDao(jooqDsl)
 
 // Service setup
 val passwordService = PasswordService(passwordDao)
