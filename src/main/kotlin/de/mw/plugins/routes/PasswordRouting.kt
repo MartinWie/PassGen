@@ -10,32 +10,33 @@ import kotlinx.html.classes
 import kotlinx.html.id
 import kotlinx.html.textArea
 
-fun Route.passwordRouting(){
+fun Route.passwordRouting() {
     get("/word") {
         val parameters = call.queryParameters
 
         val language = parameters["language-select"]?.let { WordLanguage.valueOf(it) } ?: return@get call.respond(
-            HttpStatusCode.BadRequest,"Missing language"
+            HttpStatusCode.BadRequest, "Missing language"
         )
 
-        val wordAmount = parameters["word-amount-slider"]?.toInt() ?:return@get call.respond(
-            HttpStatusCode.BadRequest,"Missing amount"
+        val wordAmount = parameters["word-amount-slider"]?.toInt() ?: return@get call.respond(
+            HttpStatusCode.BadRequest, "Missing amount"
         )
 
         val spacialChars = parameters["include-special"]?.let { it.uppercase() == "ON" } ?: false
 
         val numbers = parameters["include-numbers"]?.let { it.uppercase() == "ON" } ?: false
 
-        val separator = parameters["separator"]?.let { it.first().toString() } ?: "-"
+        val separator = parameters["separator"]?.first()?.toString() ?: "-"
 
         if (wordAmount > 50) return@get call.respond(
-            HttpStatusCode.BadRequest,"Why Waste Time When Few Word Do Trick"
+            HttpStatusCode.BadRequest, "Why Waste Time When Few Word Do Trick"
         )
 
         val textarea = buildHTMLString {
             textArea {
                 id = "password-input"
-                classes = setOf("grow resize-none h-14 min-h-[56px] border-none focus:outline-hidden bg-transparent px-2 box-border text-base align-middle leading-[1.5] py-[14px] md:py-[14px]")
+                classes =
+                    setOf("grow resize-none h-14 min-h-[56px] border-none focus:outline-hidden bg-transparent px-2 box-border text-base align-middle leading-[1.5] py-[14px] md:py-[14px]")
                 +passwordService.getWords(wordAmount, language, spacialChars, numbers).joinToString(separator)
             }
         }
