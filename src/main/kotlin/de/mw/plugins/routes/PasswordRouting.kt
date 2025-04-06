@@ -4,8 +4,10 @@ import de.mw.frontend.utils.buildHTMLString
 import de.mw.models.WordLanguage
 import de.mw.passwordService
 import io.ktor.http.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.html.a
 import kotlinx.html.classes
 import kotlinx.html.id
 import kotlinx.html.textArea
@@ -35,6 +37,7 @@ fun Route.passwordRouting() {
         val textarea = buildHTMLString {
             textArea {
                 id = "password-input"
+                name = "password-input"
                 classes =
                     setOf("grow resize-none h-14 min-h-[56px] border-none focus:outline-hidden bg-transparent px-2 box-border text-base align-middle leading-[1.5] py-[14px] md:py-[14px]")
                 +passwordService.getWords(wordAmount, language, spacialChars, numbers).joinToString(separator)
@@ -43,15 +46,33 @@ fun Route.passwordRouting() {
         call.respondText(textarea, ContentType.Text.Html)
     }
 
-    // TODO: implement routing(get for base page and post to fetch and delete the entry + null handling)
+    // Handle POST requests to create a new share
     post("/share") {
-        // TODO: implement method to create a share
+        val parameters = call.receiveParameters()
+        val value = parameters["password-input"] ?: return@post call.respond(
+            HttpStatusCode.BadRequest, "Missing value to share"
+        )
+
+        val viewCount = parameters["view-count"]?.toBigDecimalOrNull() ?: java.math.BigDecimal.ONE
+
+        val shareResult = passwordService.createShare(value, viewCount) ?: return@post call.respond(
+            HttpStatusCode.BadRequest, "Failed to create share - value too large"
+        )
+
+        val (id, salt) = shareResult
+        call.respondText(
+            buildHTMLString {
+                a("/share/$id/$salt")
+            },
+            ContentType.Text.Html
+        )
     }
 
     get("/share") {
         // TODO: implement to get share page
     }
 
+    // Fetch the info for a given share
     post("/share/{shareId}/{salt}") {
         val shareId = getUUIDorNull(call.parameters["shareId"]) ?: return@post call.respond(
             HttpStatusCode.BadRequest, "Invalid share ID format"
