@@ -195,7 +195,11 @@ fun getLandingPage(pageTitle: String): String {
 
                         // Share Button
                         button(classes = "btn btn-ghost") {
+                            id = "shareButton"
                             title = "Share"
+                            hxPost("/share")
+                            hxInclude("[name='password-input']")
+                            hxDisabled("#shareButton")
                             embedSvg("/static/svg/share.svg")
                         }
                     }

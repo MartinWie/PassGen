@@ -8,7 +8,7 @@ import de.mw.models.SharePassword
 import de.mw.models.WordLanguage
 import org.jooq.DSLContext
 import java.math.BigDecimal
-import java.util.UUID
+import java.util.*
 
 class PasswordDao(dsl: DSLContext) {
     fun get(amount: Int = 1, language: WordLanguage): List<String> {
@@ -43,7 +43,7 @@ class PasswordDao(dsl: DSLContext) {
 
     fun createShare(sharePassword: SharePassword): String {
         val record = sharePassword.toRecord()
-        record.store()
+        dsl.insertInto(Tables.SHARE_PASSWORD).set(record).execute()
         return sharePassword.id.toString()
     }
 
