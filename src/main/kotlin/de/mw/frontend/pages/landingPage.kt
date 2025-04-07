@@ -20,7 +20,7 @@ fun getLandingPage(pageTitle: String): String {
 
             div("w-full max-w-3xl mx-auto") {
                 div("flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-3 border border-gray-200 rounded-xl p-2 md:p-3 focus-within:ring-1 focus-within:ring-primary focus-within:border-primary shadow-xs") {
-                    textArea {
+                    textArea { // Note: when modifying this one do not forget the copy of this in the endpoint
                         id = "password-input"
                         classes =
                             setOf("grow resize-none h-14 min-h-[56px] border-none focus:outline-hidden bg-transparent px-2 box-border text-base align-middle leading-[1.5] py-[14px] md:py-[14px]")
@@ -36,10 +36,6 @@ fun getLandingPage(pageTitle: String): String {
                             title = "Copy to clipboard"
                             attributes["onclick"] = "copyToClipboard()"
                             embedSvg("/static/svg/copy.svg")
-                        }
-                        div("hidden absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-800 text-white text-xs rounded shadow-lg whitespace-nowrap") {
-                            id = "copy-tooltip"
-                            +"Copied!"
                         }
 
                         // Generate Button

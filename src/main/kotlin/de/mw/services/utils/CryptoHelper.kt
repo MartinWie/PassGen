@@ -11,10 +11,10 @@ import javax.crypto.spec.SecretKeySpec
 
 class CryptoHelper {
     companion object {
-        private val IV_LENGTH = 12
-        private val KEY_LENGTH = 256
-        private val ITERATIONS = 10000
-        private val TRANSFORMATION = "AES/GCM/NoPadding"
+        private const val IV_LENGTH = 12
+        private const val KEY_LENGTH = 256
+        private const val ITERATIONS = 10000
+        private const val TRANSFORMATION = "AES/GCM/NoPadding"
 
         fun encrypt(plainText: String, token: String, salt: String): String {
             val secretKey = deriveKey(token, salt)
@@ -59,7 +59,7 @@ class CryptoHelper {
         // Derive a strong encryption key from the UUID token and salt
         private fun deriveKey(token: String, salt: String): SecretKey {
             val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
-            val spec = PBEKeySpec(token.toCharArray(),salt.toByteArray(), ITERATIONS, KEY_LENGTH)
+            val spec = PBEKeySpec(token.toCharArray(), salt.toByteArray(), ITERATIONS, KEY_LENGTH)
             val secretKey = factory.generateSecret(spec)
             return SecretKeySpec(secretKey.encoded, "AES")
         }

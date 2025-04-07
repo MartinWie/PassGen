@@ -78,6 +78,11 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 
 ## Todo's
 
+- Fix the on click animation of the regen button(probably let it spin while loading)
+    - Figure out how to do custom animations
+    - Add css on click while request is on flight(check https://htmx.org/essays/hypermedia-driven-applications/ and
+      probably add option to add toggle class on x(e.g. on click))
+    - checkout htmx active search or check if there is a trigger on release for the slider
 - Implement share functionality
     - Come up with a proper target for the post(popup or toast or link below(probably this one))
     - copy the link to the clipboard
@@ -86,15 +91,30 @@ aenv -e Prod -s Passgen bash fullBuild.sh
     - Add toggle button
     - Store state for that
     - Also store the word length and the language(checkout localStorage or sessionStorage)
-- add required footer stuff
 - Add donation(keep the service running) button and Github link to the project
 - Add option to generate Public/Private Keypair in browser client(some sort of toggle)
     - Figure out how to generate the pair on the client
     - Text field for the public key use something like
       this -> https://cruip.com/auto-growing-textarea-with-tailwind-css/
-- Generate a link where user genarate a private key and the creator gets the public link
+- Generate a link where user generate a private key and the creator gets the public link
+- Checkout how to move password generation to client
+    - list of hidden tags and take form there?
+    - Alpine.js
+    - Hyperscript?
+- add required footer stuff
+- host
+- Optimize
+    - click to response time?
+        - Check where we can add loaders
+        - Navigation? -> on click already add the highlighting
+    - Loading times:
+        - Introduce static html pages?
+        - Build step to produce the pages?
+        - checkout creating static html files for a CDN?
 - simple pw on ssh hostname
-- Think about cleanup
+- Think about cleanup database records
+    - Cronjob?
+    - Database config?
 
 https://p.7mw.de/
 
