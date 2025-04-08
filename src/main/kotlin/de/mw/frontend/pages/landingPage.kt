@@ -39,10 +39,12 @@ fun getLandingPage(pageTitle: String): String {
                         }
 
                         // Generate Button
-                        button(classes = "btn btn-ghost") {
+                        button(classes = "btn btn-ghost animate-spin-reverse") {
                             id = "regen-button"
                             hxGet("/word")
                             hxTrigger("click")
+                            //hxDisabled("#regen-button")
+                            hxSync("this", SyncModifier.REPLACE)
                             hxTarget("#password-input")
                             hxSwap(HxSwapOption.OUTER_HTML)
                             hxInclude("[name='language-select'], [name='word-amount-slider'], [name='include-special'], [name='include-numbers'], [name='separator']")

@@ -79,7 +79,6 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 ## Todo's
 
 - Fix the on click animation of the regen button(probably let it spin while loading)
-    - Figure out how to do custom animations
     - Add css on click while request is on flight(check https://htmx.org/essays/hypermedia-driven-applications/ and
       probably add option to add toggle class on x(e.g. on click))
     - checkout htmx active search or check if there is a trigger on release for the slider
