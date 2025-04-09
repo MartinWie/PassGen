@@ -1,25 +1,7 @@
 package de.mw.frontend.utils
 
 import kotlinx.html.*
-import kotlinx.html.stream.appendHTML
 import java.time.Year
-
-/**
- * Builds an HTML string using the provided builder action.
- *
- * @param builderAction The action to build the HTML content.
- * @return The generated HTML string.
- *
- * Example usage:
- * body {
- *     h1 { +"Hello, World!" }
- * }
- */
-fun buildHTMLString(builderAction: TagConsumer<StringBuilder>.() -> Unit): String {
-    return buildString {
-        appendHTML().builderAction()
-    }
-}
 
 /**
  * Generates the head section of an HTML page.
@@ -111,21 +93,5 @@ fun TagConsumer<StringBuilder>.getFooter() {
         aside {
             p { +"Copyright © ${Year.now()} - All right reserved" }
         }
-    }
-}
-
-fun HTMLTag.embedSvg(svgPath: String) {
-    unsafe { +SvgLoader.loadSvg(svgPath) }
-}
-
-object SvgLoader {
-    /**
-     * Loads SVG content from a file in the resources directory
-     */
-    fun loadSvg(path: String): String {
-        val resource = SvgLoader::class.java.getResourceAsStream(path)
-            ?: throw IllegalArgumentException("SVG file not found: $path")
-
-        return resource.bufferedReader().use { it.readText() }
     }
 }
