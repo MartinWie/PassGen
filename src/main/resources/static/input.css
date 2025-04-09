@@ -41,3 +41,7 @@
 .animate-spin-reverse {
     animation: spin-reverse 1300ms linear infinite;
 }
+
+.fade {
+    transition: opacity 300ms ease-out;
+}

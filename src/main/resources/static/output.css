@@ -59,6 +59,7 @@
     --text-lg--line-height: calc(1.75 / 1.125);
     --font-weight-medium: 500;
     --radius-xl: 0.75rem;
+    --animate-bounce: bounce 1s infinite;
     --default-transition-duration: 150ms;
     --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     --default-font-family: var(--font-sans);
@@ -1723,6 +1724,9 @@
     background-repeat: no-repeat;
     background-position-x: -50%;
   }
+  .animate-bounce {
+    animation: var(--animate-bounce);
+  }
   .link {
     cursor: pointer;
     text-decoration-line: underline;
@@ -1781,6 +1785,11 @@
     border-color: var(--color-success);
     color: var(--color-success-content);
     --alert-color: var(--color-success);
+  }
+  .alert-warning {
+    border-color: var(--color-warning);
+    color: var(--color-warning-content);
+    --alert-color: var(--color-warning);
   }
   .border-gray-200 {
     border-color: var(--color-gray-200);
@@ -1962,6 +1971,9 @@
 }
 .animate-spin-reverse {
   animation: spin-reverse 1300ms linear infinite;
+}
+.fade {
+  transition: opacity 300ms ease-out;
 }
 @layer base {
   :where(:root),:root:has(input.theme-controller[value=light]:checked),[data-theme=light] {
@@ -2330,4 +2342,14 @@
 @property --tw-drop-shadow-size {
   syntax: "*";
   inherits: false;
+}
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: none;
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
 }

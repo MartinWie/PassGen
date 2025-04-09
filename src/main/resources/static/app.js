@@ -1,18 +1,42 @@
 function copyToClipboard() {
     const textarea = document.getElementById('password-input');
+
     textarea.select();
-    document.execCommand('copy');
+    textarea.setSelectionRange(0, 99999);
 
-    // Show copy success tooltip
-    const tooltip = document.getElementById('copy-tooltip');
-    tooltip.classList.remove('hidden');
-
-    // Hide tooltip after 2 seconds
-    setTimeout(() => {
-        tooltip.classList.add('hidden');
-    }, 2000);
+    navigator.clipboard.writeText(textarea.value).then(
+        () => {
+            // Show copy success tooltip
+            const tooltip = document.getElementById('copy-tooltip');
+            removeHideThenFadeout(tooltip);
+        },
+        () => {
+            /* clipboard write failed */
+            console.error('Failed to copy to clipboard :(');
+            // Show copy success tooltip
+            const tooltip = document.getElementById('copy-tooltip-failed');
+            removeHideThenFadeout(tooltip);
+        },
+    );
 }
 
+function removeHideThenFadeout(element) {
+    element.classList.remove('hidden');
+
+    // Fade out tooltip after 2 seconds
+    setTimeout(() => {
+        // Start the fade out transition
+        element.style.opacity = '0';
+
+        // Wait for transition to complete before hiding
+        setTimeout(() => {
+            // After fading is complete, hide the element
+            element.classList.add('hidden');
+            // Only reset opacity after the element is hidden
+            element.style.opacity = '1';
+        }, 300); // Match this with your CSS transition duration
+    }, 2000);
+}
 
 document.addEventListener("DOMContentLoaded", (event) => {
     document.body.addEventListener('htmx:beforeSwap', function (evt) {
@@ -26,6 +50,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
     });
 });
 
+// Default loading animation for elements that trigger a request(add skeleton class from daisyUI)
 document.addEventListener("htmx:configRequest", function (evt) {
     // Overriding the event when htmx starts a request
     let element = evt.detail.elt;
