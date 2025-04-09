@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package de.mw.frontend.utils
 
 import kotlinx.html.HTMLTag
@@ -55,4 +57,23 @@ object SvgLoader {
 
         return resource.bufferedReader().use { it.readText() }
     }
+}
+
+/**
+ * Enum representing JavaScript event types that can be used as HTML attributes.
+ *
+ * @property attributeName The corresponding HTML attribute name for the event
+ *
+ * Example usage:
+ * button {
+ *     attributes[JsEventType.ON_CLICK.attributeName] = "handleClick()"
+ * }
+ */
+enum class JsEvent(val attributeName: String) {
+    ON_CLICK("onclick"),
+    ON_CHANGE("onchange"),
+    ON_INPUT("oninput"),
+    ON_SUBMIT("onsubmit"),
+    ON_BLUR("onblur"),
+    ON_FOCUS("onfocus"),
 }
