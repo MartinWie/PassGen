@@ -41,7 +41,10 @@ fun getLandingPage(pageTitle: String): String {
                         // Copy button
                         button(classes = "btn btn-ghost") {
                             title = "Copy to clipboard"
-                            attributes["onclick"] = "copyToClipboard()"
+                            onEvent(
+                                JsEvent.ON_CLICK,
+                                "copyToClipboard();"
+                            )
                             embedSvg("/static/svg/copy.svg")
                         }
 
@@ -87,7 +90,10 @@ fun getLandingPage(pageTitle: String): String {
                                     select {
                                         name = "language-select"
                                         classes = setOf("select", "select-bordered", "w-full")
-                                        attributes["onchange"] = "document.getElementById('regen-button').click()"
+                                        onEvent(
+                                            JsEvent.ON_CHANGE,
+                                            "document.getElementById('regen-button').click();"
+                                        )
                                         option {
                                             value = "ENG"
                                             selected = true
@@ -121,13 +127,17 @@ fun getLandingPage(pageTitle: String): String {
                                         value = "4"
                                         id = "word-amount-slider"
                                         classes = setOf("range mb-3")
-                                        attributes["onchange"] = """
-                                            document.getElementById('regen-button').click()
-                                        """.trimIndent()
-                                        attributes["oninput"] = """
-                                            document.getElementById('word-amount').textContent = this.value
-                                            document.getElementById('word-input').value = this.value
-                                        """.trimIndent()
+                                        onEvent(
+                                            JsEvent.ON_CHANGE,
+                                            "document.getElementById('regen-button').click();"
+                                        )
+                                        onEvent(
+                                            JsEvent.ON_INPUT,
+                                            """
+                                               document.getElementById('word-amount').textContent = this.value;
+                                               document.getElementById('word-input').value = this.value;
+                                            """.trimIndent()
+                                        )
                                     }
                                     input(InputType.number) {
                                         min = "1"
@@ -135,12 +145,15 @@ fun getLandingPage(pageTitle: String): String {
                                         value = "4"
                                         id = "word-input"
                                         classes = setOf("input", "input-bordered", "w-full")
-                                        attributes["oninput"] = """
-                                            if(this.value > 50) this.value = 50
+                                        onEvent(
+                                            JsEvent.ON_INPUT,
+                                            """
+                                            if(this.value > 50) this.value = 50;
                                             document.getElementById('word-amount').textContent = this.value;
                                             document.getElementById('word-amount-slider').value = this.value;
-                                            document.getElementById('regen-button').click()
-                                        """.trimIndent()
+                                            document.getElementById('regen-button').click();
+                                            """.trimIndent()
+                                        )
                                     }
                                 }
 
@@ -158,7 +171,10 @@ fun getLandingPage(pageTitle: String): String {
                                         value = "-"
                                         id = "word-amount-slider"
                                         classes = setOf("input", "input-bordered", "w-full")
-                                        attributes["oninput"] = "document.getElementById('regen-button').click()"
+                                        onEvent(
+                                            JsEvent.ON_INPUT,
+                                            "document.getElementById('regen-button').click();"
+                                        )
                                     }
                                 }
 
@@ -172,7 +188,10 @@ fun getLandingPage(pageTitle: String): String {
                                             name = "include-numbers"
                                             classes = setOf("checkbox checkbox-sm")
                                             checked = false
-                                            attributes["onchange"] = "document.getElementById('regen-button').click()"
+                                            onEvent(
+                                                JsEvent.ON_CHANGE,
+                                                "document.getElementById('regen-button').click();"
+                                            )
                                         }
                                         span {
                                             classes = setOf("label-text text-sm")
@@ -190,7 +209,10 @@ fun getLandingPage(pageTitle: String): String {
                                             name = "include-special"
                                             classes = setOf("checkbox checkbox-sm")
                                             checked = false
-                                            attributes["onchange"] = "document.getElementById('regen-button').click()"
+                                            onEvent(
+                                                JsEvent.ON_CHANGE,
+                                                "document.getElementById('regen-button').click();"
+                                            )
                                         }
                                         span {
                                             classes = setOf("label-text text-sm")

@@ -78,8 +78,6 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 
 ## Todo's
 
-- Fix the on click animation of the regen button(probably let it spin while loading)
-    - Add helper (onEvent(Event enum like click for attributes[....) and JS code)
 - Implement share functionality
     - Come up with a proper target for the post(popup or toast or link below(probably this one))
     - copy the link to the clipboard

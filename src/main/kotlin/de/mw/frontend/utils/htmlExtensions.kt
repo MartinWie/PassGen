@@ -6,6 +6,7 @@ import kotlinx.html.HTMLTag
 import kotlinx.html.TagConsumer
 import kotlinx.html.stream.appendHTML
 import kotlinx.html.unsafe
+import org.intellij.lang.annotations.Language
 
 /**
  * Builds an HTML string using the provided builder action.
@@ -76,4 +77,23 @@ enum class JsEvent(val attributeName: String) {
     ON_SUBMIT("onsubmit"),
     ON_BLUR("onblur"),
     ON_FOCUS("onfocus"),
+}
+
+/**
+ * Adds a JavaScript event handler to an HTML tag.
+ *
+ * @param eventType The JavaScript event type from the JsEvent enum
+ * @param jsCode The JavaScript code to execute when the event is triggered
+ *
+ * Example usage:
+ * button {
+ *     onEvent(JsEvent.ON_CLICK, "alert('Button clicked!')")
+ * }
+ */
+fun HTMLTag.onEvent(
+    eventType: JsEvent,
+    @Language("JavaScript")
+    jsCode: String
+) {
+    attributes += eventType.attributeName to jsCode
 }
