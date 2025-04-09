@@ -50,8 +50,7 @@ fun getLandingPage(pageTitle: String): String {
                             id = "regen-button"
                             hxGet("/word")
                             hxTrigger("click")
-                            hxOn("htmx:before-request", "this.classList.add('animate-spin-reverse')")
-                            hxOn("htmx:after-request", "this.classList.remove('animate-spin-reverse')")
+                            hxApplyDuringRequest("animate-spin-reverse")
                             //hxDisabled("#regen-button")
                             hxSync("this", SyncModifier.REPLACE)
                             hxTarget("#password-input")

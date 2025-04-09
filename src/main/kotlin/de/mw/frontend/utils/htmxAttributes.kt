@@ -1,4 +1,5 @@
 @file:Suppress("unused")
+
 package de.mw.frontend.utils
 
 import de.mw.utils.HtmxExtension
@@ -582,4 +583,19 @@ fun HTMLTag.hxTrigger(trigger: String) {
  */
 fun HTMLTag.hxExt(extension: HtmxExtension) {
     attributes += "hx-ext" to extension.value
+}
+
+
+/**
+ * The hxApplyDuringRequest function is a utility that automatically adds a CSS class to an element
+ * during an HTMX request and removes it when the request completes.
+ *
+ * This creates a convenient way to apply visual feedback (like loading spinners or style changes)
+ * during AJAX requests without having to manually add multiple event handlers.
+ *
+ * @param styleClass The CSS class to apply during the request
+ */
+fun HTMLTag.hxApplyDuringRequest(styleClass: String) {
+    attributes += "hx-on:htmx:before-request" to "this.classList.add('$styleClass')"
+    attributes += "hx-on:htmx:after-request" to "this.classList.remove('$styleClass')"
 }
