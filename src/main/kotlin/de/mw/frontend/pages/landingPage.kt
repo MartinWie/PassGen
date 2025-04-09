@@ -122,10 +122,12 @@ fun getLandingPage(pageTitle: String): String {
                                         value = "4"
                                         id = "word-amount-slider"
                                         classes = setOf("range mb-3")
+                                        attributes["onchange"] = """
+                                            document.getElementById('regen-button').click()
+                                        """.trimIndent()
                                         attributes["oninput"] = """
                                             document.getElementById('word-amount').textContent = this.value
                                             document.getElementById('word-input').value = this.value
-                                            document.getElementById('regen-button').click()
                                         """.trimIndent()
                                     }
                                     input(InputType.number) {
