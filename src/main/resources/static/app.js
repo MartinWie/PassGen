@@ -64,12 +64,3 @@ document.addEventListener("htmx:configRequest", function (evt) {
         element.removeEventListener('htmx:afterRequest', clearLoading);
     });
 });
-
-function emitCustomEvent(elementId, eventName) {
-    const event = new CustomEvent(eventName, {
-        bubbles: true,
-        cancelable: true,
-        detail: {id: elementId}
-    });
-    document.getElementById(elementId).dispatchEvent(event);
-}

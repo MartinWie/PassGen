@@ -82,7 +82,6 @@ aenv -e Prod -s Passgen bash fullBuild.sh
     - Add css on click while request is on flight(check https://htmx.org/essays/hypermedia-driven-applications/ and
       probably add option to add toggle class on x(e.g. on click))
     - Add helper (onEvent(Event enum like click for attributes[....) and JS code)
-    - Checkout app.js especially the skeleton part and see what can b
     - checkout htmx active search or check if there is a trigger on release for the slider
 - Implement share functionality
     - Come up with a proper target for the post(popup or toast or link below(probably this one))
