@@ -11,9 +11,16 @@ fun getLandingPage(pageTitle: String): String {
                 classes = setOf("toast toast-top toast-center")
                 div {
                     id = "copy-tooltip"
-                    classes = setOf("alert alert-success hidden")
+                    classes = setOf("alert alert-success animate-bounce fade hidden")
                     span {
                         +"Copy successful!"
+                    }
+                }
+                div {
+                    id = "copy-tooltip-failed"
+                    classes = setOf("alert alert-warning animate-bounce fade hidden")
+                    span {
+                        +"Copy failed :("
                     }
                 }
             }
