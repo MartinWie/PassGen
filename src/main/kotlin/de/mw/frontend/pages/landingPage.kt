@@ -46,10 +46,12 @@ fun getLandingPage(pageTitle: String): String {
                         }
 
                         // Generate Button
-                        button(classes = "btn btn-ghost animate-spin-reverse") {
+                        button(classes = "btn btn-ghost") {
                             id = "regen-button"
                             hxGet("/word")
                             hxTrigger("click")
+                            hxOn("htmx:before-request", "this.classList.add('animate-spin-reverse')")
+                            hxOn("htmx:after-request", "this.classList.remove('animate-spin-reverse')")
                             //hxDisabled("#regen-button")
                             hxSync("this", SyncModifier.REPLACE)
                             hxTarget("#password-input")
