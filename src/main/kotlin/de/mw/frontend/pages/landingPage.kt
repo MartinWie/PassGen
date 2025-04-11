@@ -230,9 +230,16 @@ fun getLandingPage(pageTitle: String): String {
                             hxPost("/share")
                             hxInclude("[name='password-input']")
                             hxDisabled("#shareButton")
+                            hxTarget("#share-result")
+                            hxSwap(HxSwapOption.INNER_HTML)
+                            hxApplyDuringRequest("animate-pulse")
                             embedSvg("/static/svg/share.svg")
                         }
                     }
+                }
+                div {
+                    id = "share-result"
+                    classes = setOf("flex flex-col justify-center text-center mt-3")
                 }
             }
         }

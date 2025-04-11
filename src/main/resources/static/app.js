@@ -20,6 +20,33 @@ function copyToClipboard() {
     );
 }
 
+function copyShareUrl() {
+    // Get the URL from the share-result area
+    const shareUrl = document.getElementById('share-result').querySelector('a').href
+
+    if (!shareUrl) {
+        console.error('No share URL found');
+        const tooltip = document.getElementById('copy-tooltip-failed');
+        removeHideThenFadeout(tooltip);
+        return;
+    }
+
+    navigator.clipboard.writeText(shareUrl).then(
+        () => {
+            // Show copy success tooltip
+            const tooltip = document.getElementById('copy-tooltip');
+            removeHideThenFadeout(tooltip);
+        },
+        () => {
+            /* clipboard write failed */
+            console.error('Failed to copy to clipboard :(');
+            // Show copy failure tooltip
+            const tooltip = document.getElementById('copy-tooltip-failed');
+            removeHideThenFadeout(tooltip);
+        },
+    );
+}
+
 function removeHideThenFadeout(element) {
     element.classList.remove('hidden');
 
@@ -35,7 +62,7 @@ function removeHideThenFadeout(element) {
             // Only reset opacity after the element is hidden
             element.style.opacity = '1';
         }, 300); // Match this with your CSS transition duration
-    }, 2000);
+    }, 6000);
 }
 
 document.addEventListener("DOMContentLoaded", (event) => {

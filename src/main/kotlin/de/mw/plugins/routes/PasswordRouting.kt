@@ -1,5 +1,6 @@
 package de.mw.plugins.routes
 
+import de.mw.frontend.utils.addJs
 import de.mw.frontend.utils.buildHTMLString
 import de.mw.models.WordLanguage
 import de.mw.passwordService
@@ -62,7 +63,12 @@ fun Route.passwordRouting() {
         val (id, salt) = shareResult
         call.respondText(
             buildHTMLString {
-                a("/share/$id/$salt")
+                a {
+                    classes = setOf("animate-pulse")
+                    href = "/share/$id/$salt"
+                    addJs("copyShareUrl();")
+                    +"Link for the Share"
+                }
             },
             ContentType.Text.Html
         )

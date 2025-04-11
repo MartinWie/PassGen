@@ -2,10 +2,8 @@
 
 package de.mw.frontend.utils
 
-import kotlinx.html.HTMLTag
-import kotlinx.html.TagConsumer
+import kotlinx.html.*
 import kotlinx.html.stream.appendHTML
-import kotlinx.html.unsafe
 import org.intellij.lang.annotations.Language
 
 /**
@@ -77,6 +75,7 @@ enum class JsEvent(val attributeName: String) {
     ON_SUBMIT("onsubmit"),
     ON_BLUR("onblur"),
     ON_FOCUS("onfocus"),
+    ON_LOAD("onload"),
 }
 
 /**
@@ -96,4 +95,33 @@ fun HTMLTag.onEvent(
     jsCode: String
 ) {
     attributes += eventType.attributeName to jsCode
+}
+
+/**
+ * Adds inline JavaScript code to an HTML element.
+ *
+ * @param jsCode The JavaScript code to be embedded in a script tag
+ *
+ * Example usage:
+ * div {
+ *     addJs("""
+ *         document.addEventListener('DOMContentLoaded', function() {
+ *             console.log('Page loaded!');
+ *         });
+ *     """)
+ * }
+ */
+fun FlowOrMetaDataOrPhrasingContent.addJs(
+    @Language("JavaScript")
+    jsCode: String
+) {
+    this.apply {
+        script(ScriptType.textJavaScript) {
+            unsafe {
+                raw(
+                    jsCode
+                )
+            }
+        }
+    }
 }

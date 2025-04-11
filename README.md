@@ -79,8 +79,6 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 ## Todo's
 
 - Implement share functionality
-    - Come up with a proper target for the post(popup or toast or link below(probably this one))
-    - copy the link to the clipboard
     - Page that has the option to reveal the password which then drops the password from the DB
 - Add toggle for dark/light mode
     - Add toggle button
