@@ -79,7 +79,9 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 ## Todo's
 
 - Implement share functionality
-    - Page that has the option to reveal the password which then drops the password from the DB
+    - Add modal to share return that explains it
+    - Just one button page (then really load the page)
+    - Page that auto loads has the option to reveal/copy the password
 - Add toggle for dark/light mode
     - Add toggle button
     - Store state for that

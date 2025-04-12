@@ -1,5 +1,6 @@
 package de.mw.plugins.routes
 
+import de.mw.frontend.pages.getSharePage
 import de.mw.frontend.utils.addJs
 import de.mw.frontend.utils.buildHTMLString
 import de.mw.models.WordLanguage
@@ -74,8 +75,19 @@ fun Route.passwordRouting() {
         )
     }
 
-    get("/share") {
-        // TODO: implement to get share page
+    get("/share/{shareId}/{salt}") {
+        val shareId = getUUIDorNull(call.parameters["shareId"]) ?: return@get call.respond(
+            HttpStatusCode.BadRequest, "Invalid share ID format"
+        )
+
+        val salt = getUUIDorNull(call.parameters["salt"]) ?: return@get call.respond(
+            HttpStatusCode.BadRequest, "Invalid salt format"
+        )
+
+        call.respondText(
+            getSharePage(shareId, salt),
+            ContentType.Text.Html
+        )
     }
 
     // Fetch the info for a given share
