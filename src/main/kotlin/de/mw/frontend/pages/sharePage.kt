@@ -1,11 +1,41 @@
 package de.mw.frontend.pages
 
+import de.mw.frontend.utils.buildHTMLString
 import de.mw.frontend.utils.embedSvg
 import kotlinx.html.*
 import java.util.*
 
 fun getSharePage(shareId: UUID, salt: UUID): String {
     return getBasePage("PassGen - Share") {
+        div {
+            classes = setOf("w-full max-w-md mx-auto")
+            div {
+                id = "password-container"
+                classes = setOf("bg-white rounded-lg shadow p-6 text-center")
+                h2 {
+                    classes = setOf("text-xl font-semibold mb-4")
+                    +"Shared Password"
+                }
+                div {
+                    classes = setOf("bg-amber-50 text-amber-800 p-3 rounded-lg mb-6 text-sm text-left")
+                    p {
+                        strong {
+                            +"Warning:"
+                        }
+                        +"This password can only be viewed once."
+                    }
+                }
+                button {
+                    classes = setOf("btn btn-primary w-full")
+                    +"Reveal Password"
+                }
+            }
+        }
+    }
+}
+
+fun getPasswordLoaded(shareId: UUID, salt: UUID): String {
+    return buildHTMLString {
         div {
             classes = setOf("w-full max-w-md mx-auto")
             div {

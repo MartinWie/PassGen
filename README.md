@@ -79,7 +79,8 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 ## Todo's
 
 - Implement share functionality
-    - Add modal to share return that explains it
+    - Not only return share link but info box with info icon that explains the share
+    - Checkout alert success svg on copy method
     - Just one button page (then really load the page)
     - Page that auto loads has the option to reveal/copy the password
 - Add toggle for dark/light mode

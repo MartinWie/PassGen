@@ -88,7 +88,7 @@ fun TagConsumer<StringBuilder>.getPageHead(pageTitle: String = "") {
 fun TagConsumer<StringBuilder>.getFooter() {
     footer {
         id = "footer"
-        classes = setOf("")
+        classes = setOf("flex items-center justify-center")
 
         aside {
             p { +"Copyright © ${Year.now()} - All right reserved" }
