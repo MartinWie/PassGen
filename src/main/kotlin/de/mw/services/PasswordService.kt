@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 import kotlin.random.Random
 
 class PasswordService(private val passwordDao: PasswordDao) : CoroutineScope by CoroutineScope(Dispatchers.Default) {
@@ -43,15 +43,15 @@ class PasswordService(private val passwordDao: PasswordDao) : CoroutineScope by 
 
         var words = cachedWords[language.ordinal].shuffled().take(amount)
 
-        if(specialChars) {
+        if (specialChars) {
             words = words.map {
-                it+SPECIAL_CHARS[Random.nextInt(SPECIAL_CHARS.length)]
+                it + SPECIAL_CHARS[Random.nextInt(SPECIAL_CHARS.length)]
             }
         }
 
-        if(numbers) {
+        if (numbers) {
             words = words.map {
-                it+Random.nextInt(0,10)
+                it + Random.nextInt(0, 10)
             }
         }
 
@@ -108,14 +108,14 @@ class PasswordService(private val passwordDao: PasswordDao) : CoroutineScope by 
     }
 
 
-    fun createShare(value: String, remainingViews: BigDecimal = BigDecimal.ONE): Pair<String, String>? {
+    fun createShare(value: String, remainingViews: BigDecimal = BigDecimal.ONE): Pair<UUID, UUID>? {
         if (value.length > 5000) return null
         val id = UUID.randomUUID()
         val salt = UUID.randomUUID()
         val valueCrypted = CryptoHelper.encrypt(value, id.toString(), salt.toString())
         val sharePassword = SharePassword(id, LocalDateTime.now(), valueCrypted, remainingViews)
         passwordDao.createShare(sharePassword)
-        return id.toString() to salt.toString()
+        return id to salt
     }
 
     fun getShare(id: UUID, salt: UUID): String? {

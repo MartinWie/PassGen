@@ -1,7 +1,6 @@
 package de.mw.frontend.pages
 
-import de.mw.frontend.utils.buildHTMLString
-import de.mw.frontend.utils.embedSvg
+import de.mw.frontend.utils.*
 import kotlinx.html.*
 import java.util.*
 
@@ -126,3 +125,70 @@ fun getPasswordLoaded(shareId: UUID, salt: UUID): String {
         }
     }
 }
+
+fun getShareCreateResult(shareId: UUID, salt: UUID) =
+    buildHTMLString {
+        a {
+            classes = setOf("")
+            href = "/share/$shareId/$salt"
+        }
+
+        dialog {
+            id = "share_modal"
+            classes = setOf("modal")
+            div {
+                classes = setOf("modal-box")
+                div {
+                    classes = setOf("flex items-center justify-center gap-3 mb-3")
+                    div {
+                        classes = setOf("bg-green-100 p-3 rounded-full")
+                        embedSvg("/static/svg/ok.svg")
+                    }
+                    h2 {
+                        classes = setOf("text-xl font-semibold")
+                        +"Password Shared"
+                    }
+                }
+                div {
+                    classes = setOf("flex flex-col gap-3 mb-6 mt-6")
+                    // Link Container
+                    div {
+                        classes =
+                            setOf("border border-gray-200 rounded-lg p-3 flex items-center justify-between")
+                        a {
+                            href = "/share/$shareId/$salt"
+                            classes = setOf("text-primary font-medium break-all hover:underline")
+                            +"/share/$shareId/$salt"
+                        }
+                        button {
+                            classes = setOf("btn btn-ghost gap-3 ml-2")
+                            onEvent(JsEvent.ON_CLICK, "copyShareUrl();")
+                            embedSvg("/static/svg/copy.svg")
+                        }
+                    }
+                }
+                div {
+                    classes = setOf("rounded-lg text-sm")
+                    p {
+                        +"The password can only be viewed once!"
+                    }
+                }
+
+            }
+            form {
+                classes = setOf("modal-backdrop")
+                onEvent(
+                    JsEvent.ON_SUBMIT, """
+                            event.preventDefault();
+                            document.getElementById('share_modal').close();
+                        """.trimIndent()
+                )
+                button {
+                    +"close"
+                }
+            }
+        }
+        div {
+            addJs("document.getElementById('share_modal').showModal()")
+        }
+    }

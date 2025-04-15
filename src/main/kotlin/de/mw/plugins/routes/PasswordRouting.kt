@@ -1,14 +1,17 @@
 package de.mw.plugins.routes
 
+import de.mw.frontend.pages.getShareCreateResult
 import de.mw.frontend.pages.getSharePage
-import de.mw.frontend.utils.*
+import de.mw.frontend.utils.buildHTMLString
 import de.mw.models.WordLanguage
 import de.mw.passwordService
 import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.html.*
+import kotlinx.html.classes
+import kotlinx.html.id
+import kotlinx.html.textArea
 
 fun Route.passwordRouting() {
     get("/word") {
@@ -59,85 +62,7 @@ fun Route.passwordRouting() {
 
         val (shareId, salt) = shareResult
         call.respondText(
-            buildHTMLString {
-                a {
-                    classes = setOf("")
-                    href = "/share/$shareId/$salt"
-                }
-
-                dialog {
-                    id = "share_modal"
-                    classes = setOf("modal")
-                    div {
-                        classes = setOf("modal-box")
-
-                        div {
-                            classes = setOf("p-3")
-                            div {
-                                classes = setOf("flex items-center gap-3 mb-4")
-                                div {
-                                    classes = setOf("bg-green-100 p-2 rounded-full")
-                                    embedSvg("/static/svg/ok.svg")
-                                }
-                                h2 {
-                                    classes = setOf("text-xl font-semibold")
-                                    +"Password Shared"
-                                }
-                            }
-                            p {
-                                classes = setOf("mb-4")
-                                +"Your password has been securely shared. Use this link:"
-                            }
-                            div {
-                                classes = setOf("flex flex-col gap-3 mb-6")
-                                // Link Container
-                                div {
-                                    classes =
-                                        setOf("border border-gray-200 rounded-lg p-3 flex items-center justify-between")
-                                    a {
-                                        href = "/share/$shareId/$salt"
-                                        classes = setOf("text-primary font-medium break-all hover:underline")
-                                        +"/share/$shareId/$salt"
-                                    }
-                                    button {
-                                        classes = setOf("btn btn-ghost gap-2 md:gap-3 ml-2")
-                                        onEvent(JsEvent.ON_CLICK, "copyShareUrl();")
-                                        embedSvg("/static/svg/copy.svg")
-                                    }
-                                }
-                            }
-                            div {
-                                classes = setOf("p-3 rounded-lg text-sm")
-                                ul {
-                                    classes = setOf("list-disc list-inside space-y-1")
-                                    li {
-                                        +"This link can only be accessed once"
-                                    }
-                                    li {
-                                        +"No account is required to view the password"
-                                    }
-                                }
-                            }
-                        }
-
-                    }
-                    form {
-                        classes = setOf("modal-backdrop")
-                        onEvent(
-                            JsEvent.ON_SUBMIT, """
-                            event.preventDefault();
-                            document.getElementById('share_modal').close();
-                        """.trimIndent()
-                        )
-                        button {
-                            +"close"
-                        }
-                    }
-                }
-                div {
-                    addJs("document.getElementById('share_modal').showModal()")
-                }
-            },
+            getShareCreateResult(shareId, salt),
             ContentType.Text.Html
         )
     }

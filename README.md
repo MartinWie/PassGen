@@ -79,7 +79,6 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 ## Todo's
 
 - Implement share functionality
-    - Not only return share link but info box with info icon that explains the share
     - Checkout alert success svg on copy method
     - Just one button page (then really load the page)
     - Page that auto loads has the option to reveal/copy the password
@@ -99,6 +98,7 @@ aenv -e Prod -s Passgen bash fullBuild.sh
     - Hyperscript?
 - add required footer stuff
 - host
+- Add feedback option/page
 - Move parts into lib
     - HTMX code
     - HTML stuff
