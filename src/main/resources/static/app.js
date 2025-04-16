@@ -67,8 +67,8 @@ function removeHideThenFadeout(element) {
 
 document.addEventListener("DOMContentLoaded", (event) => {
     document.body.addEventListener('htmx:beforeSwap', function (evt) {
-        if (evt.detail.xhr.status === 422 || evt.detail.xhr.status === 401 || evt.detail.xhr.status === 400) {
-            // Allow 422, 401 and 400 responses to swap.
+        if (evt.detail.xhr.status === 422 || evt.detail.xhr.status === 404 || evt.detail.xhr.status === 401 || evt.detail.xhr.status === 400) {
+            // Allow 422, 404, 401 and 400 responses to swap.
             //
             // set isError to false to avoid error logging in console
             evt.detail.shouldSwap = true;
