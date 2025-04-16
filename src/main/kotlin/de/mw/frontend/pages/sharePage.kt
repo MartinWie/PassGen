@@ -7,13 +7,13 @@ import java.util.*
 fun getSharePage(shareId: UUID, salt: UUID): String {
     return getBasePage("PassGen - Share") {
         div {
-            classes = setOf("w-full max-w-md mx-auto")
+            classes = setOf("flex items-center justify-center min-h-screen p-3")
             div {
                 id = "password-container"
-                classes = setOf("bg-white rounded-lg shadow p-6 text-center")
+                classes = setOf("border border-gray-200 rounded-xl p-3 shadow-xs text-center")
                 h2 {
                     classes = setOf("text-xl font-semibold mb-4")
-                    +"Shared Password"
+                    +"View Shared Password"
                 }
                 div {
                     classes = setOf("bg-amber-50 text-amber-800 p-3 rounded-lg mb-6 text-sm text-left")
@@ -25,8 +25,12 @@ fun getSharePage(shareId: UUID, salt: UUID): String {
                     }
                 }
                 button {
-                    classes = setOf("btn btn-primary w-full")
-                    +"Reveal Password"
+                    classes = setOf("btn w-full mb-3")
+                    hxPost("/share/$shareId/$salt")
+                    hxTarget("#password-container")
+
+                    embedSvg("/static/svg/reveal.svg")
+                    +"View Password"
                 }
             }
         }
