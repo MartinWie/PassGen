@@ -1,5 +1,6 @@
 package de.mw.services.utils
 
+import org.slf4j.LoggerFactory
 import java.security.SecureRandom
 import java.util.*
 import javax.crypto.Cipher
@@ -15,6 +16,8 @@ class CryptoHelper {
         private const val KEY_LENGTH = 256
         private const val ITERATIONS = 10000
         private const val TRANSFORMATION = "AES/GCM/NoPadding"
+
+        private val logger = LoggerFactory.getLogger(this::class.java)
 
         fun encrypt(plainText: String, token: String, salt: String): String {
             val secretKey = deriveKey(token, salt)
@@ -37,7 +40,7 @@ class CryptoHelper {
             return Base64.getUrlEncoder().withoutPadding().encodeToString(combined)
         }
 
-        fun decrypt(encryptedText: String, token: String, salt: String): String {
+        fun decrypt(encryptedText: String, token: String, salt: String): String? {
             val combined = Base64.getUrlDecoder().decode(encryptedText)
 
             val iv = ByteArray(IV_LENGTH)
@@ -52,8 +55,13 @@ class CryptoHelper {
             val gcmSpec = GCMParameterSpec(128, iv)
             cipher.init(Cipher.DECRYPT_MODE, secretKey, gcmSpec)
 
-            val decryptedBytes = cipher.doFinal(encryptedBytes)
-            return String(decryptedBytes, Charsets.UTF_8)
+            try {
+                val decryptedBytes = cipher.doFinal(encryptedBytes)
+                return String(decryptedBytes, Charsets.UTF_8)
+            } catch (e: Exception) {
+                logger.error("Invalid input for decryption.", e)
+                return null
+            }
         }
 
         // Derive a strong encryption key from the UUID token and salt
