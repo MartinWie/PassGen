@@ -2,6 +2,7 @@ package de.mw.plugins.routes
 
 import de.mw.frontend.pages.getShareCreateResult
 import de.mw.frontend.pages.getSharePage
+import de.mw.frontend.utils.addJs
 import de.mw.frontend.utils.buildHTMLString
 import de.mw.models.WordLanguage
 import de.mw.passwordService
@@ -9,9 +10,7 @@ import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.html.classes
-import kotlinx.html.id
-import kotlinx.html.textArea
+import kotlinx.html.*
 
 fun Route.passwordRouting() {
     get("/word") {
@@ -51,13 +50,21 @@ fun Route.passwordRouting() {
     post("/share") {
         val parameters = call.receiveParameters()
         val value = parameters["password-input"] ?: return@post call.respond(
-            HttpStatusCode.BadRequest, "Missing value to share"
+            HttpStatusCode.BadRequest, buildHTMLString {
+                p {
+                    addJs("alert('Missing value to share');")
+                }
+            }
         )
 
         val viewCount = parameters["view-count"]?.toBigDecimalOrNull() ?: java.math.BigDecimal.ONE
 
         val shareResult = passwordService.createShare(value, viewCount) ?: return@post call.respond(
-            HttpStatusCode.BadRequest, "Failed to create share - value too large"
+            HttpStatusCode.BadRequest, buildHTMLString {
+                p {
+                    addJs("alert('Failed to create share - value too large');")
+                }
+            }
         )
 
         val (shareId, salt) = shareResult
@@ -96,6 +103,11 @@ fun Route.passwordRouting() {
             HttpStatusCode.NotFound, "Share not found or expired"
         )
 
-        call.respondText(decryptedValue)
+        call.respondText(buildHTMLString {
+            div {
+                style = "white-space: pre-wrap;" // Preserves newlines and wraps text
+                +decryptedValue
+            }
+        })
     }
 }
