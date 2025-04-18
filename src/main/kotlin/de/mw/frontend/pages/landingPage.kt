@@ -6,19 +6,15 @@ import kotlinx.html.*
 fun getLandingPage(pageTitle: String): String {
     return getBasePage(pageTitle) {
         div("flex items-center justify-center min-h-screen p-4 md:p-6") {
-
-            div {
-                classes = setOf("toast toast-top toast-center")
-                div {
+            div("toast toast-top toast-center") {
+                div("alert alert-success animate-bounce fade hidden") {
                     id = "copy-tooltip"
-                    classes = setOf("alert alert-success animate-bounce fade hidden")
                     span {
                         +"Copy successful!"
                     }
                 }
-                div {
+                div("alert alert-warning animate-bounce fade hidden") {
                     id = "copy-tooltip-failed"
-                    classes = setOf("alert alert-warning animate-bounce fade hidden")
                     span {
                         +"Copy failed :("
                     }
@@ -27,7 +23,7 @@ fun getLandingPage(pageTitle: String): String {
 
             div("w-full max-w-3xl mx-auto") {
                 div("flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-3 border border-gray-200 rounded-xl p-2 md:p-3 focus-within:ring-1 focus-within:ring-primary focus-within:border-primary shadow-xs") {
-                    textArea { // Note: when modifying this one do not forget the copy of this in the endpoint
+                    textArea { // Note: when modifying this one also edit the copy of this in the endpoint
                         id = "password-input"
                         classes =
                             setOf("grow resize-none h-14 min-h-[56px] border-none focus:outline-hidden bg-transparent px-2 box-border text-base align-middle leading-[1.5] py-[14px] md:py-[14px]")

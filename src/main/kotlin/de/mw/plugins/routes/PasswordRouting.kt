@@ -1,5 +1,6 @@
 package de.mw.plugins.routes
 
+import de.mw.frontend.pages.getPasswordLoaded
 import de.mw.frontend.pages.getShareCreateResult
 import de.mw.frontend.pages.getSharePage
 import de.mw.frontend.utils.addJs
@@ -10,7 +11,10 @@ import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.html.*
+import kotlinx.html.classes
+import kotlinx.html.id
+import kotlinx.html.p
+import kotlinx.html.textArea
 
 fun Route.passwordRouting() {
     get("/word") {
@@ -103,11 +107,15 @@ fun Route.passwordRouting() {
             HttpStatusCode.NotFound, "Share not found or expired"
         )
 
-        call.respondText(buildHTMLString {
+        val share = getPasswordLoaded(decryptedValue)
+
+        /*call.respondText(buildHTMLString { TODO: followup/cleanup
             div {
                 style = "white-space: pre-wrap;" // Preserves newlines and wraps text
                 +decryptedValue
             }
-        })
+        })*/
+
+        call.respondText(share, ContentType.Text.Html)
     }
 }

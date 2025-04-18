@@ -79,7 +79,7 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 ## Todo's
 
 - Implement share functionality
-    - Show pw page that has the option to reveal/copy the password
+    - Restyle the show pw page/functionality
     - Add nav bar with logo on top so we can get back to the home page
 - Add toggle for dark/light mode
     - Add toggle button
