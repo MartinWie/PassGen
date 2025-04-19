@@ -1,10 +1,18 @@
-function copyToClipboard() {
-    const textarea = document.getElementById('password-input');
+function copyToClipboard(elementId) {
+    const element = document.getElementById(elementId);
+    let textToCopy;
 
-    textarea.select();
-    textarea.setSelectionRange(0, 99999);
+    // Check if element is an input or textarea
+    if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+        element.select();
+        element.setSelectionRange(0, 99999);
+        textToCopy = element.value;
+    } else {
+        // For other elements like p, div, etc.
+        textToCopy = element.textContent || element.innerText;
+    }
 
-    navigator.clipboard.writeText(textarea.value).then(
+    navigator.clipboard.writeText(textToCopy).then(
         () => {
             // Show copy success tooltip
             const tooltip = document.getElementById('copy-tooltip');
@@ -13,7 +21,7 @@ function copyToClipboard() {
         () => {
             /* clipboard write failed */
             console.error('Failed to copy to clipboard :(');
-            // Show copy success tooltip
+            // Show copy failure tooltip
             const tooltip = document.getElementById('copy-tooltip-failed');
             removeHideThenFadeout(tooltip);
         },

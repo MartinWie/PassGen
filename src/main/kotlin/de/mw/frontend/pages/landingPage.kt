@@ -6,21 +6,6 @@ import kotlinx.html.*
 fun getLandingPage(pageTitle: String): String {
     return getBasePage(pageTitle) {
         div("flex items-center justify-center min-h-screen p-4 md:p-6") {
-            div("toast toast-top toast-center") {
-                div("alert alert-success animate-bounce fade hidden") {
-                    id = "copy-tooltip"
-                    span {
-                        +"Copy successful!"
-                    }
-                }
-                div("alert alert-warning animate-bounce fade hidden") {
-                    id = "copy-tooltip-failed"
-                    span {
-                        +"Copy failed :("
-                    }
-                }
-            }
-
             div("w-full max-w-3xl mx-auto") {
                 div("flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-3 border border-gray-200 rounded-xl p-2 md:p-3 focus-within:ring-1 focus-within:ring-primary focus-within:border-primary shadow-xs") {
                     textArea { // Note: when modifying this one also edit the copy of this in the endpoint
@@ -39,7 +24,7 @@ fun getLandingPage(pageTitle: String): String {
                             title = "Copy to clipboard"
                             onEvent(
                                 JsEvent.ON_CLICK,
-                                "copyToClipboard();"
+                                "copyToClipboard('password-input');"
                             )
                             embedSvg("/static/svg/copy.svg")
                         }
@@ -253,6 +238,22 @@ fun getBasePage(
             classes = setOf(
                 "min-h-screen flex flex-col"
             )
+
+            // Copy Success Tooltip
+            div("toast toast-top toast-center") {
+                div("alert alert-success animate-bounce fade hidden") {
+                    id = "copy-tooltip"
+                    span {
+                        +"Copy successful!"
+                    }
+                }
+                div("alert alert-warning animate-bounce fade hidden") {
+                    id = "copy-tooltip-failed"
+                    span {
+                        +"Copy failed :("
+                    }
+                }
+            }
 
             div {
                 classes = setOf("grow")
