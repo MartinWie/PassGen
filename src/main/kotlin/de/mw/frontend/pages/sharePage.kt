@@ -42,7 +42,7 @@ fun getPasswordLoaded(decryptedValue: String): String {
         div {
             classes = setOf("w-full max-w-md mx-auto")
             div {
-                classes = setOf("rounded-xl shadow-md p-6")
+                classes = setOf("p-6")
                 h1 {
                     classes = setOf("text-2xl font-semibold mb-3")
                     +"Shared Password"
@@ -52,10 +52,6 @@ fun getPasswordLoaded(decryptedValue: String): String {
                     classes = setOf("mb-6")
                     div {
                         classes = setOf("flex flex-col gap-3")
-                        label {
-                            classes = setOf("text-sm font-medium")
-                            +"Password"
-                        }
                         div {
                             classes = setOf("flex items-stretch gap-3")
                             // Password Display Field (Read-Only)
@@ -63,14 +59,9 @@ fun getPasswordLoaded(decryptedValue: String): String {
                                 classes = setOf("flex-grow border border-gray-200 rounded-lg p-3 relative")
                                 p {
                                     id = "password-field"
-                                    classes = setOf("password-field text-lg select-none")
-                                    +"••••••••••••••••"
-                                }
-                                // Hidden password storage
-                                input {
-                                    type = InputType.hidden
-                                    id = "hidden-password"
-                                    value = decryptedValue
+                                    classes = setOf("text-lg overflow-hidden")
+                                    style = "white-space: preserve; max-height: 3rem; overflow-y: auto;"
+                                    +decryptedValue
                                 }
                             }
                             // Button Group
@@ -88,14 +79,11 @@ fun getPasswordLoaded(decryptedValue: String): String {
                                     button {
                                         classes = setOf("btn btn-ghost")
                                         title = "Copy to clipboard"
+                                        onEvent(
+                                            JsEvent.ON_CLICK,
+                                            "copyToClipboard('password-field');"
+                                        )
                                         embedSvg("/static/svg/copy.svg")
-                                    }
-                                    // Copy Success Tooltip
-                                    div {
-                                        id = "copy-tooltip"
-                                        classes =
-                                            setOf("hidden absolute bottom-full right-0 mb-3 px-3 py-1 text-xs rounded shadow-lg whitespace-nowrap")
-                                        +"Copied!"
                                     }
                                 }
                             }
