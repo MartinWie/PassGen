@@ -79,8 +79,6 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 ## Todo's
 
 - Implement share functionality
-    - Change to a password field with the option to show the value and instead of showing it, open a modal that can show
-      also big texts
     - Add nav bar with logo on top so we can get back to the home page
 - Add toggle for dark/light mode
     - Add toggle button

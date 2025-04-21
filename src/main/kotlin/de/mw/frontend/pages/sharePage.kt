@@ -58,10 +58,36 @@ fun getPasswordLoaded(decryptedValue: String): String {
                             div {
                                 classes = setOf("flex-grow border border-gray-200 rounded-lg p-3 relative")
                                 p {
-                                    id = "password-field"
-                                    classes = setOf("text-lg overflow-hidden")
-                                    style = "white-space: preserve; max-height: 3rem; overflow-y: auto;"
-                                    +decryptedValue
+                                    id = "password-field-placeholder"
+                                    classes = setOf("text-lg flex items-center justify-center h-full")
+                                    +"* * * * * * * * * * * * * * * * * * * * * *"
+                                }
+
+                                dialog {
+                                    id = "view_share_modal"
+                                    classes = setOf("modal")
+                                    div {
+                                        classes = setOf("modal-box w-11/12 max-w-5xl")
+                                        p {
+                                            id = "password-field"
+                                            classes = setOf("text-lg whitespace-pre text-left")
+                                            +decryptedValue
+                                        }
+
+                                    }
+                                    form {
+                                        classes = setOf("modal-backdrop")
+                                        onEvent(
+                                            JsEvent.ON_SUBMIT,
+                                            """
+                                                event.preventDefault();
+                                                document.getElementById('view_share_modal').close();
+                                            """.trimIndent()
+                                        )
+                                        button {
+                                            +"close"
+                                        }
+                                    }
                                 }
                             }
                             // Button Group
@@ -71,6 +97,7 @@ fun getPasswordLoaded(decryptedValue: String): String {
                                     id = "reveal-btn"
                                     classes = setOf("btn btn-ghost")
                                     title = "Reveal password"
+                                    onEvent(JsEvent.ON_CLICK, "document.getElementById('view_share_modal').showModal()")
                                     embedSvg("/static/svg/reveal.svg")
 
                                 }

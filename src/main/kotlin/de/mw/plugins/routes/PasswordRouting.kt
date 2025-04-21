@@ -109,13 +109,6 @@ fun Route.passwordRouting() {
 
         val share = getPasswordLoaded(decryptedValue)
 
-        /*call.respondText(buildHTMLString { TODO: followup/cleanup
-            div {
-                style = "white-space: pre-wrap;" // Preserves newlines and wraps text
-                +decryptedValue
-            }
-        })*/
-
         call.respondText(share, ContentType.Text.Html)
     }
 }
