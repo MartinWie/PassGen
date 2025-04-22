@@ -1700,6 +1700,13 @@
     background-image: radial-gradient( circle at 35% 30%, oklch(1 0 0 / calc(var(--depth) * 0.5)), #0000 );
     box-shadow: 0 2px 3px -1px color-mix(in oklab, currentColor calc(var(--depth) * 100%), #0000);
   }
+  .navbar {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    padding: 0.5rem;
+    min-height: 4rem;
+  }
   .footer {
     display: grid;
     width: 100%;
@@ -1791,6 +1798,9 @@
   .h-6 {
     height: calc(var(--spacing) * 6);
   }
+  .h-12 {
+    height: calc(var(--spacing) * 12);
+  }
   .h-14 {
     height: calc(var(--spacing) * 14);
   }
@@ -1808,6 +1818,9 @@
   }
   .w-11\/12 {
     width: calc(11/12 * 100%);
+  }
+  .w-12 {
+    width: calc(var(--spacing) * 12);
   }
   .w-48 {
     width: calc(var(--spacing) * 48);

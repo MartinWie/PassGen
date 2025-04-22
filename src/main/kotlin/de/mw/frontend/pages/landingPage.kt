@@ -239,6 +239,23 @@ fun getBasePage(
                 "min-h-screen flex flex-col"
             )
 
+            // Navbar with logo
+            div {
+                classes = setOf("navbar bg-base-100 flex justify-center")
+                div {
+                    classes = setOf("flex justify-center items-center")
+                    a(href = "/") {
+                        img(src = "/static/apple-touch-icon.png", alt = "PassGen Logo") {
+                            classes = setOf("h-12 w-12 rounded-xl")
+                        }
+                    }
+                    a(href = "/") {
+                        classes = setOf("btn btn-ghost text-xl")
+                        +"PassGen"
+                    }
+                }
+            }
+
             // Copy Success Tooltip
             div("toast toast-top toast-center") {
                 div("alert alert-success animate-bounce fade hidden") {
