@@ -241,9 +241,9 @@ fun getBasePage(
 
             // Navbar with logo
             div {
-                classes = setOf("navbar bg-base-100 flex justify-center")
+                classes = setOf("navbar bg-base-100 flex place-content-between fixed top-0")
                 div {
-                    classes = setOf("flex justify-center items-center")
+                    classes = setOf("flex justify-center items-center ml-3")
                     a(href = "/") {
                         img(src = "/static/apple-touch-icon.png", alt = "PassGen Logo") {
                             classes = setOf("h-12 w-12 rounded-xl")
@@ -253,6 +253,29 @@ fun getBasePage(
                         classes = setOf("btn btn-ghost text-xl")
                         +"PassGen"
                     }
+                }
+
+                label {
+                    classes = setOf("swap swap-rotate mr-3")
+                    input {
+                        id = "them-switcher"
+                        type = InputType.checkBox
+                        classes = setOf("theme-controller")
+                        value = "light"
+                        onEvent(
+                            JsEvent.ON_LOAD,
+                            """
+                                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                                    this.checked = true;
+                                } else  {
+                                    this.checked = false;
+                                }
+                            """.trimIndent()
+                        )
+                    }
+                    embedSvg("/static/svg/moon.svg")
+
+                    embedSvg("/static/svg/sun.svg")
                 }
             }
 

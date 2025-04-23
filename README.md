@@ -79,7 +79,7 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 ## Todo's
 
 - Add toggle for dark/light mode
-    - Add toggle button
+    - Fix the state for the checkbox(according to system preference)
     - Store state for that
     - Also store the word length and the language(checkout localStorage or sessionStorage)
 - Add donation(keep the service running) button and Github link to the project
@@ -94,6 +94,7 @@ aenv -e Prod -s Passgen bash fullBuild.sh
     - Hyperscript?
 - add required footer stuff
 - host
+- Add Keyboard navigation
 - Add feedback option/page
 - Move parts into lib
     - HTMX code
@@ -106,7 +107,7 @@ aenv -e Prod -s Passgen bash fullBuild.sh
         - Introduce static html pages?
         - Build step to produce the pages?
         - checkout creating static html files for a CDN?
-- simple pw on ssh hostname
+- simple pw on ssh hostname ?
 - Think about cleanup database records
     - Cronjob?
     - Database config?
