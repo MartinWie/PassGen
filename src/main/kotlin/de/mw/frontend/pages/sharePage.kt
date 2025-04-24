@@ -60,6 +60,10 @@ fun getPasswordLoaded(decryptedValue: String): String {
                                 p {
                                     id = "password-field-placeholder"
                                     classes = setOf("text-lg flex items-center justify-center h-full")
+                                    onEvent(
+                                        JsEvent.ON_CLICK,
+                                        "copyToClipboard('password-field');"
+                                    )
                                     +"* * * * * * * * * * * * * * * * * * * * * *"
                                 }
 

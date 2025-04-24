@@ -78,7 +78,11 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 
 ## Todo's
 
+- Improve password input text area styling
+    - Auto grow
+    - spellcheck=false HTML attribute (auto correct reading the field)
 - Add toggle for dark/light mode
+    - Select themes(dark/light defaults)
     - Fix the state for the checkbox(according to system preference)
     - Store state for that
     - Also store the word length and the language(checkout localStorage or sessionStorage)
@@ -93,7 +97,7 @@ aenv -e Prod -s Passgen bash fullBuild.sh
     - Alpine.js
     - Hyperscript?
 - add required footer stuff
-- host
+- host(passgen io/sh/...?)
 - Add Keyboard navigation
 - Add feedback option/page
 - Move parts into lib
@@ -107,10 +111,28 @@ aenv -e Prod -s Passgen bash fullBuild.sh
         - Introduce static html pages?
         - Build step to produce the pages?
         - checkout creating static html files for a CDN?
-- simple pw on ssh hostname ?
+- Add docs page that explains the process
+    - Password generation
+    - How a share is stored
+    - What is used for the Keygen
 - Think about cleanup database records
     - Cronjob?
     - Database config?
+- Extend share settings
+    - Custom Expire date
+    - IP whitelisting(CIDR/Single address)
+    - How often can a password be clicked?
+        - Implement
+        - Add remaining views to password page
+- General README.MD cleanup
+    - Logo
+    - Texts
+- API for easy programmatic access
+    - Get a password with parameters
+    - Create share and get link
+    - Update README.MD
+    - Add docs for API to page
+- SSH connection to get a password?(Good practice not really useful here)
 
 https://p.7mw.de/
 

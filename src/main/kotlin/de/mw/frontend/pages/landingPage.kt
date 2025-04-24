@@ -11,7 +11,7 @@ fun getLandingPage(pageTitle: String): String {
                     textArea { // Note: when modifying this one also edit the copy of this in the endpoint
                         id = "password-input"
                         classes =
-                            setOf("grow resize-none h-14 min-h-[56px] border-none focus:outline-hidden bg-transparent px-2 box-border text-base align-middle leading-[1.5] py-[14px] md:py-[14px]")
+                            setOf("grow resize-none h-14 min-h-[56px] border-none focus:outline-hidden bg-transparent px-2 box-border text-base align-middle leading-[1.5] py-[14px]")
                         hxGet("/word")
                         hxInclude("[name='language-select'], [name='word-amount-slider'], [name='include-special'], [name='include-numbers'], [name='separator']")
                         hxSwap(HxSwapOption.OUTER_HTML)
