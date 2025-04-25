@@ -3,8 +3,10 @@ package de.mw.plugins.routes
 import de.mw.frontend.pages.getPasswordLoaded
 import de.mw.frontend.pages.getShareCreateResult
 import de.mw.frontend.pages.getSharePage
+import de.mw.frontend.utils.JsEvent
 import de.mw.frontend.utils.addJs
 import de.mw.frontend.utils.buildHTMLString
+import de.mw.frontend.utils.onEvent
 import de.mw.models.WordLanguage
 import de.mw.passwordService
 import io.ktor.http.*
@@ -43,7 +45,14 @@ fun Route.passwordRouting() {
                 id = "password-input"
                 name = "password-input"
                 classes =
-                    setOf("grow resize-none h-14 min-h-[56px] border-none focus:outline-hidden bg-transparent px-2 box-border text-base align-middle leading-[1.5] py-[14px] md:py-[14px]")
+                    setOf("grow resize-none h-14 min-h-[56px] border-none focus:outline-hidden bg-transparent px-2 box-border text-base align-middle leading-[1.5] py-[14px]")
+                onEvent(
+                    JsEvent.ON_INPUT, """
+                            this.parentNode.dataset.clonedVal = this.value;
+                            const lineCount = (this.value.match(/\n/g) || []).length + 1;
+                            this.style.height = Math.min(675,Math.max(56, lineCount * 25)) + 'px';
+                        """.trimIndent()
+                )
                 +passwordService.getWords(wordAmount, language, spacialChars, numbers).joinToString(separator)
             }
         }

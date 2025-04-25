@@ -16,6 +16,13 @@ fun getLandingPage(pageTitle: String): String {
                         hxInclude("[name='language-select'], [name='word-amount-slider'], [name='include-special'], [name='include-numbers'], [name='separator']")
                         hxSwap(HxSwapOption.OUTER_HTML)
                         hxTrigger("intersect once")
+                        onEvent(
+                            JsEvent.ON_INPUT, """
+                            this.parentNode.dataset.clonedVal = this.value;
+                            const lineCount = (this.value.match(/\n/g) || []).length + 1;
+                            this.style.height = Math.min(675,Math.max(56, lineCount * 25)) + 'px';
+                        """.trimIndent()
+                        )
                     }
 
                     div("flex justify-center md:justify-end gap-2 md:gap-3 mt-1 md:mt-0") {
