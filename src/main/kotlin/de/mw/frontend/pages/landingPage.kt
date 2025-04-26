@@ -10,6 +10,7 @@ fun getLandingPage(pageTitle: String): String {
                 div("flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-3 border border-gray-200 rounded-xl p-2 md:p-3 focus-within:ring-1 focus-within:ring-primary focus-within:border-primary shadow-xs") {
                     textArea { // Note: when modifying this one also edit the copy of this in the endpoint
                         id = "password-input"
+                        spellCheck = false
                         classes =
                             setOf("grow resize-none h-14 min-h-[56px] border-none focus:outline-hidden bg-transparent px-2 box-border text-base align-middle leading-[1.5] py-[14px]")
                         hxGet("/word")

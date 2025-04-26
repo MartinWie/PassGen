@@ -13,10 +13,7 @@ import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.html.classes
-import kotlinx.html.id
-import kotlinx.html.p
-import kotlinx.html.textArea
+import kotlinx.html.*
 
 fun Route.passwordRouting() {
     get("/word") {
@@ -44,6 +41,7 @@ fun Route.passwordRouting() {
             textArea {
                 id = "password-input"
                 name = "password-input"
+                spellCheck = false
                 classes =
                     setOf("grow resize-none h-14 min-h-[56px] border-none focus:outline-hidden bg-transparent px-2 box-border text-base align-middle leading-[1.5] py-[14px]")
                 onEvent(

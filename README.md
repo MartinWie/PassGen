@@ -78,8 +78,6 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 
 ## Todo's
 
-- Improve password input text area styling
-    - spellcheck=false HTML attribute (auto correct reading the field)
 - Add toggle for dark/light mode
     - Fix the state for the checkbox(according to system preference)
     - Store state for that
