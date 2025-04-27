@@ -269,16 +269,35 @@ fun getBasePage(
                         id = "them-switcher"
                         type = InputType.checkBox
                         classes = setOf("theme-controller")
-                        value = "light"
                         onEvent(
-                            JsEvent.ON_LOAD,
+                            JsEvent.ON_CLICK,
                             """
-                                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                                    this.checked = true;
-                                } else  {
-                                    this.checked = false;
+                                if (this.checked) {
+                                    document.documentElement.setAttribute('data-theme', 'dark');
+                                    localStorage.setItem('theme', 'dark');
+                                    this.value = 'dark';
+                                } else {
+                                    document.documentElement.setAttribute('data-theme', 'light');
+                                    localStorage.setItem('theme', 'light');
+                                    this.value = 'light';
                                 }
                             """.trimIndent()
+                        )
+                        addJs(
+                            """
+                            document.addEventListener('DOMContentLoaded', function() {
+                                const themeToggle = document.getElementById('them-switcher');
+                                const savedTheme = localStorage.getItem('theme');
+                        
+                                if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                                    document.documentElement.setAttribute('data-theme', 'dark');
+                                    themeToggle.checked = true;
+                                } else {
+                                    document.documentElement.setAttribute('data-theme', 'light');
+                                    themeToggle.checked = false;
+                                }
+                            });
+                        """.trimIndent()
                         )
                     }
                     embedSvg("/static/svg/moon.svg")

@@ -79,9 +79,8 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 ## Todo's
 
 - Add toggle for dark/light mode
-    - Fix the state for the checkbox(according to system preference)
-    - Store state for that
     - Also store the word length and the language(checkout localStorage or sessionStorage)
+- Fix the input area autogrow to width
 - Add donation(keep the service running) button and Github link to the project
 - Add option to generate Public/Private Keypair in browser client(some sort of toggle)
     - Figure out how to generate the pair on the client
