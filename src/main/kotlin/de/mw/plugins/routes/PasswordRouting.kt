@@ -19,19 +19,15 @@ fun Route.passwordRouting() {
     get("/word") {
         val parameters = call.queryParameters
 
-        val language = parameters["language-select"]?.let { WordLanguage.valueOf(it) } ?: return@get call.respond(
-            HttpStatusCode.BadRequest, "Missing language"
-        )
+        val language = parameters["language-select"]?.let { WordLanguage.valueOf(it) } ?: WordLanguage.ENG
 
-        val wordAmount = parameters["word-amount-slider"]?.toInt() ?: return@get call.respond(
-            HttpStatusCode.BadRequest, "Missing amount"
-        )
+        val wordAmount = parameters["word-amount-slider"]?.toInt() ?: 4
 
         val spacialChars = parameters["include-special"]?.let { it.uppercase() == "ON" } ?: false
 
         val numbers = parameters["include-numbers"]?.let { it.uppercase() == "ON" } ?: false
 
-        val separator = parameters["separator"]?.first()?.toString() ?: "-"
+        val separator = parameters["separator"]?.firstOrNull()?.toString() ?: "-"
 
         if (wordAmount > 50) return@get call.respond(
             HttpStatusCode.BadRequest, "Why Waste Time When Few Word Do Trick"

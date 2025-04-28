@@ -77,21 +77,38 @@ fun getLandingPage(pageTitle: String): String {
                                         }
                                     }
                                     select {
+                                        id = "language-select"
                                         name = "language-select"
                                         classes = setOf("select", "select-bordered", "w-full")
                                         onEvent(
                                             JsEvent.ON_CHANGE,
-                                            "document.getElementById('regen-button').click();"
+                                            """
+                                                        document.getElementById('regen-button').click();
+                                                        localStorage.setItem('word-language', this.options[this.selectedIndex].value);
+                                                    """.trimIndent()
                                         )
                                         option {
                                             value = "ENG"
-                                            selected = true
                                             +"English"
                                         }
                                         option {
                                             value = "GER"
                                             +"Deutsch"
                                         }
+                                        addJs(
+                                            """
+                                            const languageSelect = document.getElementById('language-select');
+                                            const savedLanguage = localStorage.getItem('word-language');
+                                            
+                                            // Set language based on localStorage or default to ENG
+                                            if (savedLanguage) {
+                                                languageSelect.value = savedLanguage;
+                                            } else {
+                                                languageSelect.value = 'ENG';
+                                                localStorage.setItem('word-language', 'ENG');
+                                            }
+                                        """.trimIndent()
+                                        )
                                     }
                                 }
 
