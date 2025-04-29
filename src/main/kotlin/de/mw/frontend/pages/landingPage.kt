@@ -130,7 +130,6 @@ fun getLandingPage(pageTitle: String): String {
                                         min = "1"
                                         max = "50"
                                         step = "1"
-                                        value = "4"
                                         id = "word-amount-slider"
                                         classes = setOf("range mb-3")
                                         onEvent(
@@ -142,13 +141,31 @@ fun getLandingPage(pageTitle: String): String {
                                             """
                                                document.getElementById('word-amount').textContent = this.value;
                                                document.getElementById('word-input').value = this.value;
+                                               localStorage.setItem('word-amount', this.value);
                                             """.trimIndent()
                                         )
+                                        addJs(
+                                            """
+                                            const wordAmountSlider = document.getElementById('word-amount-slider');
+                                            const wordAmountSpan = document.getElementById('word-amount');
+                                            const savedWordAmount = localStorage.getItem('word-amount');
+                                            
+                                            // Set language based on localStorage or default to ENG
+                                            if (savedWordAmount) {
+                                                wordAmountSlider.value = savedWordAmount;
+                                                wordAmountSpan.textContent = savedWordAmount;
+                                            } else {
+                                                wordAmountSlider.value = '4';
+                                                wordAmountSpan.textContent = '4';
+                                                localStorage.setItem('word-amount', '4');
+                                            }
+                                        """.trimIndent()
+                                        )
+
                                     }
                                     input(InputType.number) {
                                         min = "1"
                                         max = "50"
-                                        value = "4"
                                         id = "word-input"
                                         classes = setOf("input", "input-bordered", "w-full")
                                         onEvent(
@@ -158,7 +175,24 @@ fun getLandingPage(pageTitle: String): String {
                                             document.getElementById('word-amount').textContent = this.value;
                                             document.getElementById('word-amount-slider').value = this.value;
                                             document.getElementById('regen-button').click();
+                                            localStorage.setItem('word-amount', this.value.toString());
                                             """.trimIndent()
+                                        )
+                                        addJs(
+                                            """
+                                            document.addEventListener('DOMContentLoaded', function() {
+                                                const wordAmountSelect = document.getElementById('word-input');
+                                                const savedWordAmount = localStorage.getItem('word-amount');
+                                                
+                                                // Set word amount based on localStorage or default to 4
+                                                if (savedWordAmount) {
+                                                    wordAmountSelect.value = savedWordAmount;
+                                                } else {
+                                                    wordAmountSelect.value = '4';
+                                                    localStorage.setItem('word-amount', '4');
+                                                }
+                                            });
+                                        """.trimIndent()
                                         )
                                     }
                                 }
@@ -174,12 +208,30 @@ fun getLandingPage(pageTitle: String): String {
                                     input(InputType.text) {
                                         name = "separator"
                                         maxLength = 1.toString()
-                                        value = "-"
-                                        id = "word-amount-slider"
+                                        id = "word-separator"
                                         classes = setOf("input", "input-bordered", "w-full")
                                         onEvent(
                                             JsEvent.ON_INPUT,
-                                            "document.getElementById('regen-button').click();"
+                                            """
+                                                document.getElementById('regen-button').click();
+                                                localStorage.setItem('word-separator', this.value);
+                                            """.trimIndent()
+                                        )
+                                        addJs(
+                                            """
+                                            document.addEventListener('DOMContentLoaded', function() {
+                                                const wordSeparator = document.getElementById('word-separator');
+                                                const savedSeparator = localStorage.getItem('word-separator');
+                                                
+                                                // Set word amount based on localStorage or default to 4
+                                                if (savedSeparator) {
+                                                    wordSeparator.value = savedSeparator;
+                                                } else {
+                                                    localStorage.setItem('word-separator', '-');
+                                                    wordSeparator.value = '-';
+                                                }
+                                            });
+                                        """.trimIndent()
                                         )
                                     }
                                 }
