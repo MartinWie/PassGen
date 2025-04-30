@@ -121,7 +121,6 @@ fun getLandingPage(pageTitle: String): String {
                                             +"Words:"
                                             span {
                                                 id = "word-amount"
-                                                +"4"
                                             }
                                         }
                                     }
@@ -243,12 +242,34 @@ fun getLandingPage(pageTitle: String): String {
                                         classes = setOf("label cursor-pointer flex justify-between gap-2 py-1")
                                         input {
                                             type = InputType.checkBox
+                                            id = "include-numbers"
                                             name = "include-numbers"
                                             classes = setOf("checkbox checkbox-sm")
                                             checked = false
                                             onEvent(
                                                 JsEvent.ON_CHANGE,
-                                                "document.getElementById('regen-button').click();"
+                                                """
+                                                    document.getElementById('regen-button').click();
+                                                    if (this.checked) {                                                    
+                                                        localStorage.setItem('include-numbers', 'true');
+                                                    } else {
+                                                        localStorage.setItem('include-numbers', 'false');
+                                                    }
+                                                """.trimIndent()
+                                            )
+                                            addJs(
+                                                """
+                                                    document.addEventListener('DOMContentLoaded', function() {
+                                                        const includeNumberCheckbox = document.getElementById('include-numbers');
+                                                        const includeNumbers = localStorage.getItem('include-numbers');
+                                                
+                                                        if (includeNumbers === 'true') {
+                                                            includeNumberCheckbox.checked = true;
+                                                        } else {
+                                                            includeNumberCheckbox.checked = false;
+                                                        }
+                                                    });
+                                                """.trimIndent()
                                             )
                                         }
                                         span {
@@ -264,12 +285,34 @@ fun getLandingPage(pageTitle: String): String {
                                         classes = setOf("label cursor-pointer flex justify-between gap-2 py-1")
                                         input {
                                             type = InputType.checkBox
+                                            id = "include-special"
                                             name = "include-special"
                                             classes = setOf("checkbox checkbox-sm")
                                             checked = false
                                             onEvent(
                                                 JsEvent.ON_CHANGE,
-                                                "document.getElementById('regen-button').click();"
+                                                """
+                                                    document.getElementById('regen-button').click();
+                                                    if (this.checked) {                                                    
+                                                        localStorage.setItem('include-special', 'true');
+                                                    } else {
+                                                        localStorage.setItem('include-special', 'false');
+                                                    }
+                                                """.trimIndent()
+                                            )
+                                            addJs(
+                                                """
+                                                    document.addEventListener('DOMContentLoaded', function() {
+                                                        const includeNumberCheckbox = document.getElementById('include-special');
+                                                        const includeSpecial = localStorage.getItem('include-special');
+                                                
+                                                        if (includeSpecial === 'true') {
+                                                            includeNumberCheckbox.checked = true;
+                                                        } else {
+                                                            includeNumberCheckbox.checked = false;
+                                                        }
+                                                    });
+                                                """.trimIndent()
                                             )
                                         }
                                         span {
