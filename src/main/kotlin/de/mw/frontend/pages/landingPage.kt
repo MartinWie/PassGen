@@ -6,13 +6,14 @@ import kotlinx.html.*
 fun getLandingPage(pageTitle: String): String {
     return getBasePage(pageTitle) {
         div("flex items-center justify-center min-h-screen p-4 md:p-6") {
-            div("w-full max-w-3xl mx-auto") {
+            div("min-w-full sm:min-w-max md:min-w-3xl mx-auto") {
                 div("flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-3 border border-gray-200 rounded-xl p-2 md:p-3 focus-within:ring-1 focus-within:ring-primary focus-within:border-primary shadow-xs") {
                     textArea { // Note: when modifying this one also edit the copy of this in the endpoint
                         id = "password-input"
+                        name = "password-input"
                         spellCheck = false
                         classes =
-                            setOf("grow resize-none h-14 min-h-[56px] border-none focus:outline-hidden bg-transparent px-2 box-border text-base align-middle leading-[1.5] py-[14px]")
+                            setOf("grow resize-none h-14 min-h-[56px] border-none focus:outline-hidden bg-transparent px-2 box-border text-base align-middle leading-[1.5] py-[14px] whitespace-nowrap overflow-x-auto")
                         hxGet("/word")
                         hxInclude("[name='language-select'], [name='word-amount-slider'], [name='include-special'], [name='include-numbers'], [name='separator']")
                         hxSwap(HxSwapOption.OUTER_HTML)

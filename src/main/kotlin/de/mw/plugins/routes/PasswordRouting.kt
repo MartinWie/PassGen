@@ -39,7 +39,7 @@ fun Route.passwordRouting() {
                 name = "password-input"
                 spellCheck = false
                 classes =
-                    setOf("grow resize-none h-14 min-h-[56px] border-none focus:outline-hidden bg-transparent px-2 box-border text-base align-middle leading-[1.5] py-[14px]")
+                    setOf("grow resize-none h-14 min-h-[56px] border-none focus:outline-hidden bg-transparent px-2 box-border text-base align-middle leading-[1.5] py-[14px] whitespace-nowrap overflow-x-auto")
                 onEvent(
                     JsEvent.ON_INPUT, """
                             this.parentNode.dataset.clonedVal = this.value;
