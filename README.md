@@ -78,7 +78,6 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 
 ## Todo's
 
-- Cleanup the duplication for the textarea
 - Add donation(keep the service running) button(use SVG form https://svgl.app/) and Github link to the project
 - Add option to generate Public/Private Keypair in browser client(some sort of toggle)
     - Figure out how to generate the pair on the client

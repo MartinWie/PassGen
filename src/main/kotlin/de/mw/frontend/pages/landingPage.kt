@@ -8,23 +8,13 @@ fun getLandingPage(pageTitle: String): String {
         div("flex items-center justify-center min-h-screen p-4 md:p-6") {
             div("min-w-full sm:min-w-max md:min-w-3xl mx-auto") {
                 div("flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-3 border border-gray-200 rounded-xl p-2 md:p-3 focus-within:ring-1 focus-within:ring-primary focus-within:border-primary shadow-xs") {
-                    textArea { // Note: when modifying this one also edit the copy of this in the endpoint
+                    textArea {
                         id = "password-input"
-                        name = "password-input"
-                        spellCheck = false
                         classes =
-                            setOf("grow resize-none h-14 min-h-[56px] border-none focus:outline-hidden bg-transparent px-2 box-border text-base align-middle leading-[1.5] py-[14px] whitespace-nowrap overflow-x-auto")
+                            setOf("grow resize-none h-14 py-[14px]")
                         hxGet("/word")
-                        hxInclude("[name='language-select'], [name='word-amount-slider'], [name='include-special'], [name='include-numbers'], [name='separator']")
                         hxSwap(HxSwapOption.OUTER_HTML)
                         hxTrigger("intersect once")
-                        onEvent(
-                            JsEvent.ON_INPUT, """
-                            this.parentNode.dataset.clonedVal = this.value;
-                            const lineCount = (this.value.match(/\n/g) || []).length + 1;
-                            this.style.height = Math.min(675,Math.max(56, lineCount * 25)) + 'px';
-                        """.trimIndent()
-                        )
                     }
 
                     div("flex justify-center md:justify-end gap-2 md:gap-3 mt-1 md:mt-0") {
