@@ -88,7 +88,16 @@ fun TagConsumer<StringBuilder>.getPageHead(pageTitle: String = "") {
 fun TagConsumer<StringBuilder>.getFooter() {
     footer {
         id = "footer"
-        classes = setOf("flex items-center justify-center")
+        classes = setOf("flex", "flex-col", "items-center", "justify-center", "gap-2")
+
+        a(href = "https://www.buymeacoffee.com/martinwie", target = "_blank") {
+            classes = setOf("flex items-center gap-2 text-sm hover:text-amber-500")
+            span {
+                classes = setOf("w-6 h-6 inline-flex items-center")
+                embedSvg("/static/svg/buymeacoffee.svg")
+            }
+            +"Buy me a coffee"
+        }
 
         aside {
             p { +"Copyright © ${Year.now()} - All right reserved" }
