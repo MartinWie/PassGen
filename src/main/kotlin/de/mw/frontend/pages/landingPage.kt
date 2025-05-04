@@ -329,6 +329,115 @@ fun getLandingPage(pageTitle: String): String {
                         }
                     }
                 }
+                // Draft Start
+                div("flex flex-col justify-center items-center gap-3 mt-3") {
+                    // Hidden checkbox for form submission
+                    input(type = InputType.checkBox) {
+                        id = "generation-mode-hidden"
+                        classes = setOf("hidden")
+                        name = "generation-mode-hidden"
+                    }
+
+                    // Custom toggle with icons inside
+                    div {
+                        id = "custom-toggle"
+                        classes =
+                            setOf("relative w-32 h-10 bg-gray-200 rounded-full cursor-pointer transition-all duration-300 flex items-center p-0.5")
+                        style = "transition: all 0.3s;"
+
+                        // Toggle thumb
+                        div {
+                            id = "toggle-thumb"
+                            classes =
+                                setOf("absolute w-16 h-9 bg-white rounded-full transition-all duration-300 shadow-sm z-10")
+                            style = "left: 2px; transition: all 0.3s;"
+                        }
+
+                        // Toggle icons container
+                        div("relative flex w-full z-20") {
+                            // Password icon
+                            div("flex-1 flex items-center justify-center text-primary") {
+                                id = "password-icon"
+                                span {
+                                    classes = setOf("w-5 h-5 inline-flex items-center")
+                                    embedSvg("/static/svg/lock.svg")
+                                }
+                            }
+
+                            // Key icon
+                            div("flex-1 flex items-center justify-center text-white") {
+                                id = "key-icon"
+                                span {
+                                    classes = setOf("w-5 h-5 inline-flex items-center")
+                                    embedSvg("/static/svg/key.svg")
+                                }
+                            }
+                        }
+
+                        // Toggle behavior script
+                        addJs(
+                            """
+                                    document.addEventListener('DOMContentLoaded', function() {
+                                        const toggle = document.getElementById('custom-toggle');
+                                        const toggleInput = document.getElementById('generation-mode-hidden');
+                                        const toggleThumb = document.getElementById('toggle-thumb');
+                                        const passwordIcon = document.getElementById('password-icon');
+                                        const keyIcon = document.getElementById('key-icon');
+                                        const toggleLabel = document.getElementById('toggle-label');
+                                        
+                                        // Check localStorage for saved preference
+                                        const savedMode = localStorage.getItem('generation-mode-hidden');
+                                        if (savedMode === 'key') {
+                                            toggle.classList.add('bg-primary');
+                                            toggleThumb.style.transform = 'translateX(60px)';
+                                            passwordIcon.classList.remove('text-primary');
+                                            passwordIcon.classList.add('text-white');
+                                            keyIcon.classList.remove('text-white');
+                                            keyIcon.classList.add('text-primary');
+                                            toggleInput.checked = true;
+                                            toggleLabel.textContent = 'Key';
+                                        }
+                                        
+                                        toggle.addEventListener('click', function() {
+                                            const isActive = toggleInput.checked;
+                                            toggleInput.checked = !isActive;
+                                            
+                                            if (!isActive) {
+                                                // Switch to Key mode
+                                                toggle.classList.add('bg-primary');
+                                                toggleThumb.style.transform = 'translateX(60px)';
+                                                passwordIcon.classList.remove('text-primary');
+                                                passwordIcon.classList.add('text-white');
+                                                keyIcon.classList.remove('text-white');
+                                                keyIcon.classList.add('text-primary');
+                                                toggleLabel.textContent = 'Key';
+                                                localStorage.setItem('generation-mode-hidden', 'key');
+                                            } else {
+                                                // Switch to Password mode
+                                                toggle.classList.remove('bg-primary');
+                                                toggleThumb.style.transform = 'translateX(0)';
+                                                passwordIcon.classList.add('text-primary');
+                                                passwordIcon.classList.remove('text-white');
+                                                keyIcon.classList.add('text-white');
+                                                keyIcon.classList.remove('text-primary');
+                                                toggleLabel.textContent = 'Password';
+                                                localStorage.setItem('generation-mode-hidden', 'password');
+                                            }
+                                        });
+                                    });
+                                """
+                        )
+                    }
+
+                    // Toggle label
+                    div("text-center") {
+                        span {
+                            id = "toggle-label"
+                            +"Password"
+                        }
+                    }
+                }
+                // Draft end
                 div {
                     id = "share-result"
                     classes = setOf("flex flex-col justify-center text-center mt-3")

@@ -79,6 +79,8 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 ## Todo's
 
 - Add option to generate Public/Private Keypair in browser client(some sort of toggle)
+    - Get design dialed in
+    - Get logic for Key vs password sorted
     - Figure out how to generate the pair on the client
     - Text field for the public key use something like
       this -> https://cruip.com/auto-growing-textarea-with-tailwind-css/
