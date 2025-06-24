@@ -18,8 +18,8 @@ plugins {
     kotlin("jvm") version "2.1.20"
     id("io.ktor.plugin") version "3.1.1"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.1.10"
-    id("nu.studer.jooq") version "9.0"
     id("org.flywaydb.flyway") version "11.3.4"
+    id("dev.monosoul.jooq-docker") version "7.0.14" // JOOQ generate classes with test container
 }
 
 group = "de.mw"
@@ -62,9 +62,9 @@ dependencies {
 
     // Database
     implementation("org.jooq:jooq:$jooq_version")
-    jooqGenerator("org.jooq:jooq-meta:$jooq_version")
-    jooqGenerator("org.jooq:jooq-codegen:$jooq_version")
-    jooqGenerator("org.postgresql:postgresql:$postgresql_version")
+    jooqCodegen("org.jooq:jooq-meta:$jooq_version")
+    jooqCodegen("org.jooq:jooq-codegen:$jooq_version")
+    jooqCodegen("org.postgresql:postgresql:$postgresql_version")
 
     // Flyway dependency for database migrations
     implementation("org.flywaydb:flyway-database-postgresql:11.3.4")
@@ -78,38 +78,14 @@ dependencies {
 }
 
 jooq {
-    version.set(jooq_version)  // default (can be omitted)
-    edition.set(nu.studer.gradle.jooq.JooqEdition.OSS)
-
-    configurations {
-        create("main") {  // name of the jOOQ configuration
-            generateSchemaSourceOnCompilation.set(true)
-
-            jooqConfiguration.apply {
-                jdbc.apply {
-                    driver = "org.postgresql.Driver"
-                    url = "jdbc:postgresql://$postgresHost:5432/passgen"
-                    user = postgresUser
-                    password = postgresPassword
-                }
-                generator.apply {
-                    name = "org.jooq.codegen.DefaultGenerator"
-                    database.apply {
-                        name = "org.jooq.meta.postgres.PostgresDatabase"
-                        inputSchema = "public"
-                    }
-                    generate.apply {
-                        isDeprecated = false
-                        isRecords = true
-                        isImmutablePojos = true
-                        isFluentSetters = true
-                    }
-                    target.apply {
-                        packageName = "de.mw.generated"
-                    }
-                    strategy.name = "org.jooq.codegen.DefaultGeneratorStrategy"
-                }
-            }
+    withContainer {
+        image {
+            name = "postgres:15"
+            envVars = mapOf(
+                "POSTGRES_DB" to "postgres",
+                "POSTGRES_USER" to "postgres",
+                "POSTGRES_PASSWORD" to "postgres"
+            )
         }
     }
 }
@@ -122,13 +98,23 @@ flyway {
     locations = arrayOf("filesystem:src/main/resources/db/migration")
 }
 
-tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
-    archiveClassifier.set("all")
-    configurations = listOf(project.configurations.runtimeClasspath.get())
-    mergeServiceFiles()
-}
+tasks {
+    generateJooqClasses {
+        basePackageName.set("de.mw.generated")
+    }
 
-tasks.named("flywayMigrate") {
-    inputs.files(fileTree("src/main/resources/db/migration"))
-    outputs.dir("${layout.buildDirectory}/flyway-output")
+    withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
+        archiveClassifier.set("all")
+        configurations = listOf(project.configurations.runtimeClasspath.get())
+        mergeServiceFiles()
+    }
+
+    named("flywayMigrate") {
+        inputs.files(fileTree("src/main/resources/db/migration"))
+        outputs.dir("${layout.buildDirectory}/flyway-output")
+    }
+
+    named("compileKotlin") {
+        dependsOn("generateJooqClasses")
+    }
 }
