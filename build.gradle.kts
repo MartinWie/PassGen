@@ -67,7 +67,7 @@ dependencies {
     jooqCodegen("org.postgresql:postgresql:$postgresql_version")
 
     // Flyway dependency for database migrations
-    implementation("org.flywaydb:flyway-database-postgresql:11.3.4")
+    implementation("org.flywaydb:flyway-database-postgresql:$flyway_version")
     implementation("org.postgresql:postgresql:$postgresql_version")
 
     // Database connection pooling
