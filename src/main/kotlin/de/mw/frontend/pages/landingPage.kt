@@ -254,11 +254,7 @@ fun getLandingPage(pageTitle: String): String {
                                                         const includeNumberCheckbox = document.getElementById('include-numbers');
                                                         const includeNumbers = localStorage.getItem('include-numbers');
                                                 
-                                                        if (includeNumbers === 'true') {
-                                                            includeNumberCheckbox.checked = true;
-                                                        } else {
-                                                            includeNumberCheckbox.checked = false;
-                                                        }
+                                                       includeNumberCheckbox.checked = includeNumbers === 'true';
                                                     });
                                                 """.trimIndent()
                                             )
@@ -297,11 +293,7 @@ fun getLandingPage(pageTitle: String): String {
                                                         const includeNumberCheckbox = document.getElementById('include-special');
                                                         const includeSpecial = localStorage.getItem('include-special');
                                                 
-                                                        if (includeSpecial === 'true') {
-                                                            includeNumberCheckbox.checked = true;
-                                                        } else {
-                                                            includeNumberCheckbox.checked = false;
-                                                        }
+                                                        includeNumberCheckbox.checked = includeSpecial === 'true';
                                                     });
                                                 """.trimIndent()
                                             )

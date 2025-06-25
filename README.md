@@ -84,7 +84,8 @@ aenv -e Prod -s Passgen bash fullBuild.sh
     - Figure out how to generate the pair on the client
     - Text field for the public key use something like
       this -> https://cruip.com/auto-growing-textarea-with-tailwind-css/
-- Generate a link where user generate a private key and the creator gets the public link
+- Fix bug: First loaded password is default and not the user config(potentially already rewrite to client side
+  generation)
 - Checkout how to move password generation to client
     - list of hidden tags and take form there?
     - Alpine.js
@@ -93,6 +94,9 @@ aenv -e Prod -s Passgen bash fullBuild.sh
         - hx-Ext json-enc
         - and from buttons and settings use local storage
         - Change slider so live and not only release
+- Add go home button to expired shares page
+- Make contrast/shadows on light theme better
+- Generate a link where user generate a private key and the creator gets the public link
 - add required footer stuff
 - host(passgen io/sh/...?)
 - Add Keyboard navigation
