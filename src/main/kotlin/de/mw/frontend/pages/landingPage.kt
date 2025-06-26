@@ -334,14 +334,14 @@ fun getLandingPage(pageTitle: String): String {
                     div {
                         id = "custom-toggle"
                         classes =
-                            setOf("relative w-32 h-10 bg-gray-200 rounded-full cursor-pointer transition-all duration-300 flex items-center p-0.5")
+                            setOf("relative w-32 h-10 bg-base-300 rounded-full cursor-pointer transition-all duration-300 flex items-center p-0.5")
                         style = "transition: all 0.3s;"
 
                         // Toggle thumb
                         div {
                             id = "toggle-thumb"
                             classes =
-                                setOf("absolute w-16 h-9 bg-white rounded-full transition-all duration-300 shadow-sm z-10")
+                                setOf("absolute w-16 h-9 bg-accent rounded-full transition-all duration-300 shadow-md z-10")
                             style = "left: 2px; transition: all 0.3s;"
                         }
 

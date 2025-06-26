@@ -2017,14 +2017,17 @@
   .border-gray-200 {
     border-color: var(--color-gray-200);
   }
+  .bg-accent {
+    background-color: var(--color-accent);
+  }
   .bg-amber-50 {
     background-color: var(--color-amber-50);
   }
   .bg-base-100 {
     background-color: var(--color-base-100);
   }
-  .bg-base-200 {
-    background-color: var(--color-base-200);
+  .bg-base-300 {
+    background-color: var(--color-base-300);
   }
   .bg-blue-50 {
     background-color: var(--color-blue-50);
@@ -2122,9 +2125,6 @@
   .text-amber-800 {
     color: var(--color-amber-800);
   }
-  .text-base-content {
-    color: var(--color-base-content);
-  }
   .text-blue-800 {
     color: var(--color-blue-800);
   }
@@ -2140,9 +2140,6 @@
   .ordinal {
     --tw-ordinal: ordinal;
     font-variant-numeric: var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);
-  }
-  .opacity-50 {
-    opacity: 50%;
   }
   .shadow-lg {
     --tw-shadow: 0 10px 15px -3px var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 4px 6px -4px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
