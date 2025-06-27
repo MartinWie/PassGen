@@ -7,7 +7,7 @@ fun getLandingPage(pageTitle: String): String {
     return getBasePage(pageTitle) {
         div("flex items-center justify-center min-h-screen p-4 md:p-6") {
             div("min-w-full sm:min-w-max md:min-w-3xl mx-auto") {
-                div("flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-3 border border-gray-200 rounded-xl p-2 md:p-3 focus-within:ring-1 focus-within:ring-primary focus-within:border-primary shadow-xs") {
+                div("flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-3 border border-gray-200 rounded-xl p-2 md:p-3 focus-within:ring-1 focus-within:ring-base-content focus-within:border-base-content shadow-xs") {
                     textArea {
                         id = "password-input"
                         classes =
@@ -348,7 +348,7 @@ fun getLandingPage(pageTitle: String): String {
                         // Toggle icons container
                         div("relative flex w-full z-20") {
                             // Password icon
-                            div("flex-1 flex items-center justify-center text-primary") {
+                            div("flex-1 flex items-center justify-center text-base-content") {
                                 id = "password-icon"
                                 span {
                                     classes = setOf("w-5 h-5 inline-flex items-center")
@@ -357,7 +357,7 @@ fun getLandingPage(pageTitle: String): String {
                             }
 
                             // Key icon
-                            div("flex-1 flex items-center justify-center text-white") {
+                            div("flex-1 flex items-center justify-center text-base-content") {
                                 id = "key-icon"
                                 span {
                                     classes = setOf("w-5 h-5 inline-flex items-center")
@@ -373,19 +373,12 @@ fun getLandingPage(pageTitle: String): String {
                                         const toggle = document.getElementById('custom-toggle');
                                         const toggleInput = document.getElementById('generation-mode-hidden');
                                         const toggleThumb = document.getElementById('toggle-thumb');
-                                        const passwordIcon = document.getElementById('password-icon');
-                                        const keyIcon = document.getElementById('key-icon');
                                         const toggleLabel = document.getElementById('toggle-label');
                                         
                                         // Check localStorage for saved preference
                                         const savedMode = localStorage.getItem('generation-mode-hidden');
                                         if (savedMode === 'key') {
-                                            toggle.classList.add('bg-primary');
                                             toggleThumb.style.transform = 'translateX(60px)';
-                                            passwordIcon.classList.remove('text-primary');
-                                            passwordIcon.classList.add('text-white');
-                                            keyIcon.classList.remove('text-white');
-                                            keyIcon.classList.add('text-primary');
                                             toggleInput.checked = true;
                                             toggleLabel.textContent = 'Key';
                                         }
@@ -396,22 +389,12 @@ fun getLandingPage(pageTitle: String): String {
                                             
                                             if (!isActive) {
                                                 // Switch to Key mode
-                                                toggle.classList.add('bg-primary');
                                                 toggleThumb.style.transform = 'translateX(60px)';
-                                                passwordIcon.classList.remove('text-primary');
-                                                passwordIcon.classList.add('text-white');
-                                                keyIcon.classList.remove('text-white');
-                                                keyIcon.classList.add('text-primary');
                                                 toggleLabel.textContent = 'Key';
                                                 localStorage.setItem('generation-mode-hidden', 'key');
                                             } else {
                                                 // Switch to Password mode
-                                                toggle.classList.remove('bg-primary');
                                                 toggleThumb.style.transform = 'translateX(0)';
-                                                passwordIcon.classList.add('text-primary');
-                                                passwordIcon.classList.remove('text-white');
-                                                keyIcon.classList.add('text-white');
-                                                keyIcon.classList.remove('text-primary');
                                                 toggleLabel.textContent = 'Password';
                                                 localStorage.setItem('generation-mode-hidden', 'password');
                                             }

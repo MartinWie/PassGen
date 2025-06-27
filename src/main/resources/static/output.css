@@ -62,7 +62,6 @@
     --color-blue-800: oklch(42.4% 0.199 265.638);
     --color-gray-200: oklch(92.8% 0.006 264.531);
     --color-black: #000;
-    --color-white: #fff;
     --spacing: 0.25rem;
     --container-md: 28rem;
     --container-3xl: 48rem;
@@ -2035,9 +2034,6 @@
   .bg-green-100 {
     background-color: var(--color-green-100);
   }
-  .bg-primary {
-    background-color: var(--color-primary);
-  }
   .bg-transparent {
     background-color: transparent;
   }
@@ -2125,6 +2121,9 @@
   .text-amber-800 {
     color: var(--color-amber-800);
   }
+  .text-base-content {
+    color: var(--color-base-content);
+  }
   .text-blue-800 {
     color: var(--color-blue-800);
   }
@@ -2133,9 +2132,6 @@
   }
   .text-primary {
     color: var(--color-primary);
-  }
-  .text-white {
-    color: var(--color-white);
   }
   .ordinal {
     --tw-ordinal: ordinal;
@@ -2182,9 +2178,9 @@
     --tw-duration: 300ms;
     transition-duration: 300ms;
   }
-  .focus-within\:border-primary {
+  .focus-within\:border-base-content {
     &:focus-within {
-      border-color: var(--color-primary);
+      border-color: var(--color-base-content);
     }
   }
   .focus-within\:ring-1 {
@@ -2193,9 +2189,9 @@
       box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
     }
   }
-  .focus-within\:ring-primary {
+  .focus-within\:ring-base-content {
     &:focus-within {
-      --tw-ring-color: var(--color-primary);
+      --tw-ring-color: var(--color-base-content);
     }
   }
   .hover\:text-amber-500 {
