@@ -351,7 +351,7 @@ fun getLandingPage(pageTitle: String): String {
                             div("flex-1 flex items-center justify-center text-base-content") {
                                 id = "password-icon"
                                 span {
-                                    classes = setOf("w-5 h-5 inline-flex items-center")
+                                    classes = setOf("w-6 h-6 inline-flex items-center")
                                     embedSvg("/static/svg/lock.svg")
                                 }
                             }
@@ -360,7 +360,7 @@ fun getLandingPage(pageTitle: String): String {
                             div("flex-1 flex items-center justify-center text-base-content") {
                                 id = "key-icon"
                                 span {
-                                    classes = setOf("w-5 h-5 inline-flex items-center")
+                                    classes = setOf("w-6 h-6 inline-flex items-center")
                                     embedSvg("/static/svg/key.svg")
                                 }
                             }
