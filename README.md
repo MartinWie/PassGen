@@ -98,6 +98,7 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 - Generate a link where user generate a private key and the creator gets the public link
 - add required footer stuff
 - host(passgen io/sh/...?)
+    - For docker image check out distroless vs coretto distroless looks promising for size
 - Add Keyboard navigation
 - Add feedback option/page
 - Move parts into lib
@@ -134,6 +135,7 @@ aenv -e Prod -s Passgen bash fullBuild.sh
     - Update README.MD
     - Add docs for API to page
 - SSH connection to get a password?(Good practice not really useful here)
+- Store selection state /reload it for crashes(always check for state file in current dir)
 
 https://p.7mw.de/
 
