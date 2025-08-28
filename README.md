@@ -79,10 +79,18 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 ## Todo's
 
 - Add option to generate Public/Private Keypair in browser client(some sort of toggle)
-    - Get logic for Key vs password sorted
-    - Figure out how to generate the pair on the client
-    - Text field for the public key use something like
-      this -> https://cruip.com/auto-growing-textarea-with-tailwind-css/
+    - Fix bug always dark mode on reload
+    - Fix bug for mobile UI the toggle inside of the heading
+    - Improve the UI stack the options more(sleeker design)
+    - Remove 3k RSA and add 8k
+    - Fix the git signing (see notes)
+    - Add third option("Share" Pk with details on the process) feature similar to password share where we can share a
+      link where the user can dowload a specific private key(
+      will be generated on click and afterward the link only shows the public key for the user(the private key is only
+      generated on the client(make sure the public key that is sent to the server is handled safely so a malicious
+      actor can not inject html or js there)))
+    - Add info with hover on the library that is used to generate the Keys
+    - Animation when switching between the password and key screens?
 - Fix bug: First loaded password is default and not the user config(potentially already rewrite to client side
   generation)
 - Checkout how to move password generation to client
@@ -95,12 +103,24 @@ aenv -e Prod -s Passgen bash fullBuild.sh
         - Change slider so live and not only release
 - Add go home button to expired shares page
 - Make contrast/shadows on light theme better
-- Generate a link where user generate a private key and the creator gets the public link
 - add required footer stuff
 - host(passgen io/sh/...?)
     - For docker image check out distroless vs coretto distroless looks promising for size
 - Add Keyboard navigation
+    - UI for this? mini icon with popup on click
+    - Mac vs Linux vs Win
+    - K vs P for main screen S for the share variant R for (re)gen
 - Add feedback option/page
+- Add posthog
+- Cookie banner?
+- Add workos for logins
+    - login functionality requires monthly fee(check how this works with payment provider)
+    - Remove bottom Github and donation link and add imp
+    - users can view/delete their own shares
+    - enterprise users can create subdomains like companyX.passgen....
+    - enterprise users can can invite other users to the subdomain(admin and users)
+        - Admins can view/delete all subdomain shares
+        - Normal users can just manage their own shares
 - Move parts into lib
     - HTMX code
     - HTML stuff
