@@ -50,6 +50,9 @@ fun TagConsumer<StringBuilder>.getPageHead(pageTitle: String = "") {
         // HTMX 2.0.4 minified
         script { src = "/static/htmx.min.js" }
 
+        // TweetNaCl for key generation
+        script { src = "/static/tweetnacl.min.js" }
+
         // Own JS functions
         script { src = "/static/app.js" }
 
