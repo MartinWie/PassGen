@@ -79,8 +79,6 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 ## Todo's
 
 - Add option to generate Public/Private Keypair in browser client(some sort of toggle)
-    - Fix bug always dark mode on reload
-    - Fix bug for mobile UI the toggle inside of the heading
     - Improve the UI stack the options more(sleeker design)
     - Remove 3k RSA and add 8k
     - Fix the git signing (see notes)
@@ -104,13 +102,13 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 - Add go home button to expired shares page
 - Make contrast/shadows on light theme better
 - add required footer stuff
+- security page in footer, private key on device generation + describe how password sharing is made save.
 - host(passgen io/sh/...?)
     - For docker image check out distroless vs coretto distroless looks promising for size
 - Add Keyboard navigation
     - UI for this? mini icon with popup on click
     - Mac vs Linux vs Win
     - K vs P for main screen S for the share variant R for (re)gen
-- Add feedback option/page
 - Add posthog
 - Cookie banner?
 - Add workos for logins
@@ -120,7 +118,12 @@ aenv -e Prod -s Passgen bash fullBuild.sh
     - enterprise users can create subdomains like companyX.passgen....
     - enterprise users can can invite other users to the subdomain(admin and users)
         - Admins can view/delete all subdomain shares
+        - Admins can change the icon and name of the page
         - Normal users can just manage their own shares
+- auto delete of shares(cleanup process 7days pro and business users can set any number up to a year or unlimited(job
+  that changes the status of a user also needs to cleanup))
+- Marketing: Checkout quota and Reddit for password sharing SFTP setup admin subreddit
+- Add feedback option/page(look into new project for that)
 - Move parts into lib
     - HTMX code
     - HTML stuff

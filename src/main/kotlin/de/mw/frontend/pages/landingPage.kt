@@ -5,7 +5,7 @@ import kotlinx.html.*
 
 fun getLandingPage(pageTitle: String): String {
     return getBasePage(pageTitle) {
-        div("flex items-center justify-center min-h-screen p-4 md:p-6") {
+        div("flex items-center justify-center min-h-screen p-4 md:p-6") { // removed mt-20 md:mt-24
             div("min-w-full sm:min-w-max md:min-w-3xl mx-auto") {
                 // Password generation section (wrapped for toggle visibility)
                 div {
@@ -326,7 +326,7 @@ fun getLandingPage(pageTitle: String): String {
                     }
                 }
                 // Draft Start
-                div("flex flex-col justify-center items-center gap-3 mt-3") {
+                div("flex flex-col justify-center items-center gap-3 mt-4") { // was mt-3 -> mt-4 a bit more space
                     // Hidden checkbox for form submission
                     input(type = InputType.checkBox) {
                         id = "generation-mode-hidden"
@@ -547,7 +547,8 @@ fun getBasePage(
 
             // Navbar with logo
             div {
-                classes = setOf("navbar bg-base-100 flex place-content-between fixed top-0")
+                classes =
+                    setOf("navbar bg-base-100 flex place-content-between fixed top-0 left-0 right-0 z-30") // ensure on top
                 div {
                     classes = setOf("flex justify-center items-center ml-3")
                     a(href = "/") {
@@ -570,14 +571,13 @@ fun getBasePage(
                         onEvent(
                             JsEvent.ON_CLICK,
                             """
+                                const setTheme = (t)=>{document.documentElement.setAttribute('data-theme', t);};
                                 if (this.checked) {
-                                    document.documentElement.setAttribute('data-theme', 'dark');
+                                    setTheme('dark');
                                     localStorage.setItem('theme', 'dark');
-                                    this.value = 'dark';
                                 } else {
-                                    document.documentElement.setAttribute('data-theme', 'light');
+                                    setTheme('light');
                                     localStorage.setItem('theme', 'light');
-                                    this.value = 'light';
                                 }
                             """.trimIndent()
                         )
@@ -586,14 +586,10 @@ fun getBasePage(
                             document.addEventListener('DOMContentLoaded', function() {
                                 const themeToggle = document.getElementById('them-switcher');
                                 const savedTheme = localStorage.getItem('theme');
-                        
-                                if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                                    document.documentElement.setAttribute('data-theme', 'dark');
-                                    themeToggle.checked = true;
-                                } else {
-                                    document.documentElement.setAttribute('data-theme', 'light');
-                                    themeToggle.checked = false;
-                                }
+                                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                                const activeTheme = savedTheme ? savedTheme : (prefersDark ? 'dark' : 'light');
+                                document.documentElement.setAttribute('data-theme', activeTheme);
+                                themeToggle.checked = activeTheme === 'dark';
                             });
                         """.trimIndent()
                         )
