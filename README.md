@@ -79,9 +79,8 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 ## Todo's
 
 - Add option to generate Public/Private Keypair in browser client(some sort of toggle)
+    - Fix bug toggle button moves out of sight when keys are generated and deform the UI
     - Improve the UI stack the options more(sleeker design)
-    - Remove 3k RSA and add 8k
-    - Fix the git signing (see notes)
     - Add third option("Share" Pk with details on the process) feature similar to password share where we can share a
       link where the user can dowload a specific private key(
       will be generated on click and afterward the link only shows the public key for the user(the private key is only
@@ -89,8 +88,6 @@ aenv -e Prod -s Passgen bash fullBuild.sh
       actor can not inject html or js there)))
     - Add info with hover on the library that is used to generate the Keys
     - Animation when switching between the password and key screens?
-- Fix bug: First loaded password is default and not the user config(potentially already rewrite to client side
-  generation)
 - Checkout how to move password generation to client
     - list of hidden tags and take form there?
     - Alpine.js
@@ -99,6 +96,9 @@ aenv -e Prod -s Passgen bash fullBuild.sh
         - hx-Ext json-enc
         - and from buttons and settings use local storage
         - Change slider so live and not only release
+- Fix bug: First loaded password is default and not the user config(potentially already rewrite to client side
+  generation)(if still relevant)
+- Do personal security audit of the key gen and check if messed up somewhere (make sure we are secure)
 - Add go home button to expired shares page
 - Make contrast/shadows on light theme better
 - add required footer stuff
