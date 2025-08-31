@@ -583,8 +583,6 @@ function attachKeyGenHandlers() {
     const genBtn = document.getElementById('generate-key-btn');
     if (!purposeSel || !algoSel || !idWrap || !genBtn) return;
     purposeSel.addEventListener('change', () => {
-        // Reset form on purpose switch
-        algoSel.value = 'ed25519';
         document.getElementById('key-identifier').value = '';
         document.getElementById('public-key-output').value = '';
         document.getElementById('private-key-output').value = '';
@@ -592,7 +590,13 @@ function attachKeyGenHandlers() {
         if (purposeSel.value === 'git') idWrap.classList.remove('hidden'); else idWrap.classList.add('hidden');
         updateInstructions(purposeSel.value, algoSel.value, '');
     });
-    algoSel.addEventListener('change', () => updateInstructions(purposeSel.value, algoSel.value, document.getElementById('key-identifier').value.trim()));
+    algoSel.addEventListener('change', () => {
+        // Reset key fields when algorithm changes
+        document.getElementById('public-key-output').value = '';
+        document.getElementById('private-key-output').value = '';
+        document.getElementById('key-error-alert').classList.add('hidden');
+        updateInstructions(purposeSel.value, algoSel.value, document.getElementById('key-identifier').value.trim());
+    });
     document.getElementById('key-identifier').addEventListener('input', () => updateInstructions(purposeSel.value, algoSel.value, document.getElementById('key-identifier').value.trim()));
     genBtn.addEventListener('click', generateKey);
 }
