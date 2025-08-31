@@ -569,7 +569,17 @@ function updateInstructions(purpose, algo, identifier) {
         el.innerHTML = `<p>1. Append Public Key to <code>~/.ssh/authorized_keys</code>.</p><p>2. Save Private Key as <code>${baseName}</code>; <code>chmod 600 ${baseName}</code>.</p><p>3. Use: <code>ssh -i ${baseName} user@host</code>.</p>`;
     } else { // git signing
         if (algo === 'ed25519') {
-            el.innerHTML = `<p>Git SSH signing (Ed25519 OpenSSH key):</p><ol class='list-decimal list-inside'><li>Save private key: <code>${baseName}</code></li><li>Public key: <code>${baseName}.pub</code> → add as Signing key.</li><li><code>git config --global gpg.format ssh</code></li><li><code>git config --global user.signingkey ${baseName}.pub</code> (or <code>${baseName}</code> to reference private).</li><li>(Optional) <code>git config --global commit.gpgsign true</code></li><li>(Optional local verify) <code>echo '${identifier || 'comment'} $(cat ${baseName}.pub)' >> ~/.ssh/allowed_signers</code>; <code>git config --global gpg.ssh.allowedSignersFile ~/.ssh/allowed_signers</code></li><li>Sign commits: <code>git commit -S -m "msg"</code></li></ol>`;
+            el.innerHTML = `
+                <p>Git SSH signing (Ed25519 OpenSSH key):</p>
+                <ol class="list-decimal list-inside">
+                    <li>Save private key: <code>${baseName}</code></li>
+                    <li>Public key: <code>${baseName}.pub</code> &rarr; add as Public key.</li>
+                    <li><code>git config --global gpg.format ssh</code></li>
+                    <li><code>git config --global user.signingkey ${baseName}</code></li>
+                    <li>(Optional) <code>git config --global commit.gpgsign true</code></li>
+                    <li>Sign commits: <code>git commit -S -m "msg"</code></li>
+                </ol>
+            `;
         } else {
             el.innerHTML = `<p>For Git SSH signing, Ed25519 is strongly recommended. Current algorithm <code>${algo}</code> is usable for SSH auth but not ideal for signing portability.</p>`;
         }
