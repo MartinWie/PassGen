@@ -79,8 +79,6 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 ## Todo's
 
 - Add option to generate Public/Private Keypair in browser client(some sort of toggle)
-    - Fix bug toggle button moves out of sight when keys are generated and deform the UI
-    - Improve the UI stack the options more(sleeker design)
     - Add third option("Share" Pk with details on the process) feature similar to password share where we can share a
       link where the user can dowload a specific private key(
       will be generated on click and afterward the link only shows the public key for the user(the private key is only

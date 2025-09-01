@@ -7,9 +7,11 @@ fun getLandingPage(pageTitle: String): String {
     return getBasePage(pageTitle) {
         div("flex items-center justify-center min-h-screen p-4 md:p-6 pt-24") {
             div("min-w-full sm:min-w-max md:min-w-3xl mx-auto") {
-                // Password generation section (wrapped for toggle visibility)
+                // Simplified (no animation wrapper) PASSWORD SECTION
                 div {
                     id = "password-section"
+                    classes = setOf("")
+                    // original password generator container
                     div("flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-3 border border-gray-200 rounded-xl p-2 md:p-3 focus-within:ring-1 focus-within:ring-base-content focus-within:border-base-content shadow-xs") {
                         textArea {
                             id = "password-input"
@@ -93,7 +95,7 @@ fun getLandingPage(pageTitle: String): String {
                                                 """
                                                 const languageSelect = document.getElementById('language-select');
                                                 const savedLanguage = localStorage.getItem('word-language');
-                                                
+                                                        
                                                 // Set language based on localStorage or default to ENG
                                                 if (savedLanguage) {
                                                     languageSelect.value = savedLanguage;
@@ -132,17 +134,17 @@ fun getLandingPage(pageTitle: String): String {
                                             onEvent(
                                                 JsEvent.ON_INPUT,
                                                 """
-                                                   document.getElementById('word-amount').textContent = this.value;
-                                                   document.getElementById('word-input').value = this.value;
-                                                   localStorage.setItem('word-amount', this.value);
-                                                """.trimIndent()
+                                                           document.getElementById('word-amount').textContent = this.value;
+                                                           document.getElementById('word-input').value = this.value;
+                                                           localStorage.setItem('word-amount', this.value);
+                                                        """.trimIndent()
                                             )
                                             addJs(
                                                 """
                                                 const wordAmountSlider = document.getElementById('word-amount-slider');
                                                 const wordAmountSpan = document.getElementById('word-amount');
                                                 const savedWordAmount = localStorage.getItem('word-amount');
-                                                
+                                                        
                                                 // Set language based on localStorage or default to ENG
                                                 if (savedWordAmount) {
                                                     wordAmountSlider.value = savedWordAmount;
@@ -176,7 +178,7 @@ fun getLandingPage(pageTitle: String): String {
                                                 document.addEventListener('DOMContentLoaded', function() {
                                                     const wordAmountSelect = document.getElementById('word-input');
                                                     const savedWordAmount = localStorage.getItem('word-amount');
-                                                    
+                                                            
                                                     // Set word amount based on localStorage or default to 4
                                                     if (savedWordAmount) {
                                                         wordAmountSelect.value = savedWordAmount;
@@ -206,16 +208,16 @@ fun getLandingPage(pageTitle: String): String {
                                             onEvent(
                                                 JsEvent.ON_INPUT,
                                                 """
-                                                    document.getElementById('regen-button').click();
-                                                    localStorage.setItem('word-separator', this.value);
-                                                """.trimIndent()
+                                                                document.getElementById('regen-button').click();
+                                                                localStorage.setItem('word-separator', this.value);
+                                                            """.trimIndent()
                                             )
                                             addJs(
                                                 """
                                                 document.addEventListener('DOMContentLoaded', function() {
                                                     const wordSeparator = document.getElementById('word-separator');
                                                     const savedSeparator = localStorage.getItem('word-separator');
-                                                    
+                                                            
                                                     // Set word amount based on localStorage or default to 4
                                                     if (savedSeparator) {
                                                         wordSeparator.value = savedSeparator;
@@ -233,7 +235,8 @@ fun getLandingPage(pageTitle: String): String {
                                     div {
                                         classes = setOf("form-control")
                                         label {
-                                            classes = setOf("label cursor-pointer flex justify-between gap-2 py-1")
+                                            classes =
+                                                setOf("label cursor-pointer flex justify-between gap-2 py-1")
                                             input {
                                                 type = InputType.checkBox
                                                 id = "include-numbers"
@@ -243,23 +246,23 @@ fun getLandingPage(pageTitle: String): String {
                                                 onEvent(
                                                     JsEvent.ON_CHANGE,
                                                     """
-                                                        document.getElementById('regen-button').click();
-                                                        if (this.checked) {                                                    
-                                                            localStorage.setItem('include-numbers', 'true');
-                                                        } else {
-                                                            localStorage.setItem('include-numbers', 'false');
-                                                        }
-                                                    """.trimIndent()
+                                                                    document.getElementById('regen-button').click();
+                                                                    if (this.checked) {                                                    
+                                                                        localStorage.setItem('include-numbers', 'true');
+                                                                    } else {
+                                                                        localStorage.setItem('include-numbers', 'false');
+                                                                    }
+                                                                """.trimIndent()
                                                 )
                                                 addJs(
                                                     """
-                                                        document.addEventListener('DOMContentLoaded', function() {
-                                                            const includeNumberCheckbox = document.getElementById('include-numbers');
-                                                            const includeNumbers = localStorage.getItem('include-numbers');
-                                                        
-                                                           includeNumberCheckbox.checked = includeNumbers === 'true';
-                                                        });
-                                                    """.trimIndent()
+                                                                    document.addEventListener('DOMContentLoaded', function() {
+                                                                        const includeNumberCheckbox = document.getElementById('include-numbers');
+                                                                        const includeNumbers = localStorage.getItem('include-numbers');
+                                                                    
+                                                                       includeNumberCheckbox.checked = includeNumbers === 'true';
+                                                                    });
+                                                                """.trimIndent()
                                                 )
                                             }
                                             span {
@@ -272,7 +275,8 @@ fun getLandingPage(pageTitle: String): String {
                                     div {
                                         classes = setOf("form-control")
                                         label {
-                                            classes = setOf("label cursor-pointer flex justify-between gap-2 py-1")
+                                            classes =
+                                                setOf("label cursor-pointer flex justify-between gap-2 py-1")
                                             input {
                                                 type = InputType.checkBox
                                                 id = "include-special"
@@ -282,23 +286,23 @@ fun getLandingPage(pageTitle: String): String {
                                                 onEvent(
                                                     JsEvent.ON_CHANGE,
                                                     """
-                                                        document.getElementById('regen-button').click();
-                                                        if (this.checked) {                                                    
-                                                            localStorage.setItem('include-special', 'true');
-                                                        } else {
-                                                            localStorage.setItem('include-special', 'false');
-                                                        }
-                                                    """.trimIndent()
+                                                                    document.getElementById('regen-button').click();
+                                                                    if (this.checked) {                                                    
+                                                                        localStorage.setItem('include-special', 'true');
+                                                                    } else {
+                                                                        localStorage.setItem('include-special', 'false');
+                                                                    }
+                                                                """.trimIndent()
                                                 )
                                                 addJs(
                                                     """
-                                                        document.addEventListener('DOMContentLoaded', function() {
-                                                            const includeNumberCheckbox = document.getElementById('include-special');
-                                                            const includeSpecial = localStorage.getItem('include-special');
-                                                        
-                                                            includeNumberCheckbox.checked = includeSpecial === 'true';
-                                                        });
-                                                    """.trimIndent()
+                                                                    document.addEventListener('DOMContentLoaded', function() {
+                                                                        const includeNumberCheckbox = document.getElementById('include-special');
+                                                                        const includeSpecial = localStorage.getItem('include-special');
+                                                                    
+                                                                        includeNumberCheckbox.checked = includeSpecial === 'true';
+                                                                    });
+                                                                """.trimIndent()
                                                 )
                                             }
                                             span {
@@ -326,7 +330,7 @@ fun getLandingPage(pageTitle: String): String {
                     }
                 }
                 // Draft Start
-                div("flex flex-col justify-center items-center gap-3 mt-4 sticky top-20 z-20") {
+                div("flex flex-col justify-center items-center gap-3 mt-4 md:sticky md:top-20 z-20") {
                     // Hidden checkbox for form submission
                     input(type = InputType.checkBox) {
                         id = "generation-mode-hidden"
@@ -346,7 +350,7 @@ fun getLandingPage(pageTitle: String): String {
                             id = "toggle-thumb"
                             classes =
                                 setOf("absolute w-16 h-9 bg-accent rounded-full transition-all duration-300 shadow-md z-10")
-                            style = "left: 2px; transition: all 0.3s;"
+                            style = "left:2px;"
                         }
 
                         // Toggle icons container
@@ -373,33 +377,29 @@ fun getLandingPage(pageTitle: String): String {
                         // Toggle behavior script
                         addJs(
                             """
-                                    document.addEventListener('DOMContentLoaded', function() {
-                                        const toggle = document.getElementById('custom-toggle');
-                                        const toggleInput = document.getElementById('generation-mode-hidden');
-                                        const toggleThumb = document.getElementById('toggle-thumb');
-                                        const passwordSection = document.getElementById('password-section');
-                                        const keygenSection = document.getElementById('keygen-section');
-                                        function applyMode(mode){
-                                            if(mode==='key') {passwordSection.classList.add('hidden'); keygenSection.classList.remove('hidden'); toggleThumb.style.transform = 'translateX(60px)';}
-                                            else {passwordSection.classList.remove('hidden'); keygenSection.classList.add('hidden'); toggleThumb.style.transform = 'translateX(0)';}
-                                        }
-                                        const savedMode = localStorage.getItem('generation-mode-hidden');
-                                        applyMode(savedMode === 'key' ? 'key' : 'password');
-                                        toggleInput.checked = savedMode === 'key';
-                                        toggle.addEventListener('click', function() {
-                                            const isActive = toggleInput.checked;
-                                            toggleInput.checked = !isActive;
-                                            if (!isActive) { localStorage.setItem('generation-mode-hidden', 'key'); applyMode('key'); }
-                                            else { localStorage.setItem('generation-mode-hidden', 'password'); applyMode('password'); }
-                                        });
-                                    });
-                                """
+                            document.addEventListener('DOMContentLoaded', function(){
+                              const toggle = document.getElementById('custom-toggle');
+                              const toggleInput = document.getElementById('generation-mode-hidden');
+                              const thumb = document.getElementById('toggle-thumb');
+                              const pwd = document.getElementById('password-section');
+                              const key = document.getElementById('keygen-section');
+                              function apply(mode){
+                                if(mode==='key'){ pwd.classList.add('hidden'); key.classList.remove('hidden'); thumb.style.transform='translateX(60px)'; }
+                                else { key.classList.add('hidden'); pwd.classList.remove('hidden'); thumb.style.transform='translateX(0)'; }
+                              }
+                              const stored = localStorage.getItem('generation-mode-hidden');
+                              const mode = stored==='key' ? 'key' : 'password';
+                              toggleInput.checked = mode==='key';
+                              apply(mode);
+                              toggle.addEventListener('click', ()=>{ const newMode = toggleInput.checked ? 'password':'key'; toggleInput.checked = newMode==='key'; localStorage.setItem('generation-mode-hidden', newMode); apply(newMode); });
+                            });
+                            """
                         )
                     }
                 }
                 // Draft end
 
-                // Key generation section (hidden by default until toggle switched)
+                // KEY GENERATION SECTION (simple hidden by default; removed animation classes)
                 div {
                     id = "keygen-section"
                     classes = setOf("hidden mt-4")
