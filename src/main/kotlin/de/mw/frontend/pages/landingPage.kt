@@ -24,12 +24,9 @@ fun getLandingPage(pageTitle: String): String {
 
                         div("flex justify-center md:justify-end gap-2 md:gap-3 mt-1 md:mt-0") {
                             // Copy button
-                            button(classes = "btn btn-ghost") {
+                            button(classes = "btn btn-ghost copy-btn") {
                                 title = "Copy to clipboard"
-                                onEvent(
-                                    JsEvent.ON_CLICK,
-                                    "copyToClipboard('password-input');"
-                                )
+                                attributes["data-copy-target"] = "password-input"
                                 embedSvg("/static/svg/copy.svg")
                             }
 
@@ -478,11 +475,14 @@ fun getLandingPage(pageTitle: String): String {
                                     attributes["readonly"] = "readonly"
                                 }
                                 div("flex gap-2") {
-                                    button(classes = "btn btn-ghost btn-xs") {
-                                        onClick = "copyToClipboard('public-key-output')"; +"Copy"
+                                    button(classes = "btn btn-ghost btn-xs copy-btn") {
+                                        // removed inline onClick
+                                        attributes["data-copy-target"] = "public-key-output"
+                                        +"Copy"
                                     }
-                                    button(classes = "btn btn-ghost btn-xs") {
-                                        onClick = "downloadKey('public-key-output')"; +"Download"
+                                    button(classes = "btn btn-ghost btn-xs download-btn") {
+                                        attributes["data-download-target"] = "public-key-output"
+                                        +"Download"
                                     }
                                 }
                             }
@@ -499,11 +499,13 @@ fun getLandingPage(pageTitle: String): String {
                                     attributes["readonly"] = "readonly"
                                 }
                                 div("flex gap-2") {
-                                    button(classes = "btn btn-ghost btn-xs") {
-                                        onClick = "copyToClipboard('private-key-output')"; +"Copy"
+                                    button(classes = "btn btn-ghost btn-xs copy-btn") {
+                                        attributes["data-copy-target"] = "private-key-output"
+                                        +"Copy"
                                     }
-                                    button(classes = "btn btn-ghost btn-xs") {
-                                        onClick = "downloadKey('private-key-output')"; +"Download"
+                                    button(classes = "btn btn-ghost btn-xs download-btn") {
+                                        attributes["data-download-target"] = "private-key-output"
+                                        +"Download"
                                     }
                                 }
                             }

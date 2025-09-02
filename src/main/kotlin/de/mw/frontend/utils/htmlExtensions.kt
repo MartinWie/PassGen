@@ -111,12 +111,20 @@ fun HTMLTag.onEvent(
  *     """)
  * }
  */
+object PageSecurityContext {
+    private val nonceThreadLocal = ThreadLocal<String?>()
+    var scriptNonce: String?
+        get() = nonceThreadLocal.get()
+        set(value) = nonceThreadLocal.set(value)
+}
+
 fun FlowOrMetaDataOrPhrasingContent.addJs(
     @Language("JavaScript")
     jsCode: String
 ) {
     this.apply {
         script(ScriptType.textJavaScript) {
+            PageSecurityContext.scriptNonce?.let { attributes["nonce"] = it }
             unsafe {
                 raw(
                     jsCode

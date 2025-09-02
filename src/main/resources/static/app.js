@@ -115,14 +115,22 @@ function downloadKey(elementId) {
     const purpose = document.getElementById('key-purpose')?.value || 'ssh';
     const isPublic = elementId.includes('public');
     const baseName = algoBaseName(algo, purpose);
-    const filename = isPublic ? baseName + '.pub' : baseName; // no extension for private
+    const filename = isPublic ? baseName + '.pub' : baseName; // keep no extension for private
     const text = document.getElementById(elementId).value;
-    const blob = new Blob([text + (text.endsWith('\n') ? '' : '\n')], {type: 'text/plain'});
+    const needsNewline = text.endsWith('\n') ? '' : '\n';
+    // Use octet-stream for private key without extension to avoid some browsers (Safari) appending .txt
+    const mime = isPublic ? 'text/plain' : 'application/octet-stream';
+    const blob = new Blob([text + needsNewline], {type: mime});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = filename;
+    a.style.display = 'none';
+    document.body.appendChild(a);
     a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+    setTimeout(() => {
+        URL.revokeObjectURL(a.href);
+        a.remove();
+    }, 1500);
 }
 
 // Base64 helpers
@@ -495,12 +503,18 @@ function buildOpenSSHPrivateKeyRSA(jwk, comment) {
 async function generateKey() {
     const algo = document.getElementById('key-algorithm').value;
     const purpose = document.getElementById('key-purpose').value;
-    const identifier = document.getElementById('key-identifier').value.trim();
+    const rawIdentifier = document.getElementById('key-identifier').value.trim();
+    const identifier = isValidIdentifier(rawIdentifier) ? rawIdentifier : '';
     const pubOut = document.getElementById('public-key-output');
     const privOut = document.getElementById('private-key-output');
     const errAlert = document.getElementById('key-error-alert');
     const errText = document.getElementById('key-error-text');
     const spinner = document.getElementById('keygen-loading');
+    if (rawIdentifier && !identifier) {
+        errText.textContent = 'Invalid identifier: only printable ASCII up to 256 chars.';
+        errAlert.classList.remove('hidden');
+        return;
+    }
     errAlert.classList.add('hidden');
     pubOut.value = '';
     privOut.value = '';
@@ -538,7 +552,7 @@ async function generateKey() {
         } else if (algo.startsWith('rsa-')) {
             const size = parseInt(algo.split('-')[1], 10);
             const keyPair = await crypto.subtle.generateKey({
-                name: 'RSA-PSS',
+                name: 'RSASSA-PKCS1-v1_5',
                 modulusLength: size,
                 publicExponent: new Uint8Array([1, 0, 1]),
                 hash: 'SHA-256'
@@ -561,27 +575,59 @@ async function generateKey() {
     }
 }
 
+function escapeHtml(str) {
+    return str.replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+}
+
+// Identifier validation: printable ASCII (space 0x20 to ~ 0x7E), length 0..256
+function isValidIdentifier(id) {
+    return id.length <= 256 && /^[ -~]*$/.test(id);
+}
+
 function updateInstructions(purpose, algo, identifier) {
     const el = document.getElementById('key-instructions');
     if (!el) return;
+    // Clear existing
+    while (el.firstChild) el.removeChild(el.firstChild);
     const baseName = algoBaseName(algo, purpose);
+    const safeAlgo = escapeHtml(algo);
+    const safeBase = escapeHtml(baseName);
+    const safeId = isValidIdentifier(identifier) ? identifier : '';
     if (purpose === 'ssh') {
-        el.innerHTML = `<p>1. Append Public Key to <code>~/.ssh/authorized_keys</code>.</p><p>2. Save Private Key as <code>${baseName}</code>; <code>chmod 600 ${baseName}</code>.</p><p>3. Use: <code>ssh -i ${baseName} user@host</code>.</p>`;
-    } else { // git signing
+        const p1 = document.createElement('p');
+        p1.textContent = '1. Append Public Key to ~/.ssh/authorized_keys.';
+        el.appendChild(p1);
+        const p2 = document.createElement('p');
+        p2.textContent = `2. Save Private Key as ${safeBase}; chmod 600 ${safeBase}.`;
+        el.appendChild(p2);
+        const p3 = document.createElement('p');
+        p3.textContent = `3. Use: ssh -i ${safeBase} user@host.`;
+        el.appendChild(p3);
+    } else {
         if (algo === 'ed25519') {
-            el.innerHTML = `
-                <p>Git SSH signing (Ed25519 OpenSSH key):</p>
-                <ol class="list-decimal list-inside">
-                    <li>Save private key: <code>${baseName}</code></li>
-                    <li>Public key: <code>${baseName}.pub</code> &rarr; add as Public key.</li>
-                    <li><code>git config --global gpg.format ssh</code></li>
-                    <li><code>git config --global user.signingkey ${baseName}</code></li>
-                    <li>(Optional) <code>git config --global commit.gpgsign true</code></li>
-                    <li>Sign commits: <code>git commit -S -m "msg"</code></li>
-                </ol>
-            `;
+            const intro = document.createElement('p');
+            intro.textContent = 'Git SSH signing (Ed25519 OpenSSH key):';
+            el.appendChild(intro);
+            const ol = document.createElement('ol');
+            ol.className = 'list-decimal list-inside';
+            const steps = [
+                `Save private key: ${safeBase}`,
+                `Public key: ${safeBase}.pub → add as Public key.`,
+                'git config --global gpg.format ssh',
+                `git config --global user.signingkey ${safeBase}`,
+                '(Optional) git config --global commit.gpgsign true',
+                'Sign commits: git commit -S -m "msg"'
+            ];
+            steps.forEach(t => {
+                const li = document.createElement('li');
+                li.textContent = t;
+                ol.appendChild(li);
+            });
+            el.appendChild(ol);
         } else {
-            el.innerHTML = `<p>For Git SSH signing, Ed25519 is strongly recommended. Current algorithm <code>${algo}</code> is usable for SSH auth but not ideal for signing portability.</p>`;
+            const p = document.createElement('p');
+            p.innerHTML = `For Git SSH signing, Ed25519 is strongly recommended. Current algorithm <code>${safeAlgo}</code> is usable for SSH auth but not ideal for signing portability.`;
+            el.appendChild(p);
         }
     }
 }
@@ -607,8 +653,31 @@ function attachKeyGenHandlers() {
         document.getElementById('key-error-alert').classList.add('hidden');
         updateInstructions(purposeSel.value, algoSel.value, document.getElementById('key-identifier').value.trim());
     });
-    document.getElementById('key-identifier').addEventListener('input', () => updateInstructions(purposeSel.value, algoSel.value, document.getElementById('key-identifier').value.trim()));
+    const idInput = document.getElementById('key-identifier');
+    idInput.addEventListener('input', () => {
+        const v = idInput.value.trim();
+        if (v && !isValidIdentifier(v)) {
+            idInput.classList.add('input-error');
+        } else {
+            idInput.classList.remove('input-error');
+            updateInstructions(purposeSel.value, algoSel.value, v);
+        }
+    });
     genBtn.addEventListener('click', generateKey);
 }
+
+// Delegated handlers for copy/download buttons (CSP-safe)
+document.addEventListener('click', (ev) => {
+    const copyEl = ev.target.closest && ev.target.closest('.copy-btn');
+    if (copyEl) {
+        const targetId = copyEl.getAttribute('data-copy-target');
+        if (targetId) copyToClipboard(targetId);
+    }
+    const dlEl = ev.target.closest && ev.target.closest('.download-btn');
+    if (dlEl) {
+        const targetId = dlEl.getAttribute('data-download-target');
+        if (targetId) downloadKey(targetId);
+    }
+});
 
 document.addEventListener('DOMContentLoaded', attachKeyGenHandlers);
