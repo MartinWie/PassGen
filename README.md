@@ -78,8 +78,6 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 
 ## Todo's
 
-- Fix theme toggle
-- Fix auto build/reloader
 - Add option to generate Public/Private Keypair in browser client(some sort of toggle)
     - Add third option("Share" Pk with details on the process) feature similar to password share where we can share a
       link where the user can dowload a specific private key(

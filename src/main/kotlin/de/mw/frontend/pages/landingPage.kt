@@ -560,33 +560,34 @@ fun getBasePage(
                 }
 
                 label {
+                    id = "theme-toggle-label"
                     classes = setOf("swap swap-rotate mr-3")
                     input {
-                        id = "them-switcher"
+                        id = "theme-switcher"
                         type = InputType.checkBox
-                        classes = setOf("theme-controller")
-                        onEvent(
-                            JsEvent.ON_CLICK,
-                            """
-                                const setTheme = (t)=>{document.documentElement.setAttribute('data-theme', t);};
-                                if (this.checked) {
-                                    setTheme('dark');
-                                    localStorage.setItem('theme', 'dark');
-                                } else {
-                                    setTheme('light');
-                                    localStorage.setItem('theme', 'light');
-                                }
-                            """.trimIndent()
-                        )
                         addJs(
                             """
                             document.addEventListener('DOMContentLoaded', function() {
-                                const themeToggle = document.getElementById('them-switcher');
+                                const themeToggle = document.getElementById('theme-switcher');
+                                const themeLabel = document.getElementById('theme-toggle-label');
                                 const savedTheme = localStorage.getItem('theme');
                                 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
                                 const activeTheme = savedTheme ? savedTheme : (prefersDark ? 'dark' : 'light');
+                                console.log('Setting initial theme:', activeTheme);
                                 document.documentElement.setAttribute('data-theme', activeTheme);
                                 themeToggle.checked = activeTheme === 'dark';
+                                
+                                // Add click event listener to the label
+                                themeLabel.addEventListener('click', function() {
+                                    // The checkbox state will be toggled after this click, so we read it in a setTimeout
+                                    setTimeout(function() {
+                                        const theme = themeToggle.checked ? 'dark' : 'light';
+                                        console.log('Theme toggle clicked, setting theme to:', theme);
+                                        document.documentElement.setAttribute('data-theme', theme);
+                                        localStorage.setItem('theme', theme);
+                                        console.log('Current data-theme attribute:', document.documentElement.getAttribute('data-theme'));
+                                    }, 0);
+                                });
                             });
                         """.trimIndent()
                         )
