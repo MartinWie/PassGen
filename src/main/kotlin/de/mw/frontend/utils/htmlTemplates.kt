@@ -14,6 +14,7 @@ fun TagConsumer<StringBuilder>.getPageHead(pageTitle: String = "") {
 
         // Set theme immediately before page renders to prevent flash
         script {
+            PageSecurityContext.scriptNonce?.let { attributes["nonce"] = it }
             unsafe {
                 raw(
                     """

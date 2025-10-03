@@ -572,8 +572,7 @@ fun getBasePage(
                                 const themeLabel = document.getElementById('theme-toggle-label');
                                 const savedTheme = localStorage.getItem('theme');
                                 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                                const activeTheme = savedTheme ? savedTheme : (prefersDark ? 'dark' : 'light');
-                                console.log('Setting initial theme:', activeTheme);
+                                const activeTheme = savedTheme ? savedTheme : (prefersDark ? 'dark' : 'light');                            
                                 document.documentElement.setAttribute('data-theme', activeTheme);
                                 themeToggle.checked = activeTheme === 'dark';
                                 

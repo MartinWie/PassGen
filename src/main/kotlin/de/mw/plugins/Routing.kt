@@ -28,7 +28,7 @@ fun Application.configureRouting() {
             try {
                 call.response.headers.append(
                     "Content-Security-Policy",
-                    "default-src 'self'; script-src 'self' 'nonce-$nonce'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self' data:"
+                    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:3000; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self' http://localhost:3000 ws://localhost:3000 wss://localhost:3000;"
                 )
                 call.respondText(getLandingPage("PassGen"), ContentType.Text.Html)
             } finally {
