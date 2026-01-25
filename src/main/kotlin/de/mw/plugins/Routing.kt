@@ -1,8 +1,8 @@
 package de.mw.plugins
 
 import de.mw.frontend.pages.getLandingPage
-import de.mw.frontend.utils.PageSecurityContext
 import de.mw.plugins.routes.passwordRouting
+import io.github.martinwie.htmx.PageSecurityContext
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
@@ -28,7 +28,7 @@ fun Application.configureRouting() {
             try {
                 call.response.headers.append(
                     "Content-Security-Policy",
-                    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:3000; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self' http://localhost:3000 ws://localhost:3000 wss://localhost:3000;"
+                    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:3000; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self' http://localhost:3000 ws://localhost:3000 wss://localhost:3000;",
                 )
                 call.respondText(getLandingPage("PassGen"), ContentType.Text.Html)
             } finally {

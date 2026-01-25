@@ -1,10 +1,12 @@
 package de.mw.frontend.pages
 
-import de.mw.frontend.utils.*
+import de.mw.frontend.utils.getFooter
+import de.mw.frontend.utils.getPageHead
+import io.github.martinwie.htmx.*
 import kotlinx.html.*
 
-fun getLandingPage(pageTitle: String): String {
-    return getBasePage(pageTitle) {
+fun getLandingPage(pageTitle: String): String =
+    getBasePage(pageTitle) {
         div("flex items-center justify-center min-h-screen p-4 md:p-6 pt-24") {
             div("min-w-full sm:min-w-max md:min-w-3xl mx-auto") {
                 // Simplified (no animation wrapper) PASSWORD SECTION
@@ -12,7 +14,9 @@ fun getLandingPage(pageTitle: String): String {
                     id = "password-section"
                     classes = setOf("")
                     // original password generator container
-                    div("flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-3 border border-gray-200 rounded-xl p-2 md:p-3 focus-within:ring-1 focus-within:ring-base-content focus-within:border-base-content shadow-xs") {
+                    div(
+                        "flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-3 border border-gray-200 rounded-xl p-2 md:p-3 focus-within:ring-1 focus-within:ring-base-content focus-within:border-base-content shadow-xs",
+                    ) {
                         textArea {
                             id = "password-input"
                             classes =
@@ -36,11 +40,13 @@ fun getLandingPage(pageTitle: String): String {
                                 hxGet("/word")
                                 hxTrigger("click")
                                 hxApplyDuringRequest("animate-spin-reverse")
-                                //hxDisabled("#regen-button")
+                                // hxDisabled("#regen-button")
                                 hxSync("this", SyncModifier.REPLACE)
                                 hxTarget("#password-input")
                                 hxSwap(HxSwapOption.OUTER_HTML)
-                                hxInclude("[name='language-select'], [name='word-amount-slider'], [name='include-special'], [name='include-numbers'], [name='separator']")
+                                hxInclude(
+                                    "[name='language-select'], [name='word-amount-slider'], [name='include-special'], [name='include-numbers'], [name='separator']",
+                                )
                                 title = "Generate"
                                 embedSvg("/static/svg/regen.svg")
                             }
@@ -76,9 +82,9 @@ fun getLandingPage(pageTitle: String): String {
                                             onEvent(
                                                 JsEvent.ON_CHANGE,
                                                 """
-                                                            document.getElementById('regen-button').click();
-                                                            localStorage.setItem('word-language', this.options[this.selectedIndex].value);
-                                                        """.trimIndent()
+                                                document.getElementById('regen-button').click();
+                                                localStorage.setItem('word-language', this.options[this.selectedIndex].value);
+                                                """.trimIndent(),
                                             )
                                             option {
                                                 value = "ENG"
@@ -100,7 +106,7 @@ fun getLandingPage(pageTitle: String): String {
                                                     languageSelect.value = 'ENG';
                                                     localStorage.setItem('word-language', 'ENG');
                                                 }
-                                            """.trimIndent()
+                                                """.trimIndent(),
                                             )
                                         }
                                     }
@@ -126,15 +132,15 @@ fun getLandingPage(pageTitle: String): String {
                                             classes = setOf("range mb-3")
                                             onEvent(
                                                 JsEvent.ON_CHANGE,
-                                                "document.getElementById('regen-button').click();"
+                                                "document.getElementById('regen-button').click();",
                                             )
                                             onEvent(
                                                 JsEvent.ON_INPUT,
                                                 """
-                                                           document.getElementById('word-amount').textContent = this.value;
-                                                           document.getElementById('word-input').value = this.value;
-                                                           localStorage.setItem('word-amount', this.value);
-                                                        """.trimIndent()
+                                                document.getElementById('word-amount').textContent = this.value;
+                                                document.getElementById('word-input').value = this.value;
+                                                localStorage.setItem('word-amount', this.value);
+                                                """.trimIndent(),
                                             )
                                             addJs(
                                                 """
@@ -151,9 +157,8 @@ fun getLandingPage(pageTitle: String): String {
                                                     wordAmountSpan.textContent = '4';
                                                     localStorage.setItem('word-amount', '4');
                                                 }
-                                            """.trimIndent()
+                                                """.trimIndent(),
                                             )
-
                                         }
                                         input(InputType.number) {
                                             min = "1"
@@ -168,7 +173,7 @@ fun getLandingPage(pageTitle: String): String {
                                                 document.getElementById('word-amount-slider').value = this.value;
                                                 document.getElementById('regen-button').click();
                                                 localStorage.setItem('word-amount', this.value.toString());
-                                                """.trimIndent()
+                                                """.trimIndent(),
                                             )
                                             addJs(
                                                 """
@@ -184,7 +189,7 @@ fun getLandingPage(pageTitle: String): String {
                                                         localStorage.setItem('word-amount', '4');
                                                     }
                                                 });
-                                            """.trimIndent()
+                                                """.trimIndent(),
                                             )
                                         }
                                     }
@@ -205,9 +210,9 @@ fun getLandingPage(pageTitle: String): String {
                                             onEvent(
                                                 JsEvent.ON_INPUT,
                                                 """
-                                                                document.getElementById('regen-button').click();
-                                                                localStorage.setItem('word-separator', this.value);
-                                                            """.trimIndent()
+                                                document.getElementById('regen-button').click();
+                                                localStorage.setItem('word-separator', this.value);
+                                                """.trimIndent(),
                                             )
                                             addJs(
                                                 """
@@ -223,7 +228,7 @@ fun getLandingPage(pageTitle: String): String {
                                                         wordSeparator.value = '-';
                                                     }
                                                 });
-                                            """.trimIndent()
+                                                """.trimIndent(),
                                             )
                                         }
                                     }
@@ -243,23 +248,23 @@ fun getLandingPage(pageTitle: String): String {
                                                 onEvent(
                                                     JsEvent.ON_CHANGE,
                                                     """
-                                                                    document.getElementById('regen-button').click();
-                                                                    if (this.checked) {                                                    
-                                                                        localStorage.setItem('include-numbers', 'true');
-                                                                    } else {
-                                                                        localStorage.setItem('include-numbers', 'false');
-                                                                    }
-                                                                """.trimIndent()
+                                                    document.getElementById('regen-button').click();
+                                                    if (this.checked) {                                                    
+                                                        localStorage.setItem('include-numbers', 'true');
+                                                    } else {
+                                                        localStorage.setItem('include-numbers', 'false');
+                                                    }
+                                                    """.trimIndent(),
                                                 )
                                                 addJs(
                                                     """
-                                                                    document.addEventListener('DOMContentLoaded', function() {
-                                                                        const includeNumberCheckbox = document.getElementById('include-numbers');
-                                                                        const includeNumbers = localStorage.getItem('include-numbers');
-                                                                    
-                                                                       includeNumberCheckbox.checked = includeNumbers === 'true';
-                                                                    });
-                                                                """.trimIndent()
+                                                    document.addEventListener('DOMContentLoaded', function() {
+                                                        const includeNumberCheckbox = document.getElementById('include-numbers');
+                                                        const includeNumbers = localStorage.getItem('include-numbers');
+                                                    
+                                                       includeNumberCheckbox.checked = includeNumbers === 'true';
+                                                    });
+                                                    """.trimIndent(),
                                                 )
                                             }
                                             span {
@@ -283,23 +288,23 @@ fun getLandingPage(pageTitle: String): String {
                                                 onEvent(
                                                     JsEvent.ON_CHANGE,
                                                     """
-                                                                    document.getElementById('regen-button').click();
-                                                                    if (this.checked) {                                                    
-                                                                        localStorage.setItem('include-special', 'true');
-                                                                    } else {
-                                                                        localStorage.setItem('include-special', 'false');
-                                                                    }
-                                                                """.trimIndent()
+                                                    document.getElementById('regen-button').click();
+                                                    if (this.checked) {                                                    
+                                                        localStorage.setItem('include-special', 'true');
+                                                    } else {
+                                                        localStorage.setItem('include-special', 'false');
+                                                    }
+                                                    """.trimIndent(),
                                                 )
                                                 addJs(
                                                     """
-                                                                    document.addEventListener('DOMContentLoaded', function() {
-                                                                        const includeNumberCheckbox = document.getElementById('include-special');
-                                                                        const includeSpecial = localStorage.getItem('include-special');
-                                                                    
-                                                                        includeNumberCheckbox.checked = includeSpecial === 'true';
-                                                                    });
-                                                                """.trimIndent()
+                                                    document.addEventListener('DOMContentLoaded', function() {
+                                                        const includeNumberCheckbox = document.getElementById('include-special');
+                                                        const includeSpecial = localStorage.getItem('include-special');
+                                                    
+                                                        includeNumberCheckbox.checked = includeSpecial === 'true';
+                                                    });
+                                                    """.trimIndent(),
                                                 )
                                             }
                                             span {
@@ -339,7 +344,9 @@ fun getLandingPage(pageTitle: String): String {
                     div {
                         id = "custom-toggle"
                         classes =
-                            setOf("relative w-32 h-10 bg-base-300 rounded-full cursor-pointer transition-all duration-300 flex items-center p-0.5")
+                            setOf(
+                                "relative w-32 h-10 bg-base-300 rounded-full cursor-pointer transition-all duration-300 flex items-center p-0.5",
+                            )
                         style = "transition: all 0.3s;"
 
                         // Toggle thumb
@@ -390,7 +397,7 @@ fun getLandingPage(pageTitle: String): String {
                               apply(mode);
                               toggle.addEventListener('click', ()=>{ const newMode = toggleInput.checked ? 'password':'key'; toggleInput.checked = newMode==='key'; localStorage.setItem('generation-mode-hidden', newMode); apply(newMode); });
                             });
-                            """
+                            """,
                         )
                     }
                 }
@@ -400,72 +407,118 @@ fun getLandingPage(pageTitle: String): String {
                 div {
                     id = "keygen-section"
                     classes = setOf("hidden mt-4")
-                    div("flex flex-col gap-4 border border-gray-200 rounded-xl p-3 focus-within:ring-1 focus-within:ring-base-content focus-within:border-base-content shadow-xs bg-base-100") {
+                    div(
+                        "flex flex-col gap-4 border border-gray-200 rounded-xl p-3 focus-within:ring-1 focus-within:ring-base-content focus-within:border-base-content shadow-xs bg-base-100",
+                    ) {
                         div("flex flex-col md:flex-row md:items-end gap-3 flex-wrap") {
                             div("form-control w-full md:w-48") {
                                 label {
-                                    classes = setOf("label py-0 pb-1"); span {
-                                    classes = setOf("label-text text-xs uppercase tracking-wide"); +"Purpose"
-                                }
+                                    classes = setOf("label py-0 pb-1")
+                                    span {
+                                        classes = setOf("label-text text-xs uppercase tracking-wide")
+                                        +"Purpose"
+                                    }
                                 }
                                 select {
-                                    id = "key-purpose"; classes = setOf("select select-bordered select-sm w-full")
-                                    option { value = "ssh"; +"SSH Authentication" }
-                                    option { value = "git"; +"Git Signing" }
+                                    id = "key-purpose"
+                                    classes = setOf("select select-bordered select-sm w-full")
+                                    option {
+                                        value = "ssh"
+                                        +"SSH Authentication"
+                                    }
+                                    option {
+                                        value = "git"
+                                        +"Git Signing"
+                                    }
                                 }
                             }
                             div("form-control w-full md:w-56") {
                                 label {
-                                    classes = setOf("label py-0 pb-1"); span {
-                                    classes = setOf("label-text text-xs uppercase tracking-wide"); +"Algorithm"
-                                }
+                                    classes = setOf("label py-0 pb-1")
+                                    span {
+                                        classes = setOf("label-text text-xs uppercase tracking-wide")
+                                        +"Algorithm"
+                                    }
                                 }
                                 select {
-                                    id = "key-algorithm"; classes = setOf("select select-bordered select-sm w-full")
-                                    option { value = "ed25519"; +"Ed25519" }
-                                    option { value = "ecdsa-p256"; +"ECDSA P-256" }
-                                    option { value = "ecdsa-p384"; +"ECDSA P-384" }
-                                    option { value = "ecdsa-p521"; +"ECDSA P-521" }
-                                    option { value = "rsa-2048"; +"RSA 2048" }
-                                    option { value = "rsa-4096"; +"RSA 4096" }
-                                    option { value = "rsa-8192"; +"RSA 8192" }
+                                    id = "key-algorithm"
+                                    classes = setOf("select select-bordered select-sm w-full")
+                                    option {
+                                        value = "ed25519"
+                                        +"Ed25519"
+                                    }
+                                    option {
+                                        value = "ecdsa-p256"
+                                        +"ECDSA P-256"
+                                    }
+                                    option {
+                                        value = "ecdsa-p384"
+                                        +"ECDSA P-384"
+                                    }
+                                    option {
+                                        value = "ecdsa-p521"
+                                        +"ECDSA P-521"
+                                    }
+                                    option {
+                                        value = "rsa-2048"
+                                        +"RSA 2048"
+                                    }
+                                    option {
+                                        value = "rsa-4096"
+                                        +"RSA 4096"
+                                    }
+                                    option {
+                                        value = "rsa-8192"
+                                        +"RSA 8192"
+                                    }
                                 }
                             }
                             div("form-control hidden md:w-64") {
                                 id = "identifier-wrapper"
                                 label {
-                                    classes = setOf("label py-0 pb-1"); span {
-                                    classes = setOf("label-text text-xs uppercase tracking-wide"); +"Identifier"
-                                }
+                                    classes = setOf("label py-0 pb-1")
+                                    span {
+                                        classes = setOf("label-text text-xs uppercase tracking-wide")
+                                        +"Identifier"
+                                    }
                                 }
                                 input(InputType.text) {
-                                    id = "key-identifier"; placeholder = "email/label"; classes =
-                                    setOf("input input-bordered input-sm w-full")
+                                    id = "key-identifier"
+                                    placeholder = "email/label"
+                                    classes =
+                                        setOf("input input-bordered input-sm w-full")
                                 }
                             }
                             div("flex items-end") {
                                 button(classes = "btn gap-2 btn-sm md:btn-md") {
-                                    id = "generate-key-btn"; title =
-                                    "Generate Key"; +"Generate Key"; embedSvg("/static/svg/regen.svg")
+                                    id = "generate-key-btn"
+                                    title =
+                                        "Generate Key"
+                                    +"Generate Key"
+                                    embedSvg("/static/svg/regen.svg")
                                 }
                                 span {
-                                    id = "keygen-loading"; classes =
-                                    setOf("hidden loading loading-spinner loading-sm ml-3")
+                                    id = "keygen-loading"
+                                    classes =
+                                        setOf("hidden loading loading-spinner loading-sm ml-3")
                                 }
                             }
                         }
                         // Error alert
                         div("alert alert-error py-2 min-h-0 hidden") {
-                            id = "key-error-alert"; span {
-                            id = "key-error-text"; classes = setOf("text-sm")
-                        }
+                            id = "key-error-alert"
+                            span {
+                                id = "key-error-text"
+                                classes = setOf("text-sm")
+                            }
                         }
                         // Outputs
                         div("grid grid-cols-1 md:grid-cols-2 gap-4") {
                             div("flex flex-col gap-1") {
                                 div("flex items-center justify-between") {
                                     span {
-                                        classes = setOf("text-xs font-semibold uppercase tracking-wide"); +"Public Key"
+                                        classes = setOf("text-xs font-semibold uppercase tracking-wide")
+                                        +"Public Key"
                                     }
                                 }
                                 textArea {
@@ -489,7 +542,8 @@ fun getLandingPage(pageTitle: String): String {
                             div("flex flex-col gap-1") {
                                 div("flex items-center justify-between") {
                                     span {
-                                        classes = setOf("text-xs font-semibold uppercase tracking-wide"); +"Private Key"
+                                        classes = setOf("text-xs font-semibold uppercase tracking-wide")
+                                        +"Private Key"
                                     }
                                 }
                                 textArea {
@@ -512,7 +566,8 @@ fun getLandingPage(pageTitle: String): String {
                         }
                         div("alert alert-warning py-2 min-h-0") {
                             span {
-                                classes = setOf("text-xs"); +"Keep your private key secret. Never share or commit it."
+                                classes = setOf("text-xs")
+                                +"Keep your private key secret. Never share or commit it."
                             }
                         }
                         div("rounded-lg bg-base-200/50 p-3 space-y-2 text-xs font-normal max-h-48 overflow-auto") {
@@ -528,97 +583,97 @@ fun getLandingPage(pageTitle: String): String {
             }
         }
     }
-}
 
 fun getBasePage(
     pageTitle: String,
-    bodyTags: TagConsumer<StringBuilder>.() -> Unit
-): String {
-    return "<!DOCTYPE html>" + buildHTMLString {
-        getPageHead(pageTitle)
+    bodyTags: TagConsumer<StringBuilder>.() -> Unit,
+): String =
+    "<!DOCTYPE html>" +
+        buildHTMLString {
+            getPageHead(pageTitle)
 
-        body {
-            classes = setOf(
-                "min-h-screen flex flex-col"
-            )
-
-            // Navbar with logo
-            div {
+            body {
                 classes =
-                    setOf("navbar bg-base-100 flex place-content-between fixed top-0 left-0 right-0 z-30") // ensure on top
+                    setOf(
+                        "min-h-screen flex flex-col",
+                    )
+
+                // Navbar with logo
                 div {
-                    classes = setOf("flex justify-center items-center ml-3")
-                    a(href = "/") {
-                        img(src = "/static/apple-touch-icon.png", alt = "PassGen Logo") {
-                            classes = setOf("h-12 w-12 rounded-xl")
+                    classes =
+                        setOf("navbar bg-base-100 flex place-content-between fixed top-0 left-0 right-0 z-30") // ensure on top
+                    div {
+                        classes = setOf("flex justify-center items-center ml-3")
+                        a(href = "/") {
+                            img(src = "/static/apple-touch-icon.png", alt = "PassGen Logo") {
+                                classes = setOf("h-12 w-12 rounded-xl")
+                            }
+                        }
+                        a(href = "/") {
+                            classes = setOf("btn btn-ghost text-xl")
+                            +"PassGen"
                         }
                     }
-                    a(href = "/") {
-                        classes = setOf("btn btn-ghost text-xl")
-                        +"PassGen"
-                    }
-                }
 
-                label {
-                    id = "theme-toggle-label"
-                    classes = setOf("swap swap-rotate mr-3")
-                    input {
-                        id = "theme-switcher"
-                        type = InputType.checkBox
-                        addJs(
-                            """
-                            document.addEventListener('DOMContentLoaded', function() {
-                                const themeToggle = document.getElementById('theme-switcher');
-                                const themeLabel = document.getElementById('theme-toggle-label');
-                                const savedTheme = localStorage.getItem('theme');
-                                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                                const activeTheme = savedTheme ? savedTheme : (prefersDark ? 'dark' : 'light');                            
-                                document.documentElement.setAttribute('data-theme', activeTheme);
-                                themeToggle.checked = activeTheme === 'dark';
-                                
-                                // Add click event listener to the label
-                                themeLabel.addEventListener('click', function() {
-                                    // The checkbox state will be toggled after this click, so we read it in a setTimeout
-                                    setTimeout(function() {
-                                        const theme = themeToggle.checked ? 'dark' : 'light';
-                                        console.log('Theme toggle clicked, setting theme to:', theme);
-                                        document.documentElement.setAttribute('data-theme', theme);
-                                        localStorage.setItem('theme', theme);
-                                        console.log('Current data-theme attribute:', document.documentElement.getAttribute('data-theme'));
-                                    }, 0);
+                    label {
+                        id = "theme-toggle-label"
+                        classes = setOf("swap swap-rotate mr-3")
+                        input {
+                            id = "theme-switcher"
+                            type = InputType.checkBox
+                            addJs(
+                                """
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    const themeToggle = document.getElementById('theme-switcher');
+                                    const themeLabel = document.getElementById('theme-toggle-label');
+                                    const savedTheme = localStorage.getItem('theme');
+                                    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                                    const activeTheme = savedTheme ? savedTheme : (prefersDark ? 'dark' : 'light');                            
+                                    document.documentElement.setAttribute('data-theme', activeTheme);
+                                    themeToggle.checked = activeTheme === 'dark';
+                                    
+                                    // Add click event listener to the label
+                                    themeLabel.addEventListener('click', function() {
+                                        // The checkbox state will be toggled after this click, so we read it in a setTimeout
+                                        setTimeout(function() {
+                                            const theme = themeToggle.checked ? 'dark' : 'light';
+                                            console.log('Theme toggle clicked, setting theme to:', theme);
+                                            document.documentElement.setAttribute('data-theme', theme);
+                                            localStorage.setItem('theme', theme);
+                                            console.log('Current data-theme attribute:', document.documentElement.getAttribute('data-theme'));
+                                        }, 0);
+                                    });
                                 });
-                            });
-                        """.trimIndent()
-                        )
-                    }
-                    embedSvg("/static/svg/moon.svg")
+                                """.trimIndent(),
+                            )
+                        }
+                        embedSvg("/static/svg/moon.svg")
 
-                    embedSvg("/static/svg/sun.svg")
-                }
-            }
-
-            // Copy Success Tooltip
-            div("toast toast-top toast-center") {
-                div("alert alert-success animate-bounce fade hidden") {
-                    id = "copy-tooltip"
-                    span {
-                        +"Copy successful!"
+                        embedSvg("/static/svg/sun.svg")
                     }
                 }
-                div("alert alert-warning animate-bounce fade hidden") {
-                    id = "copy-tooltip-failed"
-                    span {
-                        +"Copy failed :("
+
+                // Copy Success Tooltip
+                div("toast toast-top toast-center") {
+                    div("alert alert-success animate-bounce fade hidden") {
+                        id = "copy-tooltip"
+                        span {
+                            +"Copy successful!"
+                        }
+                    }
+                    div("alert alert-warning animate-bounce fade hidden") {
+                        id = "copy-tooltip-failed"
+                        span {
+                            +"Copy failed :("
+                        }
                     }
                 }
-            }
 
-            div {
-                classes = setOf("grow")
-                bodyTags()
-            }
+                div {
+                    classes = setOf("grow")
+                    bodyTags()
+                }
 
-            getFooter()
+                getFooter()
+            }
         }
-    }
-}

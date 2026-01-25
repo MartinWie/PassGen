@@ -1,5 +1,7 @@
 package de.mw.frontend.utils
 
+import io.github.martinwie.htmx.PageSecurityContext
+import io.github.martinwie.htmx.embedSvg
 import kotlinx.html.*
 import java.time.Year
 
@@ -24,7 +26,7 @@ fun TagConsumer<StringBuilder>.getPageHead(pageTitle: String = "") {
                         const activeTheme = savedTheme ? savedTheme : (prefersDark ? 'dark' : 'light');
                         document.documentElement.setAttribute('data-theme', activeTheme);
                     })();
-                    """.trimIndent()
+                    """.trimIndent(),
                 )
             }
         }
@@ -98,7 +100,7 @@ fun TagConsumer<StringBuilder>.getPageHead(pageTitle: String = "") {
                         -webkit-font-smoothing: antialiased;
                         -moz-osx-font-smoothing: grayscale;
                     }
-                """.trimIndent()
+                    """.trimIndent(),
                 )
             }
         }

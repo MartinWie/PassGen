@@ -25,6 +25,10 @@ plugins {
 group = "de.mw"
 version = "0.0.1"
 
+kotlin {
+    jvmToolchain(21)
+}
+
 val postgresHost: String = System.getenv("SECRET_PASSGEN_DB-HOST") ?: "localhost"
 val postgresUser: String = System.getenv("SECRET_PASSGEN_DB-USER") ?: "admin"
 val postgresPassword: String =
@@ -40,9 +44,13 @@ application {
 repositories {
     mavenCentral()
     maven { url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-js-wrappers") }
+    maven { url = uri("https://jitpack.io") } // For kotlinx-htmx library
 }
 
 dependencies {
+    // HTMX utilities for kotlinx-html
+    implementation("com.github.MartinWie:kotlinx-htmx:v0.2.0")
+
     implementation("io.ktor:ktor-server-html-builder-jvm:$ktor_version")
     implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.12.0")
     implementation("io.ktor:ktor-server-core-jvm:$ktor_version")
@@ -81,11 +89,12 @@ jooq {
     withContainer {
         image {
             name = "postgres:15"
-            envVars = mapOf(
-                "POSTGRES_DB" to "postgres",
-                "POSTGRES_USER" to "postgres",
-                "POSTGRES_PASSWORD" to "postgres"
-            )
+            envVars =
+                mapOf(
+                    "POSTGRES_DB" to "postgres",
+                    "POSTGRES_USER" to "postgres",
+                    "POSTGRES_PASSWORD" to "postgres",
+                )
         }
     }
 }
