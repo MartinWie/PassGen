@@ -44,12 +44,11 @@ application {
 repositories {
     mavenCentral()
     maven { url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-js-wrappers") }
-    maven { url = uri("https://jitpack.io") } // For kotlinx-htmx library
 }
 
 dependencies {
     // HTMX utilities for kotlinx-html
-    implementation("com.github.MartinWie:kotlinx-htmx:v0.2.0")
+    implementation("io.github.martinwie:kotlinx-htmx:0.1.0")
 
     implementation("io.ktor:ktor-server-html-builder-jvm:$ktor_version")
     implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.12.0")
