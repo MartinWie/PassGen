@@ -592,15 +592,33 @@ async function generateKey() {
     const errAlert = document.getElementById('key-error-alert');
     const errText = document.getElementById('key-error-text');
     const spinner = document.getElementById('keygen-loading');
+    const generateBtn = document.getElementById('generate-key-btn');
+    
     if (rawIdentifier && !identifier) {
         errText.textContent = 'Invalid identifier: only printable ASCII up to 256 chars.';
         errAlert.classList.remove('hidden');
         return;
     }
+    
+    // Check for secure context requirement for ECDSA/RSA
+    if (algo !== 'ed25519' && !window.isSecureContext) {
+        errText.textContent = 'ECDSA and RSA require HTTPS. Use Ed25519 or access via HTTPS.';
+        errAlert.classList.remove('hidden');
+        return;
+    }
+    
+    // Check crypto.subtle availability
+    if (algo !== 'ed25519' && (!window.crypto || !window.crypto.subtle)) {
+        errText.textContent = 'Web Crypto API not available. Use Ed25519 or a modern browser with HTTPS.';
+        errAlert.classList.remove('hidden');
+        return;
+    }
+    
     errAlert.classList.add('hidden');
     pubOut.value = '';
     privOut.value = '';
     spinner.classList.remove('hidden');
+    generateBtn.disabled = true;
     
     // Track sensitive buffers for cleanup
     let sensitiveBuffers = [];
@@ -609,7 +627,7 @@ async function generateKey() {
         let publicKeyText = '';
         let privateKeyText = '';
         if (algo === 'ed25519') {
-            if (!window.nacl || !nacl.sign) throw new Error('TweetNaCl not loaded');
+            if (!window.nacl || !nacl.sign) throw new Error('TweetNaCl library not loaded. Please refresh the page.');
             const kp = nacl.sign.keyPair();
             const pub = kp.publicKey; // 32 bytes
             const sec = kp.secretKey; // 64 bytes (seed+pub)
@@ -670,22 +688,29 @@ async function generateKey() {
         privOut.value = privateKeyText;
         updateInstructions(purpose, algo, identifier);
     } catch (e) {
-        // Log detailed error to console for debugging, show generic message to user
+        // Log detailed error to console for debugging
         console.error('Key generation failed:', e);
-        // Show specific message only for known safe errors (won't leak sensitive info)
-        const safeErrors = ['TweetNaCl not loaded', 'Unsupported ECDSA curve', 'Unknown algorithm'];
+        
         let userMessage;
-        if (safeErrors.includes(e.message)) {
+        // Check for specific error types and provide helpful messages
+        if (e.message && e.message.includes('TweetNaCl')) {
+            userMessage = e.message;
+        } else if (e.message === 'Unsupported ECDSA curve' || e.message === 'Unknown algorithm') {
             userMessage = e.message;
         } else if (e.name === 'NotSupportedError') {
             userMessage = 'This algorithm is not supported by your browser.';
+        } else if (e.name === 'OperationError') {
+            userMessage = 'Key generation operation failed. Please try again.';
+        } else if (!window.isSecureContext) {
+            userMessage = 'Secure context required. Please use HTTPS or try Ed25519.';
         } else {
-            userMessage = 'Key generation failed. Please try again or use a different algorithm.';
+            userMessage = 'Key generation failed: ' + (e.message || 'Unknown error');
         }
         errText.textContent = userMessage;
         errAlert.classList.remove('hidden');
     } finally {
         spinner.classList.add('hidden');
+        generateBtn.disabled = false;
         // Best-effort cleanup of sensitive buffers
         secureZeroAll(...sensitiveBuffers);
         sensitiveBuffers = null;

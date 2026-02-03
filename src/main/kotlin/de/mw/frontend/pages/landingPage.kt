@@ -460,7 +460,7 @@ fun getLandingPage(pageTitle: String): String =
                                     classes = setOf("select select-bordered select-sm w-full")
                                     option {
                                         value = "ed25519"
-                                        +"Ed25519"
+                                        +"Ed25519 (Recommended)"
                                     }
                                     option {
                                         value = "ecdsa-p256"
@@ -611,40 +611,40 @@ fun getBasePage(
     bodyTags: TagConsumer<StringBuilder>.() -> Unit,
 ): String =
     "<!DOCTYPE html>" +
-        buildHTMLString {
-            getPageHead(pageTitle)
+            buildHTMLString {
+                getPageHead(pageTitle)
 
-            body {
-                classes =
-                    setOf(
-                        "min-h-screen flex flex-col",
-                    )
-
-                // Navbar with logo
-                div {
+                body {
                     classes =
-                        setOf("navbar bg-base-100 flex place-content-between fixed top-0 left-0 right-0 z-30") // ensure on top
+                        setOf(
+                            "min-h-screen flex flex-col",
+                        )
+
+                    // Navbar with logo
                     div {
-                        classes = setOf("flex justify-center items-center ml-3")
-                        a(href = "/") {
-                            img(src = "/static/apple-touch-icon.png", alt = "PassGen Logo") {
-                                classes = setOf("h-12 w-12 rounded-xl")
+                        classes =
+                            setOf("navbar bg-base-100 flex place-content-between fixed top-0 left-0 right-0 z-30") // ensure on top
+                        div {
+                            classes = setOf("flex justify-center items-center ml-3")
+                            a(href = "/") {
+                                img(src = "/static/apple-touch-icon.png", alt = "PassGen Logo") {
+                                    classes = setOf("h-12 w-12 rounded-xl")
+                                }
+                            }
+                            a(href = "/") {
+                                classes = setOf("btn btn-ghost text-xl")
+                                +"PassGen"
                             }
                         }
-                        a(href = "/") {
-                            classes = setOf("btn btn-ghost text-xl")
-                            +"PassGen"
-                        }
-                    }
 
-                    label {
-                        id = "theme-toggle-label"
-                        classes = setOf("swap swap-rotate mr-3")
-                        input {
-                            id = "theme-switcher"
-                            type = InputType.checkBox
-                            addJs(
-                                """
+                        label {
+                            id = "theme-toggle-label"
+                            classes = setOf("swap swap-rotate mr-3")
+                            input {
+                                id = "theme-switcher"
+                                type = InputType.checkBox
+                                addJs(
+                                    """
                                 document.addEventListener('DOMContentLoaded', function() {
                                     const themeToggle = document.getElementById('theme-switcher');
                                     const themeLabel = document.getElementById('theme-toggle-label');
@@ -667,35 +667,35 @@ fun getBasePage(
                                     });
                                 });
                                 """.trimIndent(),
-                            )
-                        }
-                        embedSvg("/static/svg/moon.svg")
+                                )
+                            }
+                            embedSvg("/static/svg/moon.svg")
 
-                        embedSvg("/static/svg/sun.svg")
-                    }
-                }
-
-                // Copy Success Tooltip
-                div("toast toast-top toast-center z-50 pointer-events-none") {
-                    div("alert alert-success shadow-lg transition-opacity duration-300 invisible opacity-0") {
-                        id = "copy-tooltip"
-                        span {
-                            +"Copied to clipboard!"
+                            embedSvg("/static/svg/sun.svg")
                         }
                     }
-                    div("alert alert-error shadow-lg transition-opacity duration-300 invisible opacity-0") {
-                        id = "copy-tooltip-failed"
-                        span {
-                            +"Failed to copy"
+
+                    // Copy Success Tooltip
+                    div("toast toast-top toast-center z-50 pointer-events-none") {
+                        div("alert alert-success shadow-lg transition-opacity duration-300 invisible opacity-0") {
+                            id = "copy-tooltip"
+                            span {
+                                +"Copied to clipboard!"
+                            }
+                        }
+                        div("alert alert-error shadow-lg transition-opacity duration-300 invisible opacity-0") {
+                            id = "copy-tooltip-failed"
+                            span {
+                                +"Failed to copy"
+                            }
                         }
                     }
-                }
 
-                div {
-                    classes = setOf("grow")
-                    bodyTags()
-                }
+                    div {
+                        classes = setOf("grow")
+                        bodyTags()
+                    }
 
-                getFooter()
+                    getFooter()
+                }
             }
-        }
