@@ -1,5 +1,35 @@
+// Fallback copy method for browsers without clipboard API or insecure contexts
+function fallbackCopyToClipboard(text) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    // Avoid scrolling to bottom
+    textArea.style.top = '0';
+    textArea.style.left = '0';
+    textArea.style.position = 'fixed';
+    textArea.style.opacity = '0';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    let success = false;
+    try {
+        success = document.execCommand('copy');
+    } catch (err) {
+        console.error('Fallback copy failed:', err);
+    }
+    
+    document.body.removeChild(textArea);
+    return success;
+}
+
 function copyToClipboard(elementId) {
     const element = document.getElementById(elementId);
+    if (!element) {
+        console.error('Copy target element not found:', elementId);
+        const tooltip = document.getElementById('copy-tooltip-failed');
+        if (tooltip) removeHideThenFadeout(tooltip);
+        return;
+    }
     let textToCopy;
 
     // Check if element is an input or textarea
@@ -12,65 +42,104 @@ function copyToClipboard(elementId) {
         textToCopy = element.textContent || element.innerText;
     }
 
-    navigator.clipboard.writeText(textToCopy).then(
-        () => {
-            // Show copy success tooltip
+    // Use modern clipboard API if available, otherwise fallback
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(textToCopy).then(
+            () => {
+                // Show copy success tooltip
+                const tooltip = document.getElementById('copy-tooltip');
+                if (tooltip) removeHideThenFadeout(tooltip);
+            },
+            (err) => {
+                /* clipboard write failed, try fallback */
+                console.warn('Clipboard API failed, trying fallback:', err);
+                if (fallbackCopyToClipboard(textToCopy)) {
+                    const tooltip = document.getElementById('copy-tooltip');
+                    if (tooltip) removeHideThenFadeout(tooltip);
+                } else {
+                    const tooltip = document.getElementById('copy-tooltip-failed');
+                    if (tooltip) removeHideThenFadeout(tooltip);
+                }
+            },
+        );
+    } else {
+        // Fallback for browsers without clipboard API
+        if (fallbackCopyToClipboard(textToCopy)) {
             const tooltip = document.getElementById('copy-tooltip');
-            removeHideThenFadeout(tooltip);
-        },
-        () => {
-            /* clipboard write failed */
-            console.error('Failed to copy to clipboard :(');
-            // Show copy failure tooltip
+            if (tooltip) removeHideThenFadeout(tooltip);
+        } else {
+            console.error('Failed to copy to clipboard');
             const tooltip = document.getElementById('copy-tooltip-failed');
-            removeHideThenFadeout(tooltip);
-        },
-    );
+            if (tooltip) removeHideThenFadeout(tooltip);
+        }
+    }
 }
 
 function copyShareUrl() {
     // Get the URL from the share-result area
-    const shareUrl = document.getElementById('share-result').querySelector('a').href
+    const shareResult = document.getElementById('share-result');
+    const anchor = shareResult?.querySelector('a');
+    const shareUrl = anchor?.href;
 
     if (!shareUrl) {
         console.error('No share URL found');
         const tooltip = document.getElementById('copy-tooltip-failed');
-        removeHideThenFadeout(tooltip);
+        if (tooltip) removeHideThenFadeout(tooltip);
         return;
     }
 
-    navigator.clipboard.writeText(shareUrl).then(
-        () => {
-            // Show copy success tooltip
+    // Use modern clipboard API if available, otherwise fallback
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareUrl).then(
+            () => {
+                // Show copy success tooltip
+                const tooltip = document.getElementById('copy-tooltip');
+                if (tooltip) removeHideThenFadeout(tooltip);
+            },
+            (err) => {
+                /* clipboard write failed, try fallback */
+                console.warn('Clipboard API failed, trying fallback:', err);
+                if (fallbackCopyToClipboard(shareUrl)) {
+                    const tooltip = document.getElementById('copy-tooltip');
+                    if (tooltip) removeHideThenFadeout(tooltip);
+                } else {
+                    const tooltip = document.getElementById('copy-tooltip-failed');
+                    if (tooltip) removeHideThenFadeout(tooltip);
+                }
+            },
+        );
+    } else {
+        // Fallback for browsers without clipboard API
+        if (fallbackCopyToClipboard(shareUrl)) {
             const tooltip = document.getElementById('copy-tooltip');
-            removeHideThenFadeout(tooltip);
-        },
-        () => {
-            /* clipboard write failed */
-            console.error('Failed to copy to clipboard :(');
-            // Show copy failure tooltip
+            if (tooltip) removeHideThenFadeout(tooltip);
+        } else {
+            console.error('Failed to copy to clipboard');
             const tooltip = document.getElementById('copy-tooltip-failed');
-            removeHideThenFadeout(tooltip);
-        },
-    );
+            if (tooltip) removeHideThenFadeout(tooltip);
+        }
+    }
 }
 
 function removeHideThenFadeout(element) {
-    element.classList.remove('hidden');
+    if (!element) return;
+    
+    // Show element: remove invisible/opacity-0, add opacity-1
+    element.classList.remove('invisible', 'opacity-0');
+    element.classList.add('opacity-100');
 
     // Fade out tooltip after 2 seconds
     setTimeout(() => {
         // Start the fade out transition
-        element.style.opacity = '0';
+        element.classList.remove('opacity-100');
+        element.classList.add('opacity-0');
 
         // Wait for transition to complete before hiding
         setTimeout(() => {
-            // After fading is complete, hide the element
-            element.classList.add('hidden');
-            // Only reset opacity after the element is hidden
-            element.style.opacity = '1';
-        }, 300); // Match this with your CSS transition duration
-    }, 6000);
+            // After fading is complete, hide the element completely
+            element.classList.add('invisible');
+        }, 300); // Match this with CSS transition duration
+    }, 2000);
 }
 
 document.addEventListener("DOMContentLoaded", (event) => {

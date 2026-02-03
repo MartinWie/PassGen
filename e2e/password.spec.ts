@@ -387,6 +387,52 @@ test.describe('Copy Functionality', () => {
     const copyButton = page.locator('button[data-copy-target="password-input"]');
     await expect(copyButton).toBeVisible();
   });
+
+  test('should copy password to clipboard when clicking copy button', async ({ page, context }) => {
+    // Grant clipboard permissions
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    
+    await page.goto('/');
+    
+    // Wait for password to be generated
+    const passwordInput = page.locator('#password-input');
+    await expect(passwordInput).toBeVisible();
+    await expect(async () => {
+      const value = await passwordInput.inputValue();
+      expect(value.length).toBeGreaterThan(0);
+    }).toPass({ timeout: 5000 });
+    
+    const passwordValue = await passwordInput.inputValue();
+    
+    // Click copy button
+    const copyButton = page.locator('button[data-copy-target="password-input"]');
+    await copyButton.click();
+    
+    // Verify clipboard content
+    const clipboardContent = await page.evaluate(() => navigator.clipboard.readText());
+    expect(clipboardContent).toBe(passwordValue);
+  });
+
+  test('should show success tooltip after copying', async ({ page, context }) => {
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    
+    await page.goto('/');
+    
+    // Wait for password to be generated
+    const passwordInput = page.locator('#password-input');
+    await expect(async () => {
+      const value = await passwordInput.inputValue();
+      expect(value.length).toBeGreaterThan(0);
+    }).toPass({ timeout: 5000 });
+    
+    // Click copy button
+    const copyButton = page.locator('button[data-copy-target="password-input"]');
+    await copyButton.click();
+    
+    // Verify success tooltip appears
+    const tooltip = page.locator('#copy-tooltip');
+    await expect(tooltip).not.toHaveClass(/hidden/);
+  });
 });
 
 test.describe('Mode Toggle', () => {
@@ -403,5 +449,122 @@ test.describe('Mode Toggle', () => {
     // Wait for key generation section to become visible
     await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
     await expect(page.locator('#password-section')).toHaveClass(/hidden/);
+  });
+});
+
+test.describe('Key Generation View', () => {
+  test('should display key generation UI elements correctly', async ({ page }) => {
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Check all required UI elements are visible
+    await expect(page.locator('#key-purpose')).toBeVisible();
+    await expect(page.locator('#key-algorithm')).toBeVisible();
+    await expect(page.locator('#generate-key-btn')).toBeVisible();
+    await expect(page.locator('#public-key-output')).toBeVisible();
+    await expect(page.locator('#private-key-output')).toBeVisible();
+  });
+
+  test('should have equal width textareas for public and private keys', async ({ page }) => {
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Get bounding boxes of both textareas
+    const publicKeyBox = await page.locator('#public-key-output').boundingBox();
+    const privateKeyBox = await page.locator('#private-key-output').boundingBox();
+    
+    // Verify both textareas exist and have similar widths (within 5px tolerance)
+    expect(publicKeyBox).not.toBeNull();
+    expect(privateKeyBox).not.toBeNull();
+    expect(Math.abs(publicKeyBox!.width - privateKeyBox!.width)).toBeLessThan(5);
+  });
+
+  test('should generate Ed25519 key pair', async ({ page }) => {
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Select Ed25519 algorithm (default)
+    await expect(page.locator('#key-algorithm')).toHaveValue('ed25519');
+    
+    // Click generate key button
+    await page.locator('#generate-key-btn').click();
+    
+    // Wait for keys to be generated
+    await expect(async () => {
+      const publicKey = await page.locator('#public-key-output').inputValue();
+      expect(publicKey).toContain('ssh-ed25519');
+    }).toPass({ timeout: 10000 });
+    
+    // Verify private key is also generated
+    const privateKey = await page.locator('#private-key-output').inputValue();
+    expect(privateKey).toContain('-----BEGIN OPENSSH PRIVATE KEY-----');
+    expect(privateKey).toContain('-----END OPENSSH PRIVATE KEY-----');
+  });
+
+  test('should have copy buttons for public and private keys', async ({ page }) => {
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Check copy buttons exist
+    const publicKeyCopyBtn = page.locator('button[data-copy-target="public-key-output"]');
+    const privateKeyCopyBtn = page.locator('button[data-copy-target="private-key-output"]');
+    
+    await expect(publicKeyCopyBtn).toBeVisible();
+    await expect(privateKeyCopyBtn).toBeVisible();
+  });
+
+  test('should copy generated public key to clipboard', async ({ page, context }) => {
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Generate a key
+    await page.locator('#generate-key-btn').click();
+    
+    // Wait for key generation
+    await expect(async () => {
+      const publicKey = await page.locator('#public-key-output').inputValue();
+      expect(publicKey).toContain('ssh-ed25519');
+    }).toPass({ timeout: 10000 });
+    
+    const publicKeyValue = await page.locator('#public-key-output').inputValue();
+    
+    // Click copy button for public key
+    const copyBtn = page.locator('button[data-copy-target="public-key-output"]');
+    await copyBtn.click();
+    
+    // Verify clipboard content
+    const clipboardContent = await page.evaluate(() => navigator.clipboard.readText());
+    expect(clipboardContent).toBe(publicKeyValue);
+  });
+
+  test('should display warning about unencrypted private keys', async ({ page }) => {
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Check for the warning message
+    const warning = page.locator('#keygen-section .alert-warning');
+    await expect(warning).toBeVisible();
+    await expect(warning).toContainText('unencrypted');
+    await expect(warning).toContainText('ssh-keygen');
   });
 });

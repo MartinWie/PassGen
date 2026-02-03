@@ -539,7 +539,7 @@ fun getLandingPage(pageTitle: String): String =
                                 textArea {
                                     id = "public-key-output"
                                     classes =
-                                        setOf("textarea textarea-bordered font-mono text-[11px] leading-tight h-40")
+                                        setOf("textarea textarea-bordered font-mono text-[11px] leading-tight h-40 w-full")
                                     attributes["readonly"] = "readonly"
                                 }
                                 div("flex gap-2") {
@@ -564,7 +564,7 @@ fun getLandingPage(pageTitle: String): String =
                                 textArea {
                                     id = "private-key-output"
                                     classes =
-                                        setOf("textarea textarea-bordered font-mono text-[11px] leading-tight h-40")
+                                        setOf("textarea textarea-bordered font-mono text-[11px] leading-tight h-40 w-full")
                                     attributes["readonly"] = "readonly"
                                 }
                                 div("flex gap-2") {
@@ -676,17 +676,17 @@ fun getBasePage(
                 }
 
                 // Copy Success Tooltip
-                div("toast toast-top toast-center") {
-                    div("alert alert-success animate-bounce fade hidden") {
+                div("toast toast-top toast-center z-50 pointer-events-none") {
+                    div("alert alert-success shadow-lg transition-opacity duration-300 invisible opacity-0") {
                         id = "copy-tooltip"
                         span {
-                            +"Copy successful!"
+                            +"Copied to clipboard!"
                         }
                     }
-                    div("alert alert-warning animate-bounce fade hidden") {
+                    div("alert alert-error shadow-lg transition-opacity duration-300 invisible opacity-0") {
                         id = "copy-tooltip-failed"
                         span {
-                            +"Copy failed :("
+                            +"Failed to copy"
                         }
                     }
                 }
