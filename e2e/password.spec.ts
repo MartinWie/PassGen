@@ -25,15 +25,12 @@ test.describe('Homepage', () => {
   test('should generate password on page load', async ({ page }) => {
     await page.goto('/');
     
-    // Wait for HTMX to load the password
-    await page.waitForSelector('#password-input');
-    
-    // Password should have content (not empty)
+    // Wait for HTMX to load the password - password input should have content
     const passwordInput = page.locator('#password-input');
     await expect(passwordInput).toBeVisible();
     
-    // Wait a bit for HTMX to complete
-    await page.waitForTimeout(500);
+    // Wait for the password to be generated (non-empty value)
+    await expect(passwordInput).not.toHaveValue('');
     
     const value = await passwordInput.inputValue();
     expect(value.length).toBeGreaterThan(0);
@@ -64,19 +61,20 @@ test.describe('Password Generation', () => {
   test('should regenerate password when clicking regen button', async ({ page }) => {
     await page.goto('/');
     
-    // Wait for initial password
-    await page.waitForSelector('#password-input');
-    await page.waitForTimeout(500);
+    // Wait for initial password to be non-empty
+    const passwordInput = page.locator('#password-input');
+    await expect(passwordInput).not.toHaveValue('');
     
-    const initialPassword = await page.locator('#password-input').inputValue();
+    const initialPassword = await passwordInput.inputValue();
     
     // Click regenerate button
     await page.locator('#regen-button').click();
     
-    // Wait for new password
-    await page.waitForTimeout(500);
+    // Wait for HTMX request to complete - check that the password input is still visible
+    // and wait for potential change (use network idle or attribute change)
+    await page.waitForLoadState('networkidle');
     
-    const newPassword = await page.locator('#password-input').inputValue();
+    const newPassword = await passwordInput.inputValue();
     
     // Passwords should be different (statistically very likely)
     // Note: There's a tiny chance they could be the same, but it's negligible
@@ -106,23 +104,78 @@ test.describe('Password Generation', () => {
     // Open settings
     await page.locator('label[title="Settings"]').click();
     
-    // Wait for dropdown
-    await page.waitForSelector('#word-amount-slider');
-    
-    // Get initial word count
-    const slider = page.locator('#word-amount-slider');
+    // Wait for dropdown to be visible
+    await expect(page.locator('#word-amount-slider')).toBeVisible();
     
     // Set slider to 6 words
+    const slider = page.locator('#word-amount-slider');
     await slider.fill('6');
     await slider.dispatchEvent('input');
     await slider.dispatchEvent('change');
     
-    // Wait for password regeneration
-    await page.waitForTimeout(500);
+    // Wait for the word count display to update
+    await expect(page.locator('#word-amount')).toHaveText('6');
+  });
+
+  test('should generate password with correct word count', async ({ page }) => {
+    await page.goto('/');
     
-    // Check the word count display
-    const wordCountDisplay = page.locator('#word-amount');
-    await expect(wordCountDisplay).toHaveText('6');
+    // Wait for initial password
+    const passwordInput = page.locator('#password-input');
+    await expect(passwordInput).not.toHaveValue('');
+    
+    // Open settings
+    await page.locator('label[title="Settings"]').click();
+    await expect(page.locator('#word-amount-slider')).toBeVisible();
+    
+    // Set word count to 5
+    const slider = page.locator('#word-amount-slider');
+    await slider.fill('5');
+    await slider.dispatchEvent('input');
+    await slider.dispatchEvent('change');
+    
+    // Wait for password to regenerate
+    await page.waitForLoadState('networkidle');
+    
+    // Get the password and count words (assuming default separator is '-')
+    const password = await passwordInput.inputValue();
+    
+    // Get the current separator
+    const separator = await page.locator('#word-separator').inputValue() || '-';
+    
+    // Count words - the password format is word1<sep>word2<sep>... potentially with special chars and numbers
+    // Since special chars and numbers are appended to words, we count by separator
+    const wordCount = password.split(separator).length;
+    expect(wordCount).toBe(5);
+  });
+
+  test('should use correct separator in generated password', async ({ page }) => {
+    await page.goto('/');
+    
+    // Wait for initial password
+    const passwordInput = page.locator('#password-input');
+    await expect(passwordInput).not.toHaveValue('');
+    
+    // Open settings
+    await page.locator('label[title="Settings"]').click();
+    await expect(page.locator('#word-separator')).toBeVisible();
+    
+    // Change separator to underscore
+    await page.locator('#word-separator').fill('_');
+    await page.locator('#word-separator').dispatchEvent('input');
+    
+    // Wait for password to regenerate
+    await page.waitForLoadState('networkidle');
+    
+    // Get the password
+    const password = await passwordInput.inputValue();
+    
+    // Password should contain underscores as separators
+    expect(password).toContain('_');
+    // And should not contain hyphens (unless in a word itself, which is unlikely)
+    // We use a looser check here
+    const underscoreCount = (password.match(/_/g) || []).length;
+    expect(underscoreCount).toBeGreaterThan(0);
   });
 });
 
@@ -132,7 +185,7 @@ test.describe('Settings Persistence @slow', () => {
     
     // Open settings
     await page.locator('label[title="Settings"]').click();
-    await page.waitForSelector('#word-amount-slider');
+    await expect(page.locator('#word-amount-slider')).toBeVisible();
     
     // Set word amount to 7
     const slider = page.locator('#word-amount-slider');
@@ -140,29 +193,33 @@ test.describe('Settings Persistence @slow', () => {
     await slider.dispatchEvent('input');
     await slider.dispatchEvent('change');
     
-    // Wait for localStorage to be set
-    await page.waitForTimeout(300);
-    
-    // Verify localStorage was set
-    const storedValue = await page.evaluate(() => localStorage.getItem('word-amount'));
-    expect(storedValue).toBe('7');
+    // Wait for localStorage to be set by checking its value
+    await expect(async () => {
+      const storedValue = await page.evaluate(() => localStorage.getItem('word-amount'));
+      expect(storedValue).toBe('7');
+    }).toPass({ timeout: 5000 });
     
     // Reload the page
     await page.reload();
     
-    // Wait for page to load
-    await page.waitForSelector('#password-input');
+    // Wait for password to load
+    await expect(page.locator('#password-input')).not.toHaveValue('');
     
     // Open settings again
     await page.locator('label[title="Settings"]').click();
-    await page.waitForSelector('#word-amount-slider');
+    await expect(page.locator('#word-amount-slider')).toBeVisible();
     
     // Verify the slider value is restored
-    const sliderValue = await page.locator('#word-amount-slider').inputValue();
-    expect(sliderValue).toBe('7');
+    await expect(page.locator('#word-amount-slider')).toHaveValue('7');
     
     // Verify the display shows 7
     await expect(page.locator('#word-amount')).toHaveText('7');
+    
+    // Verify the password has 7 words
+    const password = await page.locator('#password-input').inputValue();
+    const separator = await page.locator('#word-separator').inputValue() || '-';
+    const wordCount = password.split(separator).length;
+    expect(wordCount).toBe(7);
   });
 
   test('should persist language setting across page reloads', async ({ page }) => {
@@ -170,31 +227,29 @@ test.describe('Settings Persistence @slow', () => {
     
     // Open settings
     await page.locator('label[title="Settings"]').click();
-    await page.waitForSelector('#language-select');
+    await expect(page.locator('#language-select')).toBeVisible();
     
     // Change language to German
     await page.locator('#language-select').selectOption('GER');
     
     // Wait for localStorage to be set
-    await page.waitForTimeout(300);
-    
-    // Verify localStorage was set
-    const storedValue = await page.evaluate(() => localStorage.getItem('word-language'));
-    expect(storedValue).toBe('GER');
+    await expect(async () => {
+      const storedValue = await page.evaluate(() => localStorage.getItem('word-language'));
+      expect(storedValue).toBe('GER');
+    }).toPass({ timeout: 5000 });
     
     // Reload the page
     await page.reload();
     
-    // Wait for page to load
-    await page.waitForSelector('#password-input');
+    // Wait for password to load
+    await expect(page.locator('#password-input')).not.toHaveValue('');
     
     // Open settings again
     await page.locator('label[title="Settings"]').click();
-    await page.waitForSelector('#language-select');
+    await expect(page.locator('#language-select')).toBeVisible();
     
     // Verify the language is restored
-    const selectedValue = await page.locator('#language-select').inputValue();
-    expect(selectedValue).toBe('GER');
+    await expect(page.locator('#language-select')).toHaveValue('GER');
   });
 
   test('should persist separator setting across page reloads', async ({ page }) => {
@@ -202,32 +257,103 @@ test.describe('Settings Persistence @slow', () => {
     
     // Open settings
     await page.locator('label[title="Settings"]').click();
-    await page.waitForSelector('#word-separator');
+    await expect(page.locator('#word-separator')).toBeVisible();
     
     // Change separator to underscore
     await page.locator('#word-separator').fill('_');
     await page.locator('#word-separator').dispatchEvent('input');
     
     // Wait for localStorage to be set
-    await page.waitForTimeout(300);
-    
-    // Verify localStorage was set
-    const storedValue = await page.evaluate(() => localStorage.getItem('word-separator'));
-    expect(storedValue).toBe('_');
+    await expect(async () => {
+      const storedValue = await page.evaluate(() => localStorage.getItem('word-separator'));
+      expect(storedValue).toBe('_');
+    }).toPass({ timeout: 5000 });
     
     // Reload the page
     await page.reload();
     
-    // Wait for page to load
-    await page.waitForSelector('#password-input');
+    // Wait for password to load
+    await expect(page.locator('#password-input')).not.toHaveValue('');
     
     // Open settings again
     await page.locator('label[title="Settings"]').click();
-    await page.waitForSelector('#word-separator');
+    await expect(page.locator('#word-separator')).toBeVisible();
     
     // Verify the separator is restored
-    const separatorValue = await page.locator('#word-separator').inputValue();
-    expect(separatorValue).toBe('_');
+    await expect(page.locator('#word-separator')).toHaveValue('_');
+    
+    // Verify the password uses the underscore separator
+    const password = await page.locator('#password-input').inputValue();
+    expect(password).toContain('_');
+  });
+
+  test('should persist include-numbers setting across page reloads', async ({ page }) => {
+    await page.goto('/');
+    
+    // Open settings
+    await page.locator('label[title="Settings"]').click();
+    await expect(page.locator('#include-numbers')).toBeVisible();
+    
+    // Enable include numbers
+    await page.locator('#include-numbers').check();
+    
+    // Wait for localStorage to be set
+    await expect(async () => {
+      const storedValue = await page.evaluate(() => localStorage.getItem('include-numbers'));
+      expect(storedValue).toBe('true');
+    }).toPass({ timeout: 5000 });
+    
+    // Reload the page
+    await page.reload();
+    
+    // Wait for password to load
+    await expect(page.locator('#password-input')).not.toHaveValue('');
+    
+    // Open settings again
+    await page.locator('label[title="Settings"]').click();
+    await expect(page.locator('#include-numbers')).toBeVisible();
+    
+    // Verify the checkbox is restored
+    await expect(page.locator('#include-numbers')).toBeChecked();
+    
+    // Verify the password contains numbers
+    const password = await page.locator('#password-input').inputValue();
+    expect(password).toMatch(/\d/);
+  });
+
+  test('should persist include-special setting across page reloads', async ({ page }) => {
+    await page.goto('/');
+    
+    // Open settings
+    await page.locator('label[title="Settings"]').click();
+    await expect(page.locator('#include-special')).toBeVisible();
+    
+    // Enable include special characters
+    await page.locator('#include-special').check();
+    
+    // Wait for localStorage to be set
+    await expect(async () => {
+      const storedValue = await page.evaluate(() => localStorage.getItem('include-special'));
+      expect(storedValue).toBe('true');
+    }).toPass({ timeout: 5000 });
+    
+    // Reload the page
+    await page.reload();
+    
+    // Wait for password to load
+    await expect(page.locator('#password-input')).not.toHaveValue('');
+    
+    // Open settings again
+    await page.locator('label[title="Settings"]').click();
+    await expect(page.locator('#include-special')).toBeVisible();
+    
+    // Verify the checkbox is restored
+    await expect(page.locator('#include-special')).toBeChecked();
+    
+    // Verify the password contains special characters
+    const password = await page.locator('#password-input').inputValue();
+    // Special chars from SPECIAL_CHARS constant
+    expect(password).toMatch(/[!"#$%&'()*+,\-./:;<=>?@\[\\\]^_`{|}~]/);
   });
 });
 
@@ -243,16 +369,13 @@ test.describe('Theme Toggle', () => {
     // Click theme toggle
     await page.locator('#theme-toggle-label').click();
     
-    // Wait for theme change
-    await page.waitForTimeout(100);
-    
-    // Get new theme
-    const newTheme = await page.evaluate(() => 
-      document.documentElement.getAttribute('data-theme')
-    );
-    
-    // Theme should have changed
-    expect(newTheme).not.toBe(initialTheme);
+    // Wait for theme change by checking the attribute
+    await expect(async () => {
+      const newTheme = await page.evaluate(() => 
+        document.documentElement.getAttribute('data-theme')
+      );
+      expect(newTheme).not.toBe(initialTheme);
+    }).toPass({ timeout: 5000 });
   });
 });
 
@@ -277,10 +400,7 @@ test.describe('Mode Toggle', () => {
     // Click the toggle
     await page.locator('#custom-toggle').click();
     
-    // Wait for transition
-    await page.waitForTimeout(300);
-    
-    // Key generation section should now be visible
+    // Wait for key generation section to become visible
     await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
     await expect(page.locator('#password-section')).toHaveClass(/hidden/);
   });
