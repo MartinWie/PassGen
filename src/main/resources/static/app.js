@@ -133,6 +133,19 @@ function downloadKey(elementId) {
     }, 1500);
 }
 
+// Security helper: best-effort zeroing of Uint8Array buffers
+// Note: JavaScript cannot guarantee memory clearing, but this reduces exposure window
+function secureZero(arr) {
+    if (arr && arr instanceof Uint8Array) {
+        arr.fill(0);
+    }
+}
+
+// Security helper: zero multiple arrays
+function secureZeroAll(...arrays) {
+    arrays.forEach(secureZero);
+}
+
 // Base64 helpers
 function bytesToBase64(bytes) {
     let binary = '';
@@ -519,6 +532,10 @@ async function generateKey() {
     pubOut.value = '';
     privOut.value = '';
     spinner.classList.remove('hidden');
+    
+    // Track sensitive buffers for cleanup
+    let sensitiveBuffers = [];
+    
     try {
         let publicKeyText = '';
         let privateKeyText = '';
@@ -527,6 +544,7 @@ async function generateKey() {
             const kp = nacl.sign.keyPair();
             const pub = kp.publicKey; // 32 bytes
             const sec = kp.secretKey; // 64 bytes (seed+pub)
+            sensitiveBuffers.push(sec); // Track for cleanup
             const blob = buildSshBufferEd25519(pub);
             publicKeyText = 'ssh-ed25519 ' + bytesToBase64(blob) + (identifier ? ' ' + identifier : '');
             privateKeyText = buildOpenSSHPrivateKeyEd25519(sec, pub, identifier);
@@ -547,8 +565,15 @@ async function generateKey() {
             point[0] = 0x04;
             point.set(x, 1);
             point.set(y, 1 + x.length);
+            // Track private scalar for cleanup (note: buildOpenSSHPrivateKeyECDSA internally 
+            // converts jwkPriv.d to bytes again; we track our copy here for cleanup attempt,
+            // but JS string immutability means the original string cannot be truly erased)
+            const dBytes = base64UrlToBytes(jwkPriv.d);
+            sensitiveBuffers.push(dBytes);
             publicKeyText = buildOpenSshEcdsaPublic(jwkPub, named, identifier);
             privateKeyText = buildOpenSSHPrivateKeyECDSA(named, point, jwkPriv.d, identifier);
+            // Clear JWK private fields (best effort - strings are immutable in JS)
+            jwkPriv.d = '';
         } else if (algo.startsWith('rsa-')) {
             const size = parseInt(algo.split('-')[1], 10);
             const keyPair = await crypto.subtle.generateKey({
@@ -559,8 +584,16 @@ async function generateKey() {
             }, true, ['sign', 'verify']);
             const jwkPub = await crypto.subtle.exportKey('jwk', keyPair.publicKey);
             const jwkPriv = await crypto.subtle.exportKey('jwk', keyPair.privateKey);
+            // Track RSA private components for cleanup
+            ['d', 'p', 'q', 'dp', 'dq', 'qi'].forEach(field => {
+                if (jwkPriv[field]) {
+                    sensitiveBuffers.push(base64UrlToBytes(jwkPriv[field]));
+                }
+            });
             publicKeyText = buildOpenSshRsaPublic(jwkPub, identifier);
             privateKeyText = buildOpenSSHPrivateKeyRSA(jwkPriv, identifier);
+            // Clear JWK private fields (best effort - strings are immutable in JS)
+            ['d', 'p', 'q', 'dp', 'dq', 'qi'].forEach(field => { jwkPriv[field] = ''; });
         } else {
             throw new Error('Unknown algorithm');
         }
@@ -568,10 +601,25 @@ async function generateKey() {
         privOut.value = privateKeyText;
         updateInstructions(purpose, algo, identifier);
     } catch (e) {
-        errText.textContent = e.message || String(e);
+        // Log detailed error to console for debugging, show generic message to user
+        console.error('Key generation failed:', e);
+        // Show specific message only for known safe errors (won't leak sensitive info)
+        const safeErrors = ['TweetNaCl not loaded', 'Unsupported ECDSA curve', 'Unknown algorithm'];
+        let userMessage;
+        if (safeErrors.includes(e.message)) {
+            userMessage = e.message;
+        } else if (e.name === 'NotSupportedError') {
+            userMessage = 'This algorithm is not supported by your browser.';
+        } else {
+            userMessage = 'Key generation failed. Please try again or use a different algorithm.';
+        }
+        errText.textContent = userMessage;
         errAlert.classList.remove('hidden');
     } finally {
         spinner.classList.add('hidden');
+        // Best-effort cleanup of sensitive buffers
+        secureZeroAll(...sensitiveBuffers);
+        sensitiveBuffers = null;
     }
 }
 

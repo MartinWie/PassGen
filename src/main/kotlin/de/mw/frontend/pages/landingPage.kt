@@ -582,7 +582,14 @@ fun getLandingPage(pageTitle: String): String =
                         div("alert alert-warning py-2 min-h-0") {
                             span {
                                 classes = setOf("text-xs")
-                                +"Keep your private key secret. Never share or commit it."
+                                +"Keep your private key secret. Never share or commit it. "
+                                strong { +"Note:" }
+                                +" The downloaded private key is unencrypted. To add a passphrase, run: "
+                                code {
+                                    classes = setOf("bg-base-300 px-1 rounded")
+                                    +"ssh-keygen -p -f id_ed25519"
+                                }
+                                +" (replace filename as needed)."
                             }
                         }
                         div("rounded-lg bg-base-200/50 p-3 space-y-2 text-xs font-normal max-h-48 overflow-auto") {
