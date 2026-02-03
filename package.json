@@ -1,5 +1,21 @@
 {
+  "name": "passgen",
+  "version": "1.0.0",
+  "description": "Password generation and sharing tool with a web interface",
+  "scripts": {
+    "test": "./gradlew test && npm run test:e2e:fast",
+    "test:all": "./gradlew test && npm run test:e2e",
+    "test:e2e": "playwright test",
+    "test:e2e:fast": "playwright test --grep-invert @slow",
+    "test:e2e:fast:headed": "playwright test --grep-invert @slow --headed",
+    "test:e2e:slow": "playwright test --grep @slow",
+    "test:e2e:slow:headed": "playwright test --grep @slow --headed",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug"
+  },
   "devDependencies": {
+    "@playwright/test": "^1.58.1",
     "@tailwindcss/typography": "^0.5.13",
     "daisyui": "^5.0.51"
   },

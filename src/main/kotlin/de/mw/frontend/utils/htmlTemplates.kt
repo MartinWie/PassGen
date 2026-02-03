@@ -12,7 +12,7 @@ import java.time.Year
  */
 fun TagConsumer<StringBuilder>.getPageHead(pageTitle: String = "") {
     head {
-        title = pageTitle
+        title { +pageTitle }
 
         // Set theme immediately before page renders to prevent flash
         script {

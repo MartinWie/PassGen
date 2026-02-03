@@ -38,6 +38,8 @@ hs_err_pid*
 
 # testing
 /coverage
+/playwright-report
+/test-results
 
 # production
 /build

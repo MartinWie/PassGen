@@ -23,7 +23,10 @@ fun getLandingPage(pageTitle: String): String =
                                 setOf("grow resize-none h-14 py-[14px]")
                             hxGet("/word")
                             hxSwap(HxSwapOption.OUTER_HTML)
-                            hxTrigger("intersect once")
+                            hxTrigger("load-password from:body")
+                            hxInclude(
+                                "[name='language-select'], [name='word-amount-slider'], [name='include-special'], [name='include-numbers'], [name='separator']",
+                            )
                         }
 
                         div("flex justify-center md:justify-end gap-2 md:gap-3 mt-1 md:mt-0") {
@@ -313,6 +316,18 @@ fun getLandingPage(pageTitle: String): String =
                                             }
                                         }
                                     }
+                                    // Trigger initial password load after all settings are restored
+                                    addJs(
+                                        """
+                                        document.addEventListener('DOMContentLoaded', function() {
+                                            // Use requestAnimationFrame to ensure all other DOMContentLoaded
+                                            // handlers have completed and DOM updates are applied
+                                            requestAnimationFrame(function() {
+                                                document.body.dispatchEvent(new CustomEvent('load-password'));
+                                            });
+                                        });
+                                        """.trimIndent(),
+                                    )
                                 }
                             }
 

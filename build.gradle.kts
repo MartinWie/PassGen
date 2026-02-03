@@ -20,6 +20,7 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization") version "2.1.10"
     id("org.flywaydb.flyway") version "11.3.4"
     id("dev.monosoul.jooq-docker") version "7.0.14" // JOOQ generate classes with test container
+    jacoco
 }
 
 group = "de.mw"
@@ -82,6 +83,7 @@ dependencies {
 
     testImplementation("io.ktor:ktor-server-test-host:$ktor_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
 }
 
 jooq {
@@ -124,5 +126,17 @@ tasks {
 
     named("compileKotlin") {
         dependsOn("generateJooqClasses")
+    }
+
+    test {
+        finalizedBy(jacocoTestReport)
+    }
+
+    jacocoTestReport {
+        dependsOn(test)
+        reports {
+            xml.required.set(true)
+            html.required.set(true)
+        }
     }
 }
