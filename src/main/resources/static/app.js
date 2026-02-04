@@ -1,3 +1,45 @@
+function clearPrivateKey() {
+    const privOut = document.getElementById('private-key-output');
+    const tabPublic = document.getElementById('tab-public');
+    const tabPrivate = document.getElementById('tab-private');
+    const panelPublic = document.getElementById('panel-public');
+    const panelPrivate = document.getElementById('panel-private');
+    
+    if (privOut) {
+        // Overwrite with spaces first (best-effort memory clearing)
+        const len = privOut.value.length;
+        privOut.value = ' '.repeat(len);
+        privOut.value = '';
+    }
+    
+    // Switch back to public tab
+    if (tabPublic && tabPrivate && panelPublic && panelPrivate) {
+        tabPublic.classList.add('border-primary', 'bg-base-100');
+        tabPublic.classList.remove('border-transparent');
+        tabPublic.setAttribute('aria-selected', 'true');
+        tabPublic.setAttribute('tabindex', '0');
+        tabPrivate.classList.remove('border-primary', 'bg-base-100');
+        tabPrivate.classList.add('border-transparent');
+        tabPrivate.setAttribute('aria-selected', 'false');
+        tabPrivate.setAttribute('tabindex', '-1');
+        panelPublic.classList.remove('hidden');
+        panelPrivate.classList.add('hidden');
+    }
+    
+    // Show a toast notification
+    const tooltip = document.getElementById('copy-tooltip');
+    if (tooltip) {
+        const span = tooltip.querySelector('span');
+        const originalText = span ? span.textContent : '';
+        if (span) span.textContent = 'Private key cleared';
+        removeHideThenFadeout(tooltip);
+        // Restore original text after toast fades
+        setTimeout(() => {
+            if (span) span.textContent = originalText;
+        }, 2500);
+    }
+}
+
 // Fallback copy method for browsers without clipboard API or insecure contexts
 function fallbackCopyToClipboard(text) {
     const textArea = document.createElement('textarea');
@@ -591,7 +633,7 @@ async function generateKey() {
     const privOut = document.getElementById('private-key-output');
     const errAlert = document.getElementById('key-error-alert');
     const errText = document.getElementById('key-error-text');
-    const spinner = document.getElementById('keygen-loading');
+    const keygenIcon = document.getElementById('keygen-icon');
     const generateBtn = document.getElementById('generate-key-btn');
     
     if (rawIdentifier && !identifier) {
@@ -617,7 +659,8 @@ async function generateKey() {
     errAlert.classList.add('hidden');
     pubOut.value = '';
     privOut.value = '';
-    spinner.classList.remove('hidden');
+    // Add spinning animation to the icon (like password regen button)
+    if (keygenIcon) keygenIcon.classList.add('animate-spin-reverse');
     generateBtn.disabled = true;
     
     // Track sensitive buffers for cleanup
@@ -686,6 +729,47 @@ async function generateKey() {
         }
         pubOut.value = publicKeyText;
         privOut.value = privateKeyText;
+        
+        // Update UI to show generated state
+        const emptyState = document.getElementById('key-empty-state');
+        const generatedState = document.getElementById('key-generated-state');
+        const keyTypeDisplay = document.getElementById('key-type-display');
+        const outputSection = document.getElementById('key-output-section');
+        
+        if (emptyState) emptyState.classList.add('hidden');
+        if (generatedState) generatedState.classList.remove('hidden');
+        if (keyTypeDisplay) {
+            // Format algorithm name nicely
+            const algoNames = {
+                'ed25519': 'Ed25519',
+                'ecdsa-p256': 'ECDSA P-256',
+                'ecdsa-p384': 'ECDSA P-384',
+                'ecdsa-p521': 'ECDSA P-521',
+                'rsa-2048': 'RSA 2048',
+                'rsa-4096': 'RSA 4096'
+            };
+            keyTypeDisplay.textContent = algoNames[algo] || algo;
+        }
+        if (outputSection) outputSection.classList.remove('hidden');
+        
+        // Reset to public key tab
+        const tabPublic = document.getElementById('tab-public');
+        const tabPrivate = document.getElementById('tab-private');
+        const panelPublic = document.getElementById('panel-public');
+        const panelPrivate = document.getElementById('panel-private');
+        if (tabPublic && tabPrivate && panelPublic && panelPrivate) {
+            tabPublic.classList.add('border-primary', 'bg-base-100');
+            tabPublic.classList.remove('border-transparent');
+            tabPublic.setAttribute('aria-selected', 'true');
+            tabPublic.setAttribute('tabindex', '0');
+            tabPrivate.classList.remove('border-primary', 'bg-base-100');
+            tabPrivate.classList.add('border-transparent');
+            tabPrivate.setAttribute('aria-selected', 'false');
+            tabPrivate.setAttribute('tabindex', '-1');
+            panelPublic.classList.remove('hidden');
+            panelPrivate.classList.add('hidden');
+        }
+        
         updateInstructions(purpose, algo, identifier);
     } catch (e) {
         // Log detailed error to console for debugging
@@ -709,7 +793,9 @@ async function generateKey() {
         errText.textContent = userMessage;
         errAlert.classList.remove('hidden');
     } finally {
-        spinner.classList.add('hidden');
+        // Remove spinning animation from the icon
+        const keygenIcon = document.getElementById('keygen-icon');
+        if (keygenIcon) keygenIcon.classList.remove('animate-spin-reverse');
         generateBtn.disabled = false;
         // Best-effort cleanup of sensitive buffers
         secureZeroAll(...sensitiveBuffers);
@@ -777,38 +863,118 @@ function updateInstructions(purpose, algo, identifier) {
 function attachKeyGenHandlers() {
     const purposeSel = document.getElementById('key-purpose');
     const algoSel = document.getElementById('key-algorithm');
-    const idWrap = document.getElementById('identifier-wrapper');
+    const idInput = document.getElementById('key-identifier');
     const genBtn = document.getElementById('generate-key-btn');
-    if (!purposeSel || !algoSel || !idWrap || !genBtn) return;
-    purposeSel.addEventListener('change', () => {
-        document.getElementById('key-identifier').value = '';
+    
+    if (!purposeSel || !algoSel || !genBtn) return;
+    
+    // Tab switching for key output
+    const tabPublic = document.getElementById('tab-public');
+    const tabPrivate = document.getElementById('tab-private');
+    const panelPublic = document.getElementById('panel-public');
+    const panelPrivate = document.getElementById('panel-private');
+    
+    if (tabPublic && tabPrivate && panelPublic && panelPrivate) {
+        const activateTab = (activeTab, inactiveTab, activePanel, inactivePanel) => {
+            // Update tab styles
+            activeTab.classList.add('border-primary', 'bg-base-100');
+            activeTab.classList.remove('border-transparent');
+            inactiveTab.classList.remove('border-primary', 'bg-base-100');
+            inactiveTab.classList.add('border-transparent');
+            // Update ARIA attributes
+            activeTab.setAttribute('aria-selected', 'true');
+            activeTab.setAttribute('tabindex', '0');
+            inactiveTab.setAttribute('aria-selected', 'false');
+            inactiveTab.setAttribute('tabindex', '-1');
+            // Show/hide panels
+            activePanel.classList.remove('hidden');
+            inactivePanel.classList.add('hidden');
+            // Focus the active tab
+            activeTab.focus();
+        };
+        
+        tabPublic.addEventListener('click', () => {
+            activateTab(tabPublic, tabPrivate, panelPublic, panelPrivate);
+        });
+        
+        tabPrivate.addEventListener('click', () => {
+            activateTab(tabPrivate, tabPublic, panelPrivate, panelPublic);
+        });
+        
+        // Keyboard navigation for tabs (Arrow keys, Home, End)
+        const handleTabKeydown = (event) => {
+            const isPublicFocused = document.activeElement === tabPublic;
+            const isPrivateFocused = document.activeElement === tabPrivate;
+            
+            if (!isPublicFocused && !isPrivateFocused) return;
+            
+            switch (event.key) {
+                case 'ArrowLeft':
+                case 'ArrowUp':
+                    event.preventDefault();
+                    if (isPrivateFocused) {
+                        activateTab(tabPublic, tabPrivate, panelPublic, panelPrivate);
+                    }
+                    break;
+                case 'ArrowRight':
+                case 'ArrowDown':
+                    event.preventDefault();
+                    if (isPublicFocused) {
+                        activateTab(tabPrivate, tabPublic, panelPrivate, panelPublic);
+                    }
+                    break;
+                case 'Home':
+                    event.preventDefault();
+                    activateTab(tabPublic, tabPrivate, panelPublic, panelPrivate);
+                    break;
+                case 'End':
+                    event.preventDefault();
+                    activateTab(tabPrivate, tabPublic, panelPrivate, panelPublic);
+                    break;
+            }
+        };
+        
+        tabPublic.addEventListener('keydown', handleTabKeydown);
+        tabPrivate.addEventListener('keydown', handleTabKeydown);
+    }
+    
+    // Reset UI when settings change
+    const resetKeyOutput = () => {
         document.getElementById('public-key-output').value = '';
         document.getElementById('private-key-output').value = '';
         document.getElementById('key-error-alert').classList.add('hidden');
-        if (purposeSel.value === 'git') idWrap.classList.remove('hidden'); else idWrap.classList.add('hidden');
+        document.getElementById('key-output-section')?.classList.add('hidden');
+        document.getElementById('key-empty-state')?.classList.remove('hidden');
+        document.getElementById('key-generated-state')?.classList.add('hidden');
+    };
+    
+    purposeSel.addEventListener('change', () => {
+        if (idInput) idInput.value = '';
+        resetKeyOutput();
         updateInstructions(purposeSel.value, algoSel.value, '');
     });
+    
     algoSel.addEventListener('change', () => {
-        // Reset key fields when algorithm changes
-        document.getElementById('public-key-output').value = '';
-        document.getElementById('private-key-output').value = '';
-        document.getElementById('key-error-alert').classList.add('hidden');
-        updateInstructions(purposeSel.value, algoSel.value, document.getElementById('key-identifier').value.trim());
+        resetKeyOutput();
+        updateInstructions(purposeSel.value, algoSel.value, idInput?.value.trim() || '');
     });
-    const idInput = document.getElementById('key-identifier');
-    idInput.addEventListener('input', () => {
-        const v = idInput.value.trim();
-        if (v && !isValidIdentifier(v)) {
-            idInput.classList.add('input-error');
-        } else {
-            idInput.classList.remove('input-error');
-            updateInstructions(purposeSel.value, algoSel.value, v);
-        }
-    });
+    
+    if (idInput) {
+        idInput.addEventListener('input', () => {
+            const v = idInput.value.trim();
+            if (v && !isValidIdentifier(v)) {
+                idInput.classList.add('input-error');
+            } else {
+                idInput.classList.remove('input-error');
+                updateInstructions(purposeSel.value, algoSel.value, v);
+            }
+        });
+    }
+    
     genBtn.addEventListener('click', generateKey);
 }
 
-// Delegated handlers for copy/download buttons (CSP-safe)
+// Delegated handlers for copy/download/clear buttons (CSP-safe)
 document.addEventListener('click', (ev) => {
     const copyEl = ev.target.closest && ev.target.closest('.copy-btn');
     if (copyEl) {
@@ -819,6 +985,10 @@ document.addEventListener('click', (ev) => {
     if (dlEl) {
         const targetId = dlEl.getAttribute('data-download-target');
         if (targetId) downloadKey(targetId);
+    }
+    const clearEl = ev.target.closest && ev.target.closest('.clear-private-key-btn');
+    if (clearEl) {
+        clearPrivateKey();
     }
 });
 

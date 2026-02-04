@@ -346,7 +346,254 @@ fun getLandingPage(pageTitle: String): String =
                         }
                     }
                 }
-                // Draft Start
+                // KEY GENERATION SECTION (simple hidden by default; removed animation classes)
+                div {
+                    id = "keygen-section"
+                    classes = setOf("hidden")
+                    // Main container matching password UI style
+                    div(
+                        "flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-3 border border-gray-200 rounded-xl p-2 md:p-3 focus-within:ring-1 focus-within:ring-base-content focus-within:border-base-content shadow-xs",
+                    ) {
+                        // Key output preview area (like password textarea)
+                        div("grow flex flex-col justify-center min-h-14 py-2 px-1") {
+                            id = "key-preview"
+                            // Empty state
+                            span("text-base-content/50 text-sm") {
+                                id = "key-empty-state"
+                                +"Click Generate to create a key pair"
+                            }
+                            // Generated state (hidden initially)
+                            div("hidden") {
+                                id = "key-generated-state"
+                                div("flex items-center gap-2") {
+                                    span("text-success w-5 h-5") {
+                                        embedSvg("/static/svg/ok.svg")
+                                    }
+                                    span("font-medium") {
+                                        id = "key-type-display"
+                                        +"Ed25519"
+                                    }
+                                    span("text-base-content/60 text-sm") {
+                                        +"key pair generated"
+                                    }
+                                }
+                            }
+                        }
+
+                        div("flex justify-center md:justify-end gap-2 md:gap-3 mt-1 md:mt-0") {
+                            // Generate Button
+                            button(classes = "btn btn-ghost") {
+                                id = "generate-key-btn"
+                                title = "Generate Key"
+                                span("hidden md:inline") { +"Generate" }
+                                span {
+                                    id = "keygen-icon"
+                                    embedSvg("/static/svg/regen.svg")
+                                }
+                            }
+
+                            // Settings Dropdown
+                            div("dropdown md:dropdown-top dropdown-left") {
+                                label {
+                                    tabIndex = "0"
+                                    classes = setOf("btn", "btn-ghost")
+                                    title = "Key Settings"
+                                    embedSvg("/static/svg/settings.svg")
+                                }
+                                div("dropdown-content z-1 menu p-4 shadow-lg bg-base-100 rounded-xl w-64 text-base") {
+                                    tabIndex = "0"
+                                    h3("font-medium mb-3 text-lg") {
+                                        +"Key Settings"
+                                    }
+
+                                    // Algorithm Selection
+                                    div("form-control mb-3") {
+                                        label("label py-1") {
+                                            span("label-text text-sm") { +"Algorithm" }
+                                        }
+                                        select {
+                                            id = "key-algorithm"
+                                            classes = setOf("select select-bordered w-full")
+                                            option {
+                                                value = "ed25519"
+                                                selected = true
+                                                +"Ed25519 (Recommended)"
+                                            }
+                                            option {
+                                                value = "ecdsa-p256"
+                                                +"ECDSA P-256"
+                                            }
+                                            option {
+                                                value = "ecdsa-p384"
+                                                +"ECDSA P-384"
+                                            }
+                                            option {
+                                                value = "rsa-2048"
+                                                +"RSA 2048"
+                                            }
+                                            option {
+                                                value = "rsa-4096"
+                                                +"RSA 4096"
+                                            }
+                                        }
+                                    }
+
+                                    // Purpose Selection
+                                    div("form-control mb-3") {
+                                        label("label py-1") {
+                                            span("label-text text-sm") { +"Purpose" }
+                                        }
+                                        select {
+                                            id = "key-purpose"
+                                            classes = setOf("select select-bordered w-full")
+                                            option {
+                                                value = "ssh"
+                                                +"SSH Authentication"
+                                            }
+                                            option {
+                                                value = "git"
+                                                +"Git Signing"
+                                            }
+                                        }
+                                    }
+
+                                    // Identifier (optional)
+                                    div("form-control") {
+                                        id = "identifier-wrapper"
+                                        label("label py-1") {
+                                            span("label-text text-sm") { +"Comment (optional)" }
+                                        }
+                                        input(InputType.text) {
+                                            id = "key-identifier"
+                                            placeholder = "email@example.com"
+                                            classes = setOf("input input-bordered w-full")
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Error alert (below main bar)
+                    div("alert alert-error py-2 mt-2 rounded-xl hidden") {
+                        id = "key-error-alert"
+                        span {
+                            id = "key-error-text"
+                            classes = setOf("text-sm")
+                        }
+                    }
+
+                    // Expandable key output section (hidden until generated)
+                    div("hidden mt-3") {
+                        id = "key-output-section"
+                        div("border border-gray-200 rounded-xl overflow-hidden") {
+                            // Tabs for Public/Private (accessible tablist)
+                            div("flex border-b border-gray-200 bg-base-200/50") {
+                                role = "tablist"
+                                attributes["aria-label"] = "Key output tabs"
+                                button(
+                                    classes = "flex-1 py-2 px-4 text-sm font-medium border-b-2 border-primary bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset",
+                                ) {
+                                    id = "tab-public"
+                                    role = "tab"
+                                    attributes["aria-selected"] = "true"
+                                    attributes["aria-controls"] = "panel-public"
+                                    attributes["data-tab"] = "public"
+                                    tabIndex = "0"
+                                    +"Public Key"
+                                }
+                                button(
+                                    classes = "flex-1 py-2 px-4 text-sm font-medium border-b-2 border-transparent hover:bg-base-100/50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset",
+                                ) {
+                                    id = "tab-private"
+                                    role = "tab"
+                                    attributes["aria-selected"] = "false"
+                                    attributes["aria-controls"] = "panel-private"
+                                    attributes["data-tab"] = "private"
+                                    tabIndex = "-1"
+                                    +"Private Key"
+                                }
+                            }
+
+                            // Public Key Panel
+                            div("p-3") {
+                                id = "panel-public"
+                                role = "tabpanel"
+                                attributes["aria-labelledby"] = "tab-public"
+                                textArea {
+                                    id = "public-key-output"
+                                    classes = setOf("textarea textarea-bordered font-mono text-xs leading-tight h-32 w-full bg-base-200/30")
+                                    attributes["readonly"] = "readonly"
+                                }
+                                div("flex gap-2 mt-2") {
+                                    button(classes = "btn btn-sm btn-ghost copy-btn") {
+                                        attributes["data-copy-target"] = "public-key-output"
+                                        attributes["aria-label"] = "Copy public key"
+                                        embedSvg("/static/svg/copy.svg")
+                                        +"Copy"
+                                    }
+                                    button(classes = "btn btn-sm btn-ghost download-btn") {
+                                        attributes["data-download-target"] = "public-key-output"
+                                        attributes["aria-label"] = "Download public key"
+                                        +"Download .pub"
+                                    }
+                                }
+                            }
+
+                            // Private Key Panel (hidden by default)
+                            div("p-3 hidden") {
+                                id = "panel-private"
+                                role = "tabpanel"
+                                attributes["aria-labelledby"] = "tab-private"
+                                textArea {
+                                    id = "private-key-output"
+                                    classes = setOf("textarea textarea-bordered font-mono text-xs leading-tight h-32 w-full bg-base-200/30")
+                                    attributes["readonly"] = "readonly"
+                                }
+                                div("flex gap-2 mt-2") {
+                                    button(classes = "btn btn-sm btn-ghost copy-btn") {
+                                        attributes["data-copy-target"] = "private-key-output"
+                                        attributes["aria-label"] = "Copy private key"
+                                        embedSvg("/static/svg/copy.svg")
+                                        +"Copy"
+                                    }
+                                    button(classes = "btn btn-sm btn-ghost download-btn") {
+                                        attributes["data-download-target"] = "private-key-output"
+                                        attributes["aria-label"] = "Download private key"
+                                        +"Download"
+                                    }
+                                    button(classes = "btn btn-sm btn-ghost btn-error clear-private-key-btn") {
+                                        id = "clear-private-key-btn"
+                                        attributes["aria-label"] = "Clear private key from memory"
+                                        title = "Clear private key from display"
+                                        +"Clear"
+                                    }
+                                }
+                                // Warning inside private tab
+                                div("alert alert-warning py-2 mt-3 text-xs") {
+                                    span {
+                                        +"Private key is unencrypted. To add a passphrase: "
+                                        code("bg-base-300 px-1 rounded") {
+                                            +"ssh-keygen -p -f your_key"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Collapsible instructions
+                        details("mt-3") {
+                            summary("cursor-pointer text-sm font-medium text-base-content/70 hover:text-base-content") {
+                                +"Setup Instructions"
+                            }
+                            div("rounded-lg bg-base-200/50 p-3 mt-2 space-y-2 text-xs") {
+                                id = "key-instructions"
+                            }
+                        }
+                    }
+                }
+
+                // Mode Toggle (below both password and key sections)
                 div("flex flex-col justify-center items-center gap-3 mt-4 md:sticky md:top-20 z-20") {
                     // Hidden checkbox for form submission
                     input(type = InputType.checkBox) {
@@ -416,187 +663,6 @@ fun getLandingPage(pageTitle: String): String =
                         )
                     }
                 }
-                // Draft end
-
-                // KEY GENERATION SECTION (simple hidden by default; removed animation classes)
-                div {
-                    id = "keygen-section"
-                    classes = setOf("hidden mt-4")
-                    div(
-                        "flex flex-col gap-4 border border-gray-200 rounded-xl p-3 focus-within:ring-1 focus-within:ring-base-content focus-within:border-base-content shadow-xs bg-base-100",
-                    ) {
-                        div("flex flex-col md:flex-row md:items-end gap-3 flex-wrap") {
-                            div("form-control w-full md:w-48") {
-                                label {
-                                    classes = setOf("label py-0 pb-1")
-                                    span {
-                                        classes = setOf("label-text text-xs uppercase tracking-wide")
-                                        +"Purpose"
-                                    }
-                                }
-                                select {
-                                    id = "key-purpose"
-                                    classes = setOf("select select-bordered select-sm w-full")
-                                    option {
-                                        value = "ssh"
-                                        +"SSH Authentication"
-                                    }
-                                    option {
-                                        value = "git"
-                                        +"Git Signing"
-                                    }
-                                }
-                            }
-                            div("form-control w-full md:w-56") {
-                                label {
-                                    classes = setOf("label py-0 pb-1")
-                                    span {
-                                        classes = setOf("label-text text-xs uppercase tracking-wide")
-                                        +"Algorithm"
-                                    }
-                                }
-                                select {
-                                    id = "key-algorithm"
-                                    classes = setOf("select select-bordered select-sm w-full")
-                                    option {
-                                        value = "ed25519"
-                                        +"Ed25519 (Recommended)"
-                                    }
-                                    option {
-                                        value = "ecdsa-p256"
-                                        +"ECDSA P-256"
-                                    }
-                                    option {
-                                        value = "ecdsa-p384"
-                                        +"ECDSA P-384"
-                                    }
-                                    option {
-                                        value = "ecdsa-p521"
-                                        +"ECDSA P-521"
-                                    }
-                                    option {
-                                        value = "rsa-2048"
-                                        +"RSA 2048"
-                                    }
-                                    option {
-                                        value = "rsa-4096"
-                                        +"RSA 4096"
-                                    }
-                                    option {
-                                        value = "rsa-8192"
-                                        +"RSA 8192"
-                                    }
-                                }
-                            }
-                            div("form-control hidden md:w-64") {
-                                id = "identifier-wrapper"
-                                label {
-                                    classes = setOf("label py-0 pb-1")
-                                    span {
-                                        classes = setOf("label-text text-xs uppercase tracking-wide")
-                                        +"Identifier"
-                                    }
-                                }
-                                input(InputType.text) {
-                                    id = "key-identifier"
-                                    placeholder = "email/label"
-                                    classes =
-                                        setOf("input input-bordered input-sm w-full")
-                                }
-                            }
-                            div("flex items-end") {
-                                button(classes = "btn gap-2 btn-sm md:btn-md") {
-                                    id = "generate-key-btn"
-                                    title =
-                                        "Generate Key"
-                                    +"Generate Key"
-                                    embedSvg("/static/svg/regen.svg")
-                                }
-                                span {
-                                    id = "keygen-loading"
-                                    classes =
-                                        setOf("hidden loading loading-spinner loading-sm ml-3")
-                                }
-                            }
-                        }
-                        // Error alert
-                        div("alert alert-error py-2 min-h-0 hidden") {
-                            id = "key-error-alert"
-                            span {
-                                id = "key-error-text"
-                                classes = setOf("text-sm")
-                            }
-                        }
-                        // Outputs
-                        div("grid grid-cols-1 md:grid-cols-2 gap-4") {
-                            div("flex flex-col gap-1") {
-                                div("flex items-center justify-between") {
-                                    span {
-                                        classes = setOf("text-xs font-semibold uppercase tracking-wide")
-                                        +"Public Key"
-                                    }
-                                }
-                                textArea {
-                                    id = "public-key-output"
-                                    classes =
-                                        setOf("textarea textarea-bordered font-mono text-[11px] leading-tight h-40 w-full")
-                                    attributes["readonly"] = "readonly"
-                                }
-                                div("flex gap-2") {
-                                    button(classes = "btn btn-ghost btn-xs copy-btn") {
-                                        // removed inline onClick
-                                        attributes["data-copy-target"] = "public-key-output"
-                                        +"Copy"
-                                    }
-                                    button(classes = "btn btn-ghost btn-xs download-btn") {
-                                        attributes["data-download-target"] = "public-key-output"
-                                        +"Download"
-                                    }
-                                }
-                            }
-                            div("flex flex-col gap-1") {
-                                div("flex items-center justify-between") {
-                                    span {
-                                        classes = setOf("text-xs font-semibold uppercase tracking-wide")
-                                        +"Private Key"
-                                    }
-                                }
-                                textArea {
-                                    id = "private-key-output"
-                                    classes =
-                                        setOf("textarea textarea-bordered font-mono text-[11px] leading-tight h-40 w-full")
-                                    attributes["readonly"] = "readonly"
-                                }
-                                div("flex gap-2") {
-                                    button(classes = "btn btn-ghost btn-xs copy-btn") {
-                                        attributes["data-copy-target"] = "private-key-output"
-                                        +"Copy"
-                                    }
-                                    button(classes = "btn btn-ghost btn-xs download-btn") {
-                                        attributes["data-download-target"] = "private-key-output"
-                                        +"Download"
-                                    }
-                                }
-                            }
-                        }
-                        div("alert alert-warning py-2 min-h-0") {
-                            span {
-                                classes = setOf("text-xs")
-                                +"Keep your private key secret. Never share or commit it. "
-                                strong { +"Note:" }
-                                +" The downloaded private key is unencrypted. To add a passphrase, run: "
-                                code {
-                                    classes = setOf("bg-base-300 px-1 rounded")
-                                    +"ssh-keygen -p -f id_ed25519"
-                                }
-                                +" (replace filename as needed)."
-                            }
-                        }
-                        div("rounded-lg bg-base-200/50 p-3 space-y-2 text-xs font-normal max-h-48 overflow-auto") {
-                            id = "key-instructions"
-                        }
-                    }
-                }
 
                 div {
                     id = "share-result"
@@ -611,40 +677,40 @@ fun getBasePage(
     bodyTags: TagConsumer<StringBuilder>.() -> Unit,
 ): String =
     "<!DOCTYPE html>" +
-            buildHTMLString {
-                getPageHead(pageTitle)
+        buildHTMLString {
+            getPageHead(pageTitle)
 
-                body {
+            body {
+                classes =
+                    setOf(
+                        "min-h-screen flex flex-col",
+                    )
+
+                // Navbar with logo
+                div {
                     classes =
-                        setOf(
-                            "min-h-screen flex flex-col",
-                        )
-
-                    // Navbar with logo
+                        setOf("navbar bg-base-100 flex place-content-between fixed top-0 left-0 right-0 z-30") // ensure on top
                     div {
-                        classes =
-                            setOf("navbar bg-base-100 flex place-content-between fixed top-0 left-0 right-0 z-30") // ensure on top
-                        div {
-                            classes = setOf("flex justify-center items-center ml-3")
-                            a(href = "/") {
-                                img(src = "/static/apple-touch-icon.png", alt = "PassGen Logo") {
-                                    classes = setOf("h-12 w-12 rounded-xl")
-                                }
-                            }
-                            a(href = "/") {
-                                classes = setOf("btn btn-ghost text-xl")
-                                +"PassGen"
+                        classes = setOf("flex justify-center items-center ml-3")
+                        a(href = "/") {
+                            img(src = "/static/apple-touch-icon.png", alt = "PassGen Logo") {
+                                classes = setOf("h-12 w-12 rounded-xl")
                             }
                         }
+                        a(href = "/") {
+                            classes = setOf("btn btn-ghost text-xl")
+                            +"PassGen"
+                        }
+                    }
 
-                        label {
-                            id = "theme-toggle-label"
-                            classes = setOf("swap swap-rotate mr-3")
-                            input {
-                                id = "theme-switcher"
-                                type = InputType.checkBox
-                                addJs(
-                                    """
+                    label {
+                        id = "theme-toggle-label"
+                        classes = setOf("swap swap-rotate mr-3")
+                        input {
+                            id = "theme-switcher"
+                            type = InputType.checkBox
+                            addJs(
+                                """
                                 document.addEventListener('DOMContentLoaded', function() {
                                     const themeToggle = document.getElementById('theme-switcher');
                                     const themeLabel = document.getElementById('theme-toggle-label');
@@ -667,35 +733,38 @@ fun getBasePage(
                                     });
                                 });
                                 """.trimIndent(),
-                                )
-                            }
-                            embedSvg("/static/svg/moon.svg")
-
-                            embedSvg("/static/svg/sun.svg")
+                            )
                         }
-                    }
+                        embedSvg("/static/svg/moon.svg")
 
-                    // Copy Success Tooltip
-                    div("toast toast-top toast-center z-50 pointer-events-none") {
-                        div("alert alert-success shadow-lg transition-opacity duration-300 invisible opacity-0") {
-                            id = "copy-tooltip"
-                            span {
-                                +"Copied to clipboard!"
-                            }
-                        }
-                        div("alert alert-error shadow-lg transition-opacity duration-300 invisible opacity-0") {
-                            id = "copy-tooltip-failed"
-                            span {
-                                +"Failed to copy"
-                            }
-                        }
+                        embedSvg("/static/svg/sun.svg")
                     }
-
-                    div {
-                        classes = setOf("grow")
-                        bodyTags()
-                    }
-
-                    getFooter()
                 }
+
+                // Copy Success Tooltip (aria-live for screen readers)
+                div("toast toast-top toast-center z-50 pointer-events-none") {
+                    attributes["aria-live"] = "polite"
+                    attributes["aria-atomic"] = "true"
+                    role = "status"
+                    div("alert alert-success shadow-lg transition-opacity duration-300 invisible opacity-0") {
+                        id = "copy-tooltip"
+                        span {
+                            +"Copied to clipboard!"
+                        }
+                    }
+                    div("alert alert-error shadow-lg transition-opacity duration-300 invisible opacity-0") {
+                        id = "copy-tooltip-failed"
+                        span {
+                            +"Failed to copy"
+                        }
+                    }
+                }
+
+                div {
+                    classes = setOf("grow")
+                    bodyTags()
+                }
+
+                getFooter()
             }
+        }

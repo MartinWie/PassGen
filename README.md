@@ -99,32 +99,33 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 - Do personal security audit of the key gen and check if messed up somewhere (make sure we are secure)
 - Add go home button to expired shares page
 - Make contrast/shadows on light theme better
-- add required footer stuff
+- add required footer stuff(use marble game repo as inspiration) and add a about page with technical explanation and why
+  this is secure. -> that explains the process
+    - Password generation
+    - How a share is stored
+    - What is used for the Keygen
 - security page in footer, private key on device generation + describe how password sharing is made save.
 - host(passgen io/sh/...?)
-    - For docker image check out distroless vs coretto distroless looks promising for size
-- Add Keyboard navigation
+    - For docker image check out distroless(similar setup as marbles)
+- Add Keyboard navigation(small icon that reveals the keymap)
     - UI for this? mini icon with popup on click
     - Mac vs Linux vs Win
     - K vs P for main screen S for the share variant R for (re)gen
-- Add posthog
-- Cookie banner?
+- Add posthog(similar setup as marbles with different project)
+- Cookie banner?(Similar as marbles)
 - Add workos for logins
     - login functionality requires monthly fee(check how this works with payment provider)
     - Remove bottom Github and donation link and add imp
     - users can view/delete their own shares
-    - enterprise users can create subdomains like companyX.passgen....
+    - enterprise users can create subdomains like companyX.passgen....(checkout workos pricing for SSO to see how much
+      enterprise would cost)
     - enterprise users can can invite other users to the subdomain(admin and users)
         - Admins can view/delete all subdomain shares
-        - Admins can change the icon and name of the page
         - Normal users can just manage their own shares
 - auto delete of shares(cleanup process 7days pro and business users can set any number up to a year or unlimited(job
   that changes the status of a user also needs to cleanup))
 - Marketing: Checkout quota and Reddit for password sharing SFTP setup admin subreddit
-- Add feedback option/page(look into new project for that)
-- Move parts into lib
-    - HTMX code
-    - HTML stuff
+- Add feedback option/page(look into new project for that, maybe posthog has something)
 - Optimize
     - click to response time?
         - Check where we can add loaders
@@ -133,10 +134,6 @@ aenv -e Prod -s Passgen bash fullBuild.sh
         - Introduce static html pages?
         - Build step to produce the pages?
         - checkout creating static html files for a CDN?
-- Add docs page that explains the process
-    - Password generation
-    - How a share is stored
-    - What is used for the Keygen
 - Think about cleanup database records
     - Cronjob?
     - Database config?

@@ -87,8 +87,8 @@ test.describe('Password Generation', () => {
     // Click settings button
     await page.locator('label[title="Settings"]').click();
     
-    // Dropdown content should be visible
-    const dropdown = page.locator('.dropdown-content');
+    // Dropdown content should be visible (use password section's dropdown)
+    const dropdown = page.locator('#password-section .dropdown-content');
     await expect(dropdown).toBeVisible();
     
     // Should contain language select
@@ -460,29 +460,33 @@ test.describe('Key Generation View', () => {
     await page.locator('#custom-toggle').click();
     await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
     
-    // Check all required UI elements are visible
+    // Check main UI elements are visible (generate button, settings dropdown)
+    await expect(page.locator('#generate-key-btn')).toBeVisible();
+    await expect(page.locator('#key-empty-state')).toBeVisible();
+    
+    // Settings are in a dropdown - open it by clicking the settings button and check
+    const settingsDropdown = page.getByTitle('Key Settings');
+    await settingsDropdown.click();
     await expect(page.locator('#key-purpose')).toBeVisible();
     await expect(page.locator('#key-algorithm')).toBeVisible();
-    await expect(page.locator('#generate-key-btn')).toBeVisible();
-    await expect(page.locator('#public-key-output')).toBeVisible();
-    await expect(page.locator('#private-key-output')).toBeVisible();
   });
 
-  test('should have equal width textareas for public and private keys', async ({ page }) => {
+  test('should show key output after generation', async ({ page }) => {
     await page.goto('/');
     
     // Switch to key generation mode
     await page.locator('#custom-toggle').click();
     await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
     
-    // Get bounding boxes of both textareas
-    const publicKeyBox = await page.locator('#public-key-output').boundingBox();
-    const privateKeyBox = await page.locator('#private-key-output').boundingBox();
+    // Output section should be hidden initially
+    await expect(page.locator('#key-output-section')).toHaveClass(/hidden/);
     
-    // Verify both textareas exist and have similar widths (within 5px tolerance)
-    expect(publicKeyBox).not.toBeNull();
-    expect(privateKeyBox).not.toBeNull();
-    expect(Math.abs(publicKeyBox!.width - privateKeyBox!.width)).toBeLessThan(5);
+    // Generate a key
+    await page.locator('#generate-key-btn').click();
+    
+    // Wait for generation and output section to appear
+    await expect(page.locator('#key-output-section')).not.toHaveClass(/hidden/, { timeout: 10000 });
+    await expect(page.locator('#public-key-output')).toBeVisible();
   });
 
   test('should generate Ed25519 key pair', async ({ page }) => {
@@ -491,9 +495,6 @@ test.describe('Key Generation View', () => {
     // Switch to key generation mode
     await page.locator('#custom-toggle').click();
     await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
-    
-    // Select Ed25519 algorithm (default)
-    await expect(page.locator('#key-algorithm')).toHaveValue('ed25519');
     
     // Click generate key button
     await page.locator('#generate-key-btn').click();
@@ -504,7 +505,8 @@ test.describe('Key Generation View', () => {
       expect(publicKey).toContain('ssh-ed25519');
     }).toPass({ timeout: 10000 });
     
-    // Verify private key is also generated
+    // Switch to private key tab and verify
+    await page.locator('#tab-private').click();
     const privateKey = await page.locator('#private-key-output').inputValue();
     expect(privateKey).toContain('-----BEGIN OPENSSH PRIVATE KEY-----');
     expect(privateKey).toContain('-----END OPENSSH PRIVATE KEY-----');
@@ -517,11 +519,17 @@ test.describe('Key Generation View', () => {
     await page.locator('#custom-toggle').click();
     await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
     
-    // Check copy buttons exist
-    const publicKeyCopyBtn = page.locator('button[data-copy-target="public-key-output"]');
-    const privateKeyCopyBtn = page.locator('button[data-copy-target="private-key-output"]');
+    // Generate a key first (buttons only visible after generation)
+    await page.locator('#generate-key-btn').click();
+    await expect(page.locator('#key-output-section')).not.toHaveClass(/hidden/, { timeout: 10000 });
     
+    // Check copy button in public key tab
+    const publicKeyCopyBtn = page.locator('button[data-copy-target="public-key-output"]');
     await expect(publicKeyCopyBtn).toBeVisible();
+    
+    // Switch to private key tab and check copy button
+    await page.locator('#tab-private').click();
+    const privateKeyCopyBtn = page.locator('button[data-copy-target="private-key-output"]');
     await expect(privateKeyCopyBtn).toBeVisible();
   });
 
@@ -561,10 +569,256 @@ test.describe('Key Generation View', () => {
     await page.locator('#custom-toggle').click();
     await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
     
+    // Generate a key first (warning is in private key tab, shown after generation)
+    await page.locator('#generate-key-btn').click();
+    await expect(page.locator('#key-output-section')).not.toHaveClass(/hidden/, { timeout: 10000 });
+    
+    // Switch to private key tab
+    await page.locator('#tab-private').click();
+    
     // Check for the warning message
-    const warning = page.locator('#keygen-section .alert-warning');
+    const warning = page.locator('#panel-private .alert-warning');
     await expect(warning).toBeVisible();
     await expect(warning).toContainText('unencrypted');
     await expect(warning).toContainText('ssh-keygen');
+  });
+
+  test('should clear private key when clicking clear button', async ({ page }) => {
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Generate a key first
+    await page.locator('#generate-key-btn').click();
+    await expect(page.locator('#key-output-section')).not.toHaveClass(/hidden/, { timeout: 10000 });
+    
+    // Switch to private key tab
+    await page.locator('#tab-private').click();
+    
+    // Verify private key has content
+    const privateKeyOutput = page.locator('#private-key-output');
+    await expect(async () => {
+      const value = await privateKeyOutput.inputValue();
+      expect(value).toContain('-----BEGIN OPENSSH PRIVATE KEY-----');
+    }).toPass({ timeout: 5000 });
+    
+    // Click clear button
+    const clearBtn = page.locator('#clear-private-key-btn');
+    await expect(clearBtn).toBeVisible();
+    await clearBtn.click();
+    
+    // Verify private key is cleared
+    await expect(privateKeyOutput).toHaveValue('');
+    
+    // Verify switched back to public tab
+    await expect(page.locator('#panel-public')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#panel-private')).toHaveClass(/hidden/);
+  });
+
+  test('should have accessible tabs with proper ARIA attributes', async ({ page }) => {
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Generate a key to show tabs
+    await page.locator('#generate-key-btn').click();
+    await expect(page.locator('#key-output-section')).not.toHaveClass(/hidden/, { timeout: 10000 });
+    
+    // Verify tablist role
+    const tablist = page.locator('[role="tablist"]');
+    await expect(tablist).toBeVisible();
+    
+    // Verify tab roles and attributes
+    const publicTab = page.locator('#tab-public');
+    const privateTab = page.locator('#tab-private');
+    
+    await expect(publicTab).toHaveAttribute('role', 'tab');
+    await expect(publicTab).toHaveAttribute('aria-selected', 'true');
+    await expect(publicTab).toHaveAttribute('aria-controls', 'panel-public');
+    
+    await expect(privateTab).toHaveAttribute('role', 'tab');
+    await expect(privateTab).toHaveAttribute('aria-selected', 'false');
+    await expect(privateTab).toHaveAttribute('aria-controls', 'panel-private');
+    
+    // Verify tabpanel roles
+    const publicPanel = page.locator('#panel-public');
+    const privatePanel = page.locator('#panel-private');
+    
+    await expect(publicPanel).toHaveAttribute('role', 'tabpanel');
+    await expect(publicPanel).toHaveAttribute('aria-labelledby', 'tab-public');
+    
+    await expect(privatePanel).toHaveAttribute('role', 'tabpanel');
+    await expect(privatePanel).toHaveAttribute('aria-labelledby', 'tab-private');
+  });
+
+  test('should support keyboard navigation for tabs', async ({ page }) => {
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Generate a key to show tabs
+    await page.locator('#generate-key-btn').click();
+    await expect(page.locator('#key-output-section')).not.toHaveClass(/hidden/, { timeout: 10000 });
+    
+    // Focus the public tab
+    const publicTab = page.locator('#tab-public');
+    await publicTab.focus();
+    
+    // Press ArrowRight to move to private tab
+    await page.keyboard.press('ArrowRight');
+    
+    // Verify private tab is now selected
+    await expect(page.locator('#tab-private')).toHaveAttribute('aria-selected', 'true');
+    await expect(page.locator('#tab-public')).toHaveAttribute('aria-selected', 'false');
+    await expect(page.locator('#panel-private')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#panel-public')).toHaveClass(/hidden/);
+    
+    // Press ArrowLeft to go back to public tab
+    await page.keyboard.press('ArrowLeft');
+    
+    // Verify public tab is selected again
+    await expect(page.locator('#tab-public')).toHaveAttribute('aria-selected', 'true');
+    await expect(page.locator('#tab-private')).toHaveAttribute('aria-selected', 'false');
+    await expect(page.locator('#panel-public')).not.toHaveClass(/hidden/);
+  });
+
+  test('should have aria-live region for toast notifications', async ({ page }) => {
+    await page.goto('/');
+    
+    // Check toast container has aria-live attributes
+    const toastContainer = page.locator('.toast.toast-top.toast-center');
+    await expect(toastContainer).toHaveAttribute('aria-live', 'polite');
+    await expect(toastContainer).toHaveAttribute('aria-atomic', 'true');
+    await expect(toastContainer).toHaveAttribute('role', 'status');
+  });
+});
+
+test.describe('ECDSA and RSA Key Generation @slow', () => {
+  test('should generate ECDSA P-256 key pair', async ({ page }) => {
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Open settings and select ECDSA P-256
+    const settingsDropdown = page.getByTitle('Key Settings');
+    await settingsDropdown.click();
+    await page.locator('#key-algorithm').selectOption('ecdsa-p256');
+    
+    // Close dropdown by clicking elsewhere
+    await page.locator('#keygen-section').click({ position: { x: 10, y: 10 } });
+    
+    // Generate the key
+    await page.locator('#generate-key-btn').click();
+    
+    // Wait for keys to be generated
+    await expect(async () => {
+      const publicKey = await page.locator('#public-key-output').inputValue();
+      expect(publicKey).toContain('ecdsa-sha2-nistp256');
+    }).toPass({ timeout: 15000 });
+    
+    // Verify key type display
+    await expect(page.locator('#key-type-display')).toContainText('ECDSA P-256');
+    
+    // Switch to private key tab and verify format
+    await page.locator('#tab-private').click();
+    const privateKey = await page.locator('#private-key-output').inputValue();
+    expect(privateKey).toContain('-----BEGIN OPENSSH PRIVATE KEY-----');
+  });
+
+  test('should generate ECDSA P-384 key pair', async ({ page }) => {
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Open settings and select ECDSA P-384
+    const settingsDropdown = page.getByTitle('Key Settings');
+    await settingsDropdown.click();
+    await page.locator('#key-algorithm').selectOption('ecdsa-p384');
+    
+    // Close dropdown
+    await page.locator('#keygen-section').click({ position: { x: 10, y: 10 } });
+    
+    // Generate the key
+    await page.locator('#generate-key-btn').click();
+    
+    // Wait for keys to be generated
+    await expect(async () => {
+      const publicKey = await page.locator('#public-key-output').inputValue();
+      expect(publicKey).toContain('ecdsa-sha2-nistp384');
+    }).toPass({ timeout: 15000 });
+    
+    // Verify key type display
+    await expect(page.locator('#key-type-display')).toContainText('ECDSA P-384');
+  });
+
+  test('should generate RSA 2048 key pair', async ({ page }) => {
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Open settings and select RSA 2048
+    const settingsDropdown = page.getByTitle('Key Settings');
+    await settingsDropdown.click();
+    await page.locator('#key-algorithm').selectOption('rsa-2048');
+    
+    // Close dropdown
+    await page.locator('#keygen-section').click({ position: { x: 10, y: 10 } });
+    
+    // Generate the key
+    await page.locator('#generate-key-btn').click();
+    
+    // Wait for keys to be generated (RSA is slower)
+    await expect(async () => {
+      const publicKey = await page.locator('#public-key-output').inputValue();
+      expect(publicKey).toContain('ssh-rsa');
+    }).toPass({ timeout: 30000 });
+    
+    // Verify key type display
+    await expect(page.locator('#key-type-display')).toContainText('RSA 2048');
+    
+    // Verify private key format
+    await page.locator('#tab-private').click();
+    const privateKey = await page.locator('#private-key-output').inputValue();
+    expect(privateKey).toContain('-----BEGIN OPENSSH PRIVATE KEY-----');
+  });
+
+  test('should generate RSA 4096 key pair', async ({ page }) => {
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Open settings and select RSA 4096
+    const settingsDropdown = page.getByTitle('Key Settings');
+    await settingsDropdown.click();
+    await page.locator('#key-algorithm').selectOption('rsa-4096');
+    
+    // Close dropdown
+    await page.locator('#keygen-section').click({ position: { x: 10, y: 10 } });
+    
+    // Generate the key
+    await page.locator('#generate-key-btn').click();
+    
+    // Wait for keys to be generated (RSA 4096 is much slower)
+    await expect(async () => {
+      const publicKey = await page.locator('#public-key-output').inputValue();
+      expect(publicKey).toContain('ssh-rsa');
+    }).toPass({ timeout: 60000 });
+    
+    // Verify key type display
+    await expect(page.locator('#key-type-display')).toContainText('RSA 4096');
   });
 });
