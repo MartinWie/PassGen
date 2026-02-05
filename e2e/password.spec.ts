@@ -562,27 +562,6 @@ test.describe('Key Generation View', () => {
     expect(clipboardContent).toBe(publicKeyValue);
   });
 
-  test('should display warning about unencrypted private keys', async ({ page }) => {
-    await page.goto('/');
-    
-    // Switch to key generation mode
-    await page.locator('#custom-toggle').click();
-    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
-    
-    // Generate a key first (warning is in private key tab, shown after generation)
-    await page.locator('#generate-key-btn').click();
-    await expect(page.locator('#key-output-section')).not.toHaveClass(/hidden/, { timeout: 10000 });
-    
-    // Switch to private key tab
-    await page.locator('#tab-private').click();
-    
-    // Check for the warning message
-    const warning = page.locator('#panel-private .alert-warning');
-    await expect(warning).toBeVisible();
-    await expect(warning).toContainText('unencrypted');
-    await expect(warning).toContainText('ssh-keygen');
-  });
-
   test('should clear private key when clicking clear button', async ({ page }) => {
     await page.goto('/');
     
@@ -696,6 +675,258 @@ test.describe('Key Generation View', () => {
     await expect(toastContainer).toHaveAttribute('aria-live', 'polite');
     await expect(toastContainer).toHaveAttribute('aria-atomic', 'true');
     await expect(toastContainer).toHaveAttribute('role', 'status');
+  });
+});
+
+test.describe('Key Comment Toggle', () => {
+  test('should have key comment toggle hidden by default', async ({ page }) => {
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Open key settings dropdown
+    const settingsDropdown = page.getByTitle('Key Settings');
+    await settingsDropdown.click();
+    
+    // The checkbox should be visible but unchecked
+    const toggle = page.locator('#show-identifier-toggle');
+    await expect(toggle).toBeVisible();
+    await expect(toggle).not.toBeChecked();
+    
+    // The input wrapper should be hidden
+    const inputWrapper = page.locator('#identifier-input-wrapper');
+    await expect(inputWrapper).toHaveClass(/hidden/);
+  });
+
+  test('should show key comment input when toggle is checked', async ({ page }) => {
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Open key settings dropdown
+    const settingsDropdown = page.getByTitle('Key Settings');
+    await settingsDropdown.click();
+    
+    // Check the toggle
+    const toggle = page.locator('#show-identifier-toggle');
+    await toggle.check();
+    
+    // The input wrapper should now be visible
+    const inputWrapper = page.locator('#identifier-input-wrapper');
+    await expect(inputWrapper).not.toHaveClass(/hidden/);
+    
+    // The input should be visible
+    const input = page.locator('#key-identifier');
+    await expect(input).toBeVisible();
+  });
+
+  test('should clear key comment input when toggle is unchecked', async ({ page }) => {
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Open key settings dropdown
+    const settingsDropdown = page.getByTitle('Key Settings');
+    await settingsDropdown.click();
+    
+    // Check the toggle to show input
+    const toggle = page.locator('#show-identifier-toggle');
+    await toggle.check();
+    
+    // Type a value in the input
+    const input = page.locator('#key-identifier');
+    await input.fill('test@hostname');
+    await expect(input).toHaveValue('test@hostname');
+    
+    // Uncheck the toggle
+    await toggle.uncheck();
+    
+    // The input wrapper should be hidden
+    const inputWrapper = page.locator('#identifier-input-wrapper');
+    await expect(inputWrapper).toHaveClass(/hidden/);
+    
+    // Check the toggle again
+    await toggle.check();
+    
+    // The input should be cleared
+    await expect(input).toHaveValue('');
+  });
+
+  test('should have proper ARIA attributes for accessibility', async ({ page }) => {
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Open key settings dropdown
+    const settingsDropdown = page.getByTitle('Key Settings');
+    await settingsDropdown.click();
+    
+    const toggle = page.locator('#show-identifier-toggle');
+    
+    // Initially should have aria-expanded="false"
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(toggle).toHaveAttribute('aria-controls', 'identifier-input-wrapper');
+    
+    // Check the toggle
+    await toggle.check();
+    
+    // aria-expanded should now be "true"
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    
+    // Uncheck the toggle
+    await toggle.uncheck();
+    
+    // aria-expanded should be "false" again
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  test('should focus key comment input when toggle is checked', async ({ page }) => {
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Open key settings dropdown
+    const settingsDropdown = page.getByTitle('Key Settings');
+    await settingsDropdown.click();
+    
+    // Check the toggle
+    const toggle = page.locator('#show-identifier-toggle');
+    await toggle.check();
+    
+    // The input should receive focus
+    const input = page.locator('#key-identifier');
+    await expect(input).toBeFocused();
+  });
+});
+
+test.describe('Purpose-based Key Settings', () => {
+  test('should show SSH placeholder by default', async ({ page }) => {
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Open key settings dropdown
+    const settingsDropdown = page.getByTitle('Key Settings');
+    await settingsDropdown.click();
+    
+    // Show the comment input
+    await page.locator('#show-identifier-toggle').check();
+    
+    // Verify SSH placeholder
+    const input = page.locator('#key-identifier');
+    await expect(input).toHaveAttribute('placeholder', 'user@hostname');
+  });
+
+  test('should change placeholder when switching to Git Signing', async ({ page }) => {
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Open key settings dropdown
+    const settingsDropdown = page.getByTitle('Key Settings');
+    await settingsDropdown.click();
+    
+    // Show the comment input
+    await page.locator('#show-identifier-toggle').check();
+    
+    // Switch to Git Signing purpose
+    await page.locator('#key-purpose').selectOption('git');
+    
+    // Verify Git placeholder
+    const input = page.locator('#key-identifier');
+    await expect(input).toHaveAttribute('placeholder', 'your@email.com');
+  });
+
+  test('should show correct download button labels for SSH', async ({ page }) => {
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Generate a key (default is SSH + Ed25519)
+    await page.locator('#generate-key-btn').click();
+    
+    // Wait for key generation
+    await expect(page.locator('#key-output-section')).not.toHaveClass(/hidden/, { timeout: 10000 });
+    
+    // Verify download button labels for SSH (filename shown in code element)
+    const publicLabel = page.locator('#download-public-label');
+    const privateLabel = page.locator('#download-private-label');
+    
+    await expect(publicLabel).toHaveText('id_ed25519.pub');
+    await expect(privateLabel).toHaveText('id_ed25519');
+    
+    // Verify buttons also contain "Download" text
+    await expect(page.locator('#download-public-btn')).toContainText('Download');
+    await expect(page.locator('#download-private-btn')).toContainText('Download');
+  });
+
+  test('should show correct download button labels for Git Signing', async ({ page }) => {
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Open settings and select Git Signing
+    const settingsDropdown = page.getByTitle('Key Settings');
+    await settingsDropdown.click();
+    await page.locator('#key-purpose').selectOption('git');
+    
+    // Close dropdown
+    await page.locator('#keygen-section').click({ position: { x: 10, y: 10 } });
+    
+    // Generate a key
+    await page.locator('#generate-key-btn').click();
+    
+    // Wait for key generation
+    await expect(page.locator('#key-output-section')).not.toHaveClass(/hidden/, { timeout: 10000 });
+    
+    // Verify download button labels for Git Signing
+    const publicLabel = page.locator('#download-public-label');
+    const privateLabel = page.locator('#download-private-label');
+    
+    await expect(publicLabel).toHaveText('id_ed25519_signing.pub');
+    await expect(privateLabel).toHaveText('id_ed25519_signing');
+  });
+
+  test('should update download labels when algorithm changes', async ({ page }) => {
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Generate initial key (Ed25519)
+    await page.locator('#generate-key-btn').click();
+    await expect(page.locator('#key-output-section')).not.toHaveClass(/hidden/, { timeout: 10000 });
+    
+    // Verify initial labels
+    await expect(page.locator('#download-public-label')).toHaveText('id_ed25519.pub');
+    
+    // Open settings and change algorithm
+    const settingsDropdown = page.getByTitle('Key Settings');
+    await settingsDropdown.click();
+    await page.locator('#key-algorithm').selectOption('ecdsa-p256');
+    
+    // Labels should update immediately (even without regenerating)
+    await expect(page.locator('#download-public-label')).toHaveText('id_ecdsa.pub');
+    await expect(page.locator('#download-private-label')).toHaveText('id_ecdsa');
   });
 });
 

@@ -9,10 +9,10 @@ fun getLandingPage(pageTitle: String): String =
     getBasePage(pageTitle) {
         div("flex items-center justify-center min-h-screen p-4 md:p-6 pt-24") {
             div("min-w-full sm:min-w-max md:min-w-3xl mx-auto") {
-                // Simplified (no animation wrapper) PASSWORD SECTION
+                // PASSWORD SECTION with slide + scale transition
                 div {
                     id = "password-section"
-                    classes = setOf("")
+                    classes = setOf("transition-all", "duration-300", "ease-out", "transform", "relative", "z-20")
                     // original password generator container
                     div(
                         "flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-3 border border-gray-200 rounded-xl p-2 md:p-3 focus-within:ring-1 focus-within:ring-base-content focus-within:border-base-content shadow-xs",
@@ -54,15 +54,15 @@ fun getLandingPage(pageTitle: String): String =
                                 embedSvg("/static/svg/regen.svg")
                             }
 
-                            // Settings Dropdown
-                            div("dropdown md:dropdown-top dropdown-left") {
+                            // Settings Dropdown (dropdown-end aligns content to right edge, preventing overflow)
+                            div("dropdown dropdown-end") {
                                 label {
                                     tabIndex = "0"
                                     classes = setOf("btn", "btn-ghost")
                                     title = "Settings"
                                     embedSvg("/static/svg/settings.svg")
                                 }
-                                div("dropdown-content z-1 menu p-4 shadow-lg bg-base-100 rounded-xl w-48 md:w-64 text-base") {
+                                div("dropdown-content z-50 menu p-4 shadow-lg bg-base-100 rounded-xl w-48 md:w-64 text-base") {
                                     tabIndex = "0"
                                     h3 {
                                         classes = setOf("font-medium", "mb-3", "text-lg")
@@ -346,10 +346,10 @@ fun getLandingPage(pageTitle: String): String =
                         }
                     }
                 }
-                // KEY GENERATION SECTION (simple hidden by default; removed animation classes)
+                // KEY GENERATION SECTION with slide + scale transition (hidden by default)
                 div {
                     id = "keygen-section"
-                    classes = setOf("hidden")
+                    classes = setOf("hidden", "transition-all", "duration-300", "ease-out", "transform", "relative", "z-20")
                     // Main container matching password UI style
                     div(
                         "flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-3 border border-gray-200 rounded-xl p-2 md:p-3 focus-within:ring-1 focus-within:ring-base-content focus-within:border-base-content shadow-xs",
@@ -376,6 +376,14 @@ fun getLandingPage(pageTitle: String): String =
                                     span("text-base-content/60 text-sm") {
                                         +"key pair generated"
                                     }
+                                    // Library info tooltip (shown after generation)
+                                    div("tooltip tooltip-bottom") {
+                                        id = "key-library-tooltip"
+                                        attributes["data-tip"] = "Generated using TweetNaCl"
+                                        span("w-4 h-4 opacity-60 hover:opacity-100 cursor-help inline-flex") {
+                                            embedSvg("/static/svg/alert-info.svg")
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -392,15 +400,15 @@ fun getLandingPage(pageTitle: String): String =
                                 }
                             }
 
-                            // Settings Dropdown
-                            div("dropdown md:dropdown-top dropdown-left") {
+                            // Settings Dropdown (dropdown-end aligns content to right edge, preventing overflow)
+                            div("dropdown dropdown-end") {
                                 label {
                                     tabIndex = "0"
                                     classes = setOf("btn", "btn-ghost")
                                     title = "Key Settings"
                                     embedSvg("/static/svg/settings.svg")
                                 }
-                                div("dropdown-content z-1 menu p-4 shadow-lg bg-base-100 rounded-xl w-64 text-base") {
+                                div("dropdown-content z-50 menu p-4 shadow-lg bg-base-100 rounded-xl w-64 text-base") {
                                     tabIndex = "0"
                                     h3("font-medium mb-3 text-lg") {
                                         +"Key Settings"
@@ -409,7 +417,17 @@ fun getLandingPage(pageTitle: String): String =
                                     // Algorithm Selection
                                     div("form-control mb-3") {
                                         label("label py-1") {
-                                            span("label-text text-sm") { +"Algorithm" }
+                                            div("flex items-center gap-1") {
+                                                span("label-text text-sm") { +"Algorithm" }
+                                                // Info tooltip about libraries used
+                                                div("tooltip tooltip-bottom") {
+                                                    attributes["data-tip"] =
+                                                        "Ed25519 uses TweetNaCl | ECDSA/RSA use Web Crypto API"
+                                                    span("w-4 h-4 opacity-60 hover:opacity-100 cursor-help inline-flex") {
+                                                        embedSvg("/static/svg/alert-info.svg")
+                                                    }
+                                                }
+                                            }
                                         }
                                         select {
                                             id = "key-algorithm"
@@ -457,16 +475,48 @@ fun getLandingPage(pageTitle: String): String =
                                         }
                                     }
 
-                                    // Identifier (optional)
+                                    // Key Comment (optional, collapsible)
                                     div("form-control") {
-                                        id = "identifier-wrapper"
-                                        label("label py-1") {
-                                            span("label-text text-sm") { +"Comment (optional)" }
+                                        // Toggle to show/hide comment input
+                                        label("label py-1 cursor-pointer justify-start gap-2") {
+                                            input(InputType.checkBox) {
+                                                id = "show-identifier-toggle"
+                                                classes = setOf("checkbox", "checkbox-sm")
+                                                attributes["aria-expanded"] = "false"
+                                                attributes["aria-controls"] = "identifier-input-wrapper"
+                                                onEvent(
+                                                    JsEvent.ON_CHANGE,
+                                                    """
+                                                    const wrapper = document.getElementById('identifier-input-wrapper');
+                                                    if(this.checked) {
+                                                        wrapper.classList.remove('hidden');
+                                                        this.setAttribute('aria-expanded', 'true');
+                                                        document.getElementById('key-identifier').focus();
+                                                    } else {
+                                                        wrapper.classList.add('hidden');
+                                                        this.setAttribute('aria-expanded', 'false');
+                                                        document.getElementById('key-identifier').value = '';
+                                                    }
+                                                    """.trimIndent(),
+                                                )
+                                            }
+                                            span("label-text text-sm") { +"Add key comment" }
+                                            div("tooltip tooltip-right") {
+                                                attributes["data-tip"] =
+                                                    "Optional label embedded in the key (e.g. user@host)"
+                                                span("w-4 h-4 opacity-60 hover:opacity-100 cursor-help inline-flex") {
+                                                    embedSvg("/static/svg/alert-info.svg")
+                                                }
+                                            }
                                         }
-                                        input(InputType.text) {
-                                            id = "key-identifier"
-                                            placeholder = "email@example.com"
-                                            classes = setOf("input input-bordered w-full")
+                                        // Hidden input wrapper
+                                        div("hidden") {
+                                            id = "identifier-input-wrapper"
+                                            input(InputType.text) {
+                                                id = "key-identifier"
+                                                placeholder = "user@hostname"
+                                                classes = setOf("input", "input-bordered", "w-full", "input-sm")
+                                            }
                                         }
                                     }
                                 }
@@ -522,7 +572,8 @@ fun getLandingPage(pageTitle: String): String =
                                 attributes["aria-labelledby"] = "tab-public"
                                 textArea {
                                     id = "public-key-output"
-                                    classes = setOf("textarea textarea-bordered font-mono text-xs leading-tight h-32 w-full bg-base-200/30")
+                                    classes =
+                                        setOf("textarea textarea-bordered font-mono text-xs leading-tight h-32 w-full bg-base-200/30")
                                     attributes["readonly"] = "readonly"
                                 }
                                 div("flex gap-2 mt-2") {
@@ -533,9 +584,15 @@ fun getLandingPage(pageTitle: String): String =
                                         +"Copy"
                                     }
                                     button(classes = "btn btn-sm btn-ghost download-btn") {
+                                        id = "download-public-btn"
                                         attributes["data-download-target"] = "public-key-output"
                                         attributes["aria-label"] = "Download public key"
-                                        +"Download .pub"
+                                        embedSvg("/static/svg/download.svg")
+                                        +"Download "
+                                        code("text-xs opacity-70") {
+                                            id = "download-public-label"
+                                            +".pub"
+                                        }
                                     }
                                 }
                             }
@@ -547,7 +604,8 @@ fun getLandingPage(pageTitle: String): String =
                                 attributes["aria-labelledby"] = "tab-private"
                                 textArea {
                                     id = "private-key-output"
-                                    classes = setOf("textarea textarea-bordered font-mono text-xs leading-tight h-32 w-full bg-base-200/30")
+                                    classes =
+                                        setOf("textarea textarea-bordered font-mono text-xs leading-tight h-32 w-full bg-base-200/30")
                                     attributes["readonly"] = "readonly"
                                 }
                                 div("flex gap-2 mt-2") {
@@ -558,24 +616,21 @@ fun getLandingPage(pageTitle: String): String =
                                         +"Copy"
                                     }
                                     button(classes = "btn btn-sm btn-ghost download-btn") {
+                                        id = "download-private-btn"
                                         attributes["data-download-target"] = "private-key-output"
                                         attributes["aria-label"] = "Download private key"
-                                        +"Download"
+                                        embedSvg("/static/svg/download.svg")
+                                        +"Download "
+                                        code("text-xs opacity-70") {
+                                            id = "download-private-label"
+                                            +"key"
+                                        }
                                     }
                                     button(classes = "btn btn-sm btn-ghost btn-error clear-private-key-btn") {
                                         id = "clear-private-key-btn"
                                         attributes["aria-label"] = "Clear private key from memory"
                                         title = "Clear private key from display"
                                         +"Clear"
-                                    }
-                                }
-                                // Warning inside private tab
-                                div("alert alert-warning py-2 mt-3 text-xs") {
-                                    span {
-                                        +"Private key is unencrypted. To add a passphrase: "
-                                        code("bg-base-300 px-1 rounded") {
-                                            +"ssh-keygen -p -f your_key"
-                                        }
                                     }
                                 }
                             }
@@ -594,7 +649,7 @@ fun getLandingPage(pageTitle: String): String =
                 }
 
                 // Mode Toggle (below both password and key sections)
-                div("flex flex-col justify-center items-center gap-3 mt-4 md:sticky md:top-20 z-20") {
+                div("flex flex-col justify-center items-center gap-3 mt-4 md:sticky md:top-20 z-10") {
                     // Hidden checkbox for form submission
                     input(type = InputType.checkBox) {
                         id = "generation-mode-hidden"
@@ -640,7 +695,7 @@ fun getLandingPage(pageTitle: String): String =
                             }
                         }
 
-                        // Toggle behavior script
+                        // Toggle behavior script with slide + scale animation
                         addJs(
                             """
                             document.addEventListener('DOMContentLoaded', function(){
@@ -649,15 +704,78 @@ fun getLandingPage(pageTitle: String): String =
                               const thumb = document.getElementById('toggle-thumb');
                               const pwd = document.getElementById('password-section');
                               const key = document.getElementById('keygen-section');
-                              function apply(mode){
-                                if(mode==='key'){ pwd.classList.add('hidden'); key.classList.remove('hidden'); thumb.style.transform='translateX(60px)'; }
-                                else { key.classList.add('hidden'); pwd.classList.remove('hidden'); thumb.style.transform='translateX(0)'; }
+                              
+                              // Animation helper - applies transform classes
+                              function setTransform(el, translateX, scale, opacity) {
+                                el.style.transform = 'translateX(' + translateX + ') scale(' + scale + ')';
+                                el.style.opacity = opacity;
                               }
+                              
+                              function apply(mode, animate){
+                                const duration = 250;
+                                
+                                if(mode==='key'){
+                                  if(animate){
+                                    // Slide password out to the left + scale down
+                                    setTransform(pwd, '-20px', '0.95', '0');
+                                    
+                                    setTimeout(() => {
+                                      pwd.classList.add('hidden');
+                                      // Prepare key section: start from right, scaled down
+                                      key.classList.remove('hidden');
+                                      setTransform(key, '20px', '0.95', '0');
+                                      
+                                      // Force reflow
+                                      key.offsetHeight;
+                                      
+                                      // Animate in
+                                      setTransform(key, '0px', '1', '1');
+                                    }, duration);
+                                  } else {
+                                    pwd.classList.add('hidden');
+                                    key.classList.remove('hidden');
+                                    setTransform(pwd, '0px', '1', '1');
+                                    setTransform(key, '0px', '1', '1');
+                                  }
+                                  thumb.style.transform='translateX(60px)';
+                                } else {
+                                  if(animate){
+                                    // Slide key out to the right + scale down
+                                    setTransform(key, '20px', '0.95', '0');
+                                    
+                                    setTimeout(() => {
+                                      key.classList.add('hidden');
+                                      // Prepare password section: start from left, scaled down
+                                      pwd.classList.remove('hidden');
+                                      setTransform(pwd, '-20px', '0.95', '0');
+                                      
+                                      // Force reflow
+                                      pwd.offsetHeight;
+                                      
+                                      // Animate in
+                                      setTransform(pwd, '0px', '1', '1');
+                                    }, duration);
+                                  } else {
+                                    key.classList.add('hidden');
+                                    pwd.classList.remove('hidden');
+                                    setTransform(pwd, '0px', '1', '1');
+                                    setTransform(key, '0px', '1', '1');
+                                  }
+                                  thumb.style.transform='translateX(0)';
+                                }
+                              }
+                              
                               const stored = localStorage.getItem('generation-mode-hidden');
                               const mode = stored==='key' ? 'key' : 'password';
                               toggleInput.checked = mode==='key';
-                              apply(mode);
-                              toggle.addEventListener('click', ()=>{ const newMode = toggleInput.checked ? 'password':'key'; toggleInput.checked = newMode==='key'; localStorage.setItem('generation-mode-hidden', newMode); apply(newMode); });
+                              apply(mode, false); // No animation on initial load
+                              
+                              toggle.addEventListener('click', ()=>{ 
+                                const newMode = toggleInput.checked ? 'password':'key'; 
+                                toggleInput.checked = newMode==='key'; 
+                                localStorage.setItem('generation-mode-hidden', newMode); 
+                                apply(newMode, true);
+                              });
                             });
                             """,
                         )

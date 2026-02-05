@@ -79,13 +79,11 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 ## Todo's
 
 - Add option to generate Public/Private Keypair in browser client(some sort of toggle)
-    - Add third option("Share" Pk with details on the process) feature similar to password share where we can share a
-      link where the user can dowload a specific private key(
+    - Add option("Share" Pk with details on the process) feature similar to password share where we can share a
+      link where the user can download a specific private key(
       will be generated on click and afterward the link only shows the public key for the user(the private key is only
       generated on the client(make sure the public key that is sent to the server is handled safely so a malicious
       actor can not inject html or js there)))
-    - Add info with hover on the library that is used to generate the Keys
-    - Animation when switching between the password and key screens?
 - Checkout how to move password generation to client
     - list of hidden tags and take form there?
     - Alpine.js

@@ -4,14 +4,14 @@ function clearPrivateKey() {
     const tabPrivate = document.getElementById('tab-private');
     const panelPublic = document.getElementById('panel-public');
     const panelPrivate = document.getElementById('panel-private');
-    
+
     if (privOut) {
         // Overwrite with spaces first (best-effort memory clearing)
         const len = privOut.value.length;
         privOut.value = ' '.repeat(len);
         privOut.value = '';
     }
-    
+
     // Switch back to public tab
     if (tabPublic && tabPrivate && panelPublic && panelPrivate) {
         tabPublic.classList.add('border-primary', 'bg-base-100');
@@ -25,7 +25,7 @@ function clearPrivateKey() {
         panelPublic.classList.remove('hidden');
         panelPrivate.classList.add('hidden');
     }
-    
+
     // Show a toast notification
     const tooltip = document.getElementById('copy-tooltip');
     if (tooltip) {
@@ -52,14 +52,14 @@ function fallbackCopyToClipboard(text) {
     document.body.appendChild(textArea);
     textArea.focus();
     textArea.select();
-    
+
     let success = false;
     try {
         success = document.execCommand('copy');
     } catch (err) {
         console.error('Fallback copy failed:', err);
     }
-    
+
     document.body.removeChild(textArea);
     return success;
 }
@@ -165,7 +165,7 @@ function copyShareUrl() {
 
 function removeHideThenFadeout(element) {
     if (!element) return;
-    
+
     // Show element: remove invisible/opacity-0, add opacity-1
     element.classList.remove('invisible', 'opacity-0');
     element.classList.add('opacity-100');
@@ -635,37 +635,37 @@ async function generateKey() {
     const errText = document.getElementById('key-error-text');
     const keygenIcon = document.getElementById('keygen-icon');
     const generateBtn = document.getElementById('generate-key-btn');
-    
+
     if (rawIdentifier && !identifier) {
         errText.textContent = 'Invalid identifier: only printable ASCII up to 256 chars.';
         errAlert.classList.remove('hidden');
         return;
     }
-    
+
     // Check for secure context requirement for ECDSA/RSA
     if (algo !== 'ed25519' && !window.isSecureContext) {
         errText.textContent = 'ECDSA and RSA require HTTPS. Use Ed25519 or access via HTTPS.';
         errAlert.classList.remove('hidden');
         return;
     }
-    
+
     // Check crypto.subtle availability
     if (algo !== 'ed25519' && (!window.crypto || !window.crypto.subtle)) {
         errText.textContent = 'Web Crypto API not available. Use Ed25519 or a modern browser with HTTPS.';
         errAlert.classList.remove('hidden');
         return;
     }
-    
+
     errAlert.classList.add('hidden');
     pubOut.value = '';
     privOut.value = '';
     // Add spinning animation to the icon (like password regen button)
     if (keygenIcon) keygenIcon.classList.add('animate-spin-reverse');
     generateBtn.disabled = true;
-    
+
     // Track sensitive buffers for cleanup
     let sensitiveBuffers = [];
-    
+
     try {
         let publicKeyText = '';
         let privateKeyText = '';
@@ -723,19 +723,21 @@ async function generateKey() {
             publicKeyText = buildOpenSshRsaPublic(jwkPub, identifier);
             privateKeyText = buildOpenSSHPrivateKeyRSA(jwkPriv, identifier);
             // Clear JWK private fields (best effort - strings are immutable in JS)
-            ['d', 'p', 'q', 'dp', 'dq', 'qi'].forEach(field => { jwkPriv[field] = ''; });
+            ['d', 'p', 'q', 'dp', 'dq', 'qi'].forEach(field => {
+                jwkPriv[field] = '';
+            });
         } else {
             throw new Error('Unknown algorithm');
         }
         pubOut.value = publicKeyText;
         privOut.value = privateKeyText;
-        
+
         // Update UI to show generated state
         const emptyState = document.getElementById('key-empty-state');
         const generatedState = document.getElementById('key-generated-state');
         const keyTypeDisplay = document.getElementById('key-type-display');
         const outputSection = document.getElementById('key-output-section');
-        
+
         if (emptyState) emptyState.classList.add('hidden');
         if (generatedState) generatedState.classList.remove('hidden');
         if (keyTypeDisplay) {
@@ -750,8 +752,18 @@ async function generateKey() {
             };
             keyTypeDisplay.textContent = algoNames[algo] || algo;
         }
+
+        // Update library info tooltip
+        const libraryTooltip = document.getElementById('key-library-tooltip');
+        if (libraryTooltip) {
+            const libraryInfo = algo === 'ed25519'
+                ? 'Generated using TweetNaCl library'
+                : 'Generated using Web Crypto API';
+            libraryTooltip.setAttribute('data-tip', libraryInfo);
+        }
+
         if (outputSection) outputSection.classList.remove('hidden');
-        
+
         // Reset to public key tab
         const tabPublic = document.getElementById('tab-public');
         const tabPrivate = document.getElementById('tab-private');
@@ -769,12 +781,12 @@ async function generateKey() {
             panelPublic.classList.remove('hidden');
             panelPrivate.classList.add('hidden');
         }
-        
+
         updateInstructions(purpose, algo, identifier);
     } catch (e) {
         // Log detailed error to console for debugging
         console.error('Key generation failed:', e);
-        
+
         let userMessage;
         // Check for specific error types and provide helpful messages
         if (e.message && e.message.includes('TweetNaCl')) {
@@ -865,15 +877,15 @@ function attachKeyGenHandlers() {
     const algoSel = document.getElementById('key-algorithm');
     const idInput = document.getElementById('key-identifier');
     const genBtn = document.getElementById('generate-key-btn');
-    
+
     if (!purposeSel || !algoSel || !genBtn) return;
-    
+
     // Tab switching for key output
     const tabPublic = document.getElementById('tab-public');
     const tabPrivate = document.getElementById('tab-private');
     const panelPublic = document.getElementById('panel-public');
     const panelPrivate = document.getElementById('panel-private');
-    
+
     if (tabPublic && tabPrivate && panelPublic && panelPrivate) {
         const activateTab = (activeTab, inactiveTab, activePanel, inactivePanel) => {
             // Update tab styles
@@ -892,22 +904,22 @@ function attachKeyGenHandlers() {
             // Focus the active tab
             activeTab.focus();
         };
-        
+
         tabPublic.addEventListener('click', () => {
             activateTab(tabPublic, tabPrivate, panelPublic, panelPrivate);
         });
-        
+
         tabPrivate.addEventListener('click', () => {
             activateTab(tabPrivate, tabPublic, panelPrivate, panelPublic);
         });
-        
+
         // Keyboard navigation for tabs (Arrow keys, Home, End)
         const handleTabKeydown = (event) => {
             const isPublicFocused = document.activeElement === tabPublic;
             const isPrivateFocused = document.activeElement === tabPrivate;
-            
+
             if (!isPublicFocused && !isPrivateFocused) return;
-            
+
             switch (event.key) {
                 case 'ArrowLeft':
                 case 'ArrowUp':
@@ -933,11 +945,11 @@ function attachKeyGenHandlers() {
                     break;
             }
         };
-        
+
         tabPublic.addEventListener('keydown', handleTabKeydown);
         tabPrivate.addEventListener('keydown', handleTabKeydown);
     }
-    
+
     // Reset UI when settings change
     const resetKeyOutput = () => {
         document.getElementById('public-key-output').value = '';
@@ -947,18 +959,57 @@ function attachKeyGenHandlers() {
         document.getElementById('key-empty-state')?.classList.remove('hidden');
         document.getElementById('key-generated-state')?.classList.add('hidden');
     };
-    
+
+    // Update download button labels based on purpose and algorithm
+    const updateDownloadLabels = (purpose, algo) => {
+        const baseName = algoBaseName(algo, purpose);
+        const publicLabel = document.getElementById('download-public-label');
+        const privateLabel = document.getElementById('download-private-label');
+        const publicBtn = document.getElementById('download-public-btn');
+        const privateBtn = document.getElementById('download-private-btn');
+        if (publicLabel) {
+            publicLabel.textContent = `${baseName}.pub`;
+        }
+        if (privateLabel) {
+            privateLabel.textContent = baseName;
+        }
+        if (publicBtn) {
+            publicBtn.setAttribute('aria-label', `Download public key as ${baseName}.pub`);
+        }
+        if (privateBtn) {
+            privateBtn.setAttribute('aria-label', `Download private key as ${baseName}`);
+        }
+    };
+
+    // Update comment placeholder based on purpose
+    const updateCommentPlaceholder = (purpose) => {
+        if (idInput) {
+            if (purpose === 'git') {
+                idInput.placeholder = 'your@email.com';
+            } else {
+                idInput.placeholder = 'user@hostname';
+            }
+        }
+    };
+
+    // Initialize UI based on current selections
+    updateDownloadLabels(purposeSel.value, algoSel.value);
+    updateCommentPlaceholder(purposeSel.value);
+
     purposeSel.addEventListener('change', () => {
         if (idInput) idInput.value = '';
         resetKeyOutput();
+        updateDownloadLabels(purposeSel.value, algoSel.value);
+        updateCommentPlaceholder(purposeSel.value);
         updateInstructions(purposeSel.value, algoSel.value, '');
     });
-    
+
     algoSel.addEventListener('change', () => {
         resetKeyOutput();
+        updateDownloadLabels(purposeSel.value, algoSel.value);
         updateInstructions(purposeSel.value, algoSel.value, idInput?.value.trim() || '');
     });
-    
+
     if (idInput) {
         idInput.addEventListener('input', () => {
             const v = idInput.value.trim();
@@ -970,7 +1021,7 @@ function attachKeyGenHandlers() {
             }
         });
     }
-    
+
     genBtn.addEventListener('click', generateKey);
 }
 
