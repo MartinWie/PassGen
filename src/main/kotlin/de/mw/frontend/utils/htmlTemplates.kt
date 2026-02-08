@@ -114,20 +114,24 @@ fun TagConsumer<StringBuilder>.getFooter() {
 
         div("flex flex-row items-center gap-3") {
             a(href = "https://www.buymeacoffee.com/martinwie", target = "_blank") {
-                classes = setOf("flex items-center gap-2 text-sm hover:text-amber-500")
+                classes = setOf("flex items-center gap-2 text-sm hover:text-warning")
+                attributes["rel"] = "noopener noreferrer"
                 title = "Support this project"
                 span {
                     classes = setOf("w-6 h-6 inline-flex items-center")
+                    attributes["aria-hidden"] = "true"
                     embedSvg("/static/svg/buymeacoffee.svg")
                 }
                 +"Support this project"
             }
 
             a(href = "https://github.com/MartinWie/PassGen/issues", target = "_blank") {
-                classes = setOf("flex items-center gap-3 text-sm hover:text-amber-500")
+                classes = setOf("flex items-center gap-3 text-sm hover:text-warning")
+                attributes["rel"] = "noopener noreferrer"
                 title = "Feedback or report a bug"
                 span {
                     classes = setOf("w-6 h-6 inline-flex items-center")
+                    attributes["aria-hidden"] = "true"
                     embedSvg("/static/svg/github.svg")
                 }
             }

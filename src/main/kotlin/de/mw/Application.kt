@@ -2,8 +2,10 @@ package de.mw
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import de.mw.daos.KeyShareDao
 import de.mw.daos.PasswordDao
 import de.mw.plugins.configureRouting
+import de.mw.services.KeyService
 import de.mw.services.PasswordService
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -25,15 +27,16 @@ val postgresPassword: String =
 val fullDomain: String = System.getenv("SECRET_PASSGEN_DOMAIN") ?: "http://localhost:8080"
 
 // HikariCP data source configuration
-val hikariConfig = HikariConfig().apply {
-    jdbcUrl = "jdbc:postgresql://$postgresHost:5432/passgen"
-    username = postgresUser
-    password = postgresPassword
-    addDataSourceProperty("cachePrepStmts", "true")
-    addDataSourceProperty("prepStmtCacheSize", "250")
-    addDataSourceProperty("prepStmtCacheSqlLimit", "2048")
-    addDataSourceProperty("maximumPoolSize", "2")
-}
+val hikariConfig =
+    HikariConfig().apply {
+        jdbcUrl = "jdbc:postgresql://$postgresHost:5432/passgen"
+        username = postgresUser
+        password = postgresPassword
+        addDataSourceProperty("cachePrepStmts", "true")
+        addDataSourceProperty("prepStmtCacheSize", "250")
+        addDataSourceProperty("prepStmtCacheSqlLimit", "2048")
+        addDataSourceProperty("maximumPoolSize", "2")
+    }
 
 val dataSource: DataSource = HikariDataSource(hikariConfig)
 
@@ -42,9 +45,11 @@ val jooqDsl = DSL.using(dataSource, SQLDialect.POSTGRES)
 
 // DAO setup
 val passwordDao = PasswordDao(jooqDsl)
+val keyShareDao = KeyShareDao(jooqDsl)
 
 // Service setup
 val passwordService = PasswordService(passwordDao)
+val keyService = KeyService(keyShareDao)
 
 fun main() {
     logger.info("Starting Ktor application...")
@@ -57,7 +62,7 @@ fun main() {
                 host = envHost
             }
         },
-        module = Application::module
+        module = Application::module,
     ).start(wait = true)
 }
 

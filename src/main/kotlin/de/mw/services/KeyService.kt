@@ -1,0 +1,238 @@
+package de.mw.services
+
+import de.mw.daos.IKeyShareDao
+import de.mw.models.SharePublicKey
+import org.slf4j.LoggerFactory
+import java.time.LocalDateTime
+import java.util.*
+
+class KeyService(
+    private val keyShareDao: IKeyShareDao,
+) {
+    private val logger = LoggerFactory.getLogger(this::class.java)
+
+    // Valid algorithms that we support
+    private val validAlgorithms = setOf("ed25519", "ecdsa-p256", "ecdsa-p384", "rsa-2048", "rsa-4096")
+
+    // Valid purposes
+    private val validPurposes = setOf("ssh", "git")
+
+    // Map user-selected algorithm to expected SSH key prefix
+    private val algorithmToKeyPrefix =
+        mapOf(
+            "ed25519" to "ssh-ed25519",
+            "ecdsa-p256" to "ecdsa-sha2-nistp256",
+            "ecdsa-p384" to "ecdsa-sha2-nistp384",
+            "rsa-2048" to "ssh-rsa",
+            "rsa-4096" to "ssh-rsa",
+        )
+
+    /**
+     * Validates and sanitizes a public key to prevent XSS attacks.
+     * OpenSSH public keys have a specific format: algorithm base64-data [comment]
+     * We validate the structure and sanitize the comment portion.
+     *
+     * @param publicKey The raw public key string
+     * @param expectedAlgorithm The algorithm the user selected (to cross-validate)
+     * @return Sanitized public key or null if validation fails
+     */
+    fun sanitizePublicKey(
+        publicKey: String,
+        expectedAlgorithm: String? = null,
+    ): String? {
+        val trimmed = publicKey.trim()
+
+        // Public keys should be reasonably sized (max ~2KB for RSA-4096)
+        if (trimmed.length > 3000) {
+            logger.warn("Public key rejected: too long (${trimmed.length} chars)")
+            return null
+        }
+
+        // Basic structure validation: should start with a known algorithm prefix
+        val validPrefixes =
+            listOf(
+                "ssh-ed25519",
+                "ecdsa-sha2-nistp256",
+                "ecdsa-sha2-nistp384",
+                "ssh-rsa",
+            )
+
+        val keyPrefix = validPrefixes.find { trimmed.startsWith(it) }
+        if (keyPrefix == null) {
+            logger.warn("Public key rejected: invalid algorithm prefix")
+            return null
+        }
+
+        // Cross-validate that the key matches the expected algorithm
+        if (expectedAlgorithm != null) {
+            val expectedPrefix = algorithmToKeyPrefix[expectedAlgorithm]
+            if (expectedPrefix != null && keyPrefix != expectedPrefix) {
+                logger.warn("Public key rejected: algorithm mismatch - expected $expectedPrefix but got $keyPrefix")
+                return null
+            }
+        }
+
+        // Split into parts: algorithm, base64-data, [optional comment]
+        val parts = trimmed.split(" ", limit = 3)
+        if (parts.size < 2) {
+            logger.warn("Public key rejected: missing base64 data")
+            return null
+        }
+
+        val algorithm = parts[0]
+        val base64Data = parts[1]
+
+        // Validate base64 data contains only valid base64 characters
+        if (!base64Data.matches(Regex("^[A-Za-z0-9+/]+=*$"))) {
+            logger.warn("Public key rejected: invalid base64 data")
+            return null
+        }
+
+        // If there's a comment, sanitize it (don't HTML-encode - kotlinx-html will handle that)
+        val sanitizedComment =
+            if (parts.size == 3) {
+                sanitizeComment(parts[2])
+            } else {
+                null
+            }
+
+        // Reconstruct the key with sanitized comment
+        return if (sanitizedComment != null) {
+            "$algorithm $base64Data $sanitizedComment"
+        } else {
+            "$algorithm $base64Data"
+        }
+    }
+
+    /**
+     * Sanitizes the comment portion of a public key.
+     * Removes dangerous characters but does NOT HTML-encode
+     * (kotlinx-html will escape when rendering).
+     */
+    private fun sanitizeComment(comment: String): String {
+        // Remove HTML tags and dangerous characters, keep it raw for storage
+        // kotlinx-html will escape on render, so we just remove dangerous patterns
+        return comment
+            .replace(Regex("<[^>]*>"), "") // Remove HTML tags
+            .replace(Regex("[<>\"']"), "_") // Replace remaining dangerous chars with underscore
+            .filter { it.code in 0x20..0x7E } // Only printable ASCII
+            .take(256) // Limit comment length
+    }
+
+    /**
+     * Sanitizes a label for display.
+     */
+    fun sanitizeLabel(label: String?): String? {
+        if (label.isNullOrBlank()) return null
+        return label
+            .replace(Regex("<[^>]*>"), "") // Remove HTML tags
+            .replace(Regex("[<>\"']"), "_") // Replace dangerous chars
+            .filter { it.code in 0x20..0x7E } // Only printable ASCII
+            .take(256)
+            .trim()
+            .ifBlank { null }
+    }
+
+    /**
+     * Creates a new PENDING key share request.
+     * The admin specifies algorithm, purpose, and optional label.
+     * No public key yet - it will be generated by the recipient.
+     *
+     * @return The share ID
+     */
+    fun createPendingShare(
+        algorithm: String,
+        purpose: String,
+        label: String?,
+    ): UUID? {
+        // Validate algorithm
+        if (algorithm !in validAlgorithms) {
+            logger.warn("Invalid algorithm: $algorithm")
+            return null
+        }
+
+        // Validate purpose
+        if (purpose !in validPurposes) {
+            logger.warn("Invalid purpose: $purpose")
+            return null
+        }
+
+        val sanitizedLabel = sanitizeLabel(label)
+
+        val id = UUID.randomUUID()
+        val sharePublicKey =
+            SharePublicKey(
+                id = id,
+                created = LocalDateTime.now(),
+                publicKey = null, // Will be set when recipient generates the key
+                algorithm = algorithm,
+                purpose = purpose,
+                label = sanitizedLabel,
+                completedAt = null,
+            )
+
+        keyShareDao.createShare(sharePublicKey)
+        logger.info("Created pending key share: $id (algorithm=$algorithm, purpose=$purpose, label=$sanitizedLabel)")
+        return id
+    }
+
+    /**
+     * Completes a pending share by adding the public key.
+     * Called when the recipient generates the key on their machine.
+     *
+     * @param id The share ID
+     * @param publicKey The generated public key
+     * @param algorithm The algorithm (must match the share's algorithm)
+     * @return true if successful, false if validation fails or share is already completed
+     */
+    fun completeShare(
+        id: UUID,
+        publicKey: String,
+        algorithm: String,
+    ): Boolean {
+        // First, verify the share exists and the algorithm matches
+        val share = keyShareDao.getShare(id)
+        if (share == null) {
+            logger.warn("Share not found: $id")
+            return false
+        }
+
+        if (share.isCompleted()) {
+            logger.warn("Share already completed: $id")
+            return false
+        }
+
+        if (share.algorithm != algorithm) {
+            logger.warn("Algorithm mismatch for share $id: expected ${share.algorithm}, got $algorithm")
+            return false
+        }
+
+        // Sanitize the public key with algorithm cross-validation
+        val sanitizedKey = sanitizePublicKey(publicKey, algorithm)
+        if (sanitizedKey == null) {
+            logger.warn("Public key sanitization failed for share $id")
+            return false
+        }
+
+        val success = keyShareDao.completeShare(id, sanitizedKey)
+        if (success) {
+            logger.info("Completed key share: $id")
+        } else {
+            logger.warn("Failed to complete key share $id (may already be completed or not found)")
+        }
+        return success
+    }
+
+    /**
+     * Retrieves a key share by ID.
+     */
+    fun getShare(id: UUID): SharePublicKey? = keyShareDao.getShare(id)
+
+    /**
+     * Deletes a key share.
+     */
+    fun deleteShare(id: UUID) {
+        keyShareDao.deleteShare(id)
+        logger.info("Deleted key share: $id")
+    }
+}

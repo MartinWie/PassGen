@@ -1,5 +1,11 @@
 import { test, expect } from '@playwright/test';
 
+// Extend Window interface for custom properties set by the app
+declare global {
+  interface Window {
+    generationMode: string;
+  }
+}
 /**
  * E2E tests for the PassGen application.
  */
@@ -1051,5 +1057,492 @@ test.describe('ECDSA and RSA Key Generation @slow', () => {
     
     // Verify key type display
     await expect(page.locator('#key-type-display')).toContainText('RSA 4096');
+  });
+});
+
+test.describe('Key Sharing (Pending Flow)', () => {
+  test('should have share button always visible in key generation mode', async ({ page }) => {
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Share button should be visible immediately (creates pending share link)
+    const shareBtn = page.locator('#share-key-btn');
+    await expect(shareBtn).toBeVisible();
+  });
+
+  test('should create pending share link and show modal', async ({ page }) => {
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Click share button (no need to generate key first - creates pending share)
+    const shareBtn = page.locator('#share-key-btn');
+    await shareBtn.click();
+    
+    // Wait for modal to appear
+    const modal = page.locator('#key_share_modal');
+    await expect(modal).toHaveAttribute('open', '', { timeout: 10000 });
+    
+    // Verify modal content reflects pending share flow
+    await expect(page.locator('#key_share_modal h2')).toContainText('Share Link Created');
+    
+    // Verify share link exists
+    const shareLink = page.locator('#key-share-link');
+    await expect(shareLink).toBeVisible();
+    const href = await shareLink.getAttribute('href');
+    expect(href).toMatch(/^\/key\/share\/[a-f0-9-]+$/);
+  });
+
+  test('should show pending share page with generation UI', async ({ page }) => {
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Create pending share
+    await page.locator('#share-key-btn').click();
+    const modal = page.locator('#key_share_modal');
+    await expect(modal).toHaveAttribute('open', '', { timeout: 10000 });
+    
+    // Navigate to share page
+    const shareLink = page.locator('#key-share-link');
+    const sharePath = await shareLink.getAttribute('href');
+    await page.goto(sharePath!);
+    
+    // Verify pending share page shows generation UI
+    await expect(page.locator('h1')).toContainText('Generate Your Key');
+    
+    // Verify generate button is visible
+    await expect(page.locator('#generate-share-key-btn')).toBeVisible();
+    
+    // Verify algorithm and purpose are shown
+    await expect(page.locator('p.text-sm.text-base-content\\/60')).toContainText('Ed25519');
+    await expect(page.locator('p.text-sm.text-base-content\\/60')).toContainText('SSH');
+  });
+
+  test('should generate key on pending share page and complete the share', async ({ page }) => {
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Create pending share
+    await page.locator('#share-key-btn').click();
+    const modal = page.locator('#key_share_modal');
+    await expect(modal).toHaveAttribute('open', '', { timeout: 10000 });
+    
+    // Navigate to share page
+    const shareLink = page.locator('#key-share-link');
+    const sharePath = await shareLink.getAttribute('href');
+    await page.goto(sharePath!);
+    
+    // Verify pending state
+    await expect(page.locator('h1')).toContainText('Generate Your Key');
+    
+    // Set up download listener to capture the private key download
+    const downloadPromise = page.waitForEvent('download');
+    
+    // Click generate button
+    await page.locator('#generate-share-key-btn').click();
+    
+    // Wait for the download to start (private key auto-downloads)
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toBe('id_ed25519');
+    
+    // Wait for the page to update to completed state
+    await expect(page.locator('h1')).toContainText('Key Generated Successfully!', { timeout: 10000 });
+    
+    // Verify public key is now displayed
+    const publicKeyDisplay = page.locator('#public-key-display');
+    await expect(publicKeyDisplay).toBeVisible();
+    const publicKey = await publicKeyDisplay.inputValue();
+    expect(publicKey).toContain('ssh-ed25519');
+  });
+
+  test('should show completed share on revisit', async ({ page }) => {
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Create pending share
+    await page.locator('#share-key-btn').click();
+    const modal = page.locator('#key_share_modal');
+    await expect(modal).toHaveAttribute('open', '', { timeout: 10000 });
+    
+    // Get share path
+    const shareLink = page.locator('#key-share-link');
+    const sharePath = await shareLink.getAttribute('href');
+    
+    // Navigate to share page and complete the share
+    await page.goto(sharePath!);
+    
+    // Set up download listener
+    const downloadPromise = page.waitForEvent('download');
+    
+    // Generate the key
+    await page.locator('#generate-share-key-btn').click();
+    await downloadPromise;
+    
+    // Wait for completion
+    await expect(page.locator('h1')).toContainText('Key Generated Successfully!', { timeout: 10000 });
+    
+    // Store the public key
+    const publicKey = await page.locator('#public-key-display').inputValue();
+    
+    // Revisit the same share link
+    await page.goto(sharePath!);
+    
+    // Verify completed share page is shown (not pending)
+    await expect(page.locator('h1')).toContainText('Shared Public Key');
+    
+    // Verify public key is displayed
+    const displayedKey = await page.locator('#public-key-display').inputValue();
+    expect(displayedKey).toBe(publicKey);
+  });
+
+  test('should copy public key from completed share page', async ({ page, context }) => {
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Create pending share
+    await page.locator('#share-key-btn').click();
+    const modal = page.locator('#key_share_modal');
+    await expect(modal).toHaveAttribute('open', '', { timeout: 10000 });
+    
+    // Navigate to share page and complete
+    const shareLink = page.locator('#key-share-link');
+    const sharePath = await shareLink.getAttribute('href');
+    await page.goto(sharePath!);
+    
+    const downloadPromise = page.waitForEvent('download');
+    await page.locator('#generate-share-key-btn').click();
+    await downloadPromise;
+    
+    await expect(page.locator('h1')).toContainText('Key Generated Successfully!', { timeout: 10000 });
+    
+    // Get the displayed public key
+    const displayedKey = await page.locator('#public-key-display').inputValue();
+    
+    // Click copy button
+    const copyBtn = page.locator('button[title="Copy public key"]').first();
+    await copyBtn.click();
+    
+    // Verify clipboard content
+    const clipboardContent = await page.evaluate(() => navigator.clipboard.readText());
+    expect(clipboardContent).toBe(displayedKey);
+  });
+
+  test('should create pending share with Git Signing purpose', async ({ page }) => {
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Open settings and select Git Signing
+    const settingsDropdown = page.getByTitle('Key Settings');
+    await settingsDropdown.click();
+    await page.locator('#key-purpose').selectOption('git');
+    
+    // Close dropdown
+    await page.locator('#keygen-section').click({ position: { x: 10, y: 10 } });
+    
+    // Create share (no need to generate key)
+    await page.locator('#share-key-btn').click();
+    const modal = page.locator('#key_share_modal');
+    await expect(modal).toHaveAttribute('open', '', { timeout: 10000 });
+    
+    // Navigate to share page
+    const shareLink = page.locator('#key-share-link');
+    const sharePath = await shareLink.getAttribute('href');
+    await page.goto(sharePath!);
+    
+    // Verify Git Signing purpose is displayed
+    await expect(page.locator('p.text-sm.text-base-content\\/60')).toContainText('Git Signing');
+  });
+
+  test('should create pending share with ECDSA algorithm @slow', async ({ page }) => {
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Open settings and select ECDSA P-256
+    const settingsDropdown = page.getByTitle('Key Settings');
+    await settingsDropdown.click();
+    await page.locator('#key-algorithm').selectOption('ecdsa-p256');
+    
+    // Close dropdown
+    await page.locator('#keygen-section').click({ position: { x: 10, y: 10 } });
+    
+    // Create share
+    await page.locator('#share-key-btn').click();
+    const modal = page.locator('#key_share_modal');
+    await expect(modal).toHaveAttribute('open', '', { timeout: 10000 });
+    
+    // Navigate to share page
+    const shareLink = page.locator('#key-share-link');
+    const sharePath = await shareLink.getAttribute('href');
+    await page.goto(sharePath!);
+    
+    // Verify ECDSA algorithm is displayed on pending page
+    await expect(page.locator('p.text-sm.text-base-content\\/60')).toContainText('ECDSA P-256');
+  });
+
+  test('should generate ECDSA key on pending share page @slow', async ({ page }) => {
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Open settings and select ECDSA P-256
+    const settingsDropdown = page.getByTitle('Key Settings');
+    await settingsDropdown.click();
+    await page.locator('#key-algorithm').selectOption('ecdsa-p256');
+    
+    // Close dropdown
+    await page.locator('#keygen-section').click({ position: { x: 10, y: 10 } });
+    
+    // Create share
+    await page.locator('#share-key-btn').click();
+    const modal = page.locator('#key_share_modal');
+    await expect(modal).toHaveAttribute('open', '', { timeout: 10000 });
+    
+    // Navigate to share page
+    const shareLink = page.locator('#key-share-link');
+    const sharePath = await shareLink.getAttribute('href');
+    await page.goto(sharePath!);
+    
+    // Set up download listener
+    const downloadPromise = page.waitForEvent('download');
+    
+    // Generate the ECDSA key
+    await page.locator('#generate-share-key-btn').click();
+    
+    // Wait for download
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toBe('id_ecdsa');
+    
+    // Wait for completion
+    await expect(page.locator('h1')).toContainText('Key Generated Successfully!', { timeout: 15000 });
+    
+    // Verify ECDSA public key is displayed
+    const publicKey = await page.locator('#public-key-display').inputValue();
+    expect(publicKey).toContain('ecdsa-sha2-nistp256');
+  });
+});
+
+test.describe('Key Generation (Local Only)', () => {
+  test('should still generate key locally without sharing', async ({ page }) => {
+    await page.goto('/');
+    
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    
+    // Generate a key locally
+    await page.locator('#generate-key-btn').click();
+    
+    // Wait for key generation
+    await expect(async () => {
+      const publicKey = await page.locator('#public-key-output').inputValue();
+      expect(publicKey).toContain('ssh-ed25519');
+    }).toPass({ timeout: 10000 });
+    
+    // Verify key output section is visible
+    await expect(page.locator('#key-output-section')).not.toHaveClass(/hidden/);
+    
+    // Verify private key tab and content
+    await page.locator('#tab-private').click();
+    const privateKey = await page.locator('#private-key-output').inputValue();
+    expect(privateKey).toContain('-----BEGIN OPENSSH PRIVATE KEY-----');
+  });
+
+  // Note: "should clear private key when clicking clear button" is tested in 
+  // "Key Generation View" describe block (line 565) - not duplicated here
+});
+
+test.describe('Rapid Toggle Dual-Fire Prevention', () => {
+  test('should only fire password share after toggling Password -> Key -> Password', async ({ page }) => {
+    await page.goto('/');
+
+    // Wait for the initial password to be generated
+    const passwordInput = page.locator('#password-input');
+    await expect(passwordInput).not.toHaveValue('');
+
+    // Toggle: Password -> Key
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+
+    // Toggle: Key -> Password
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#password-section')).not.toHaveClass(/hidden/);
+
+    // Track all requests
+    const requests: string[] = [];
+    page.on('request', (req) => {
+      const url = req.url();
+      if (url.includes('/share') || url.includes('/key/share')) {
+        requests.push(req.method() + ' ' + new URL(url).pathname);
+      }
+    });
+
+    // Click the password share button
+    await page.locator('#shareButton').click();
+
+    // Wait for the share modal to appear
+    const modal = page.locator('#share_modal');
+    await expect(modal).toHaveAttribute('open', '', { timeout: 10000 });
+
+    // Verify only one request was made and it was the password share
+    expect(requests.length).toBe(1);
+    expect(requests[0]).toBe('POST /share');
+  });
+
+  test('should only fire key share after toggling Key -> Password -> Key', async ({ page }) => {
+    await page.goto('/');
+
+    // Wait for the initial password to be generated
+    await expect(page.locator('#password-input')).not.toHaveValue('');
+
+    // Toggle: Password -> Key
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+
+    // Toggle: Key -> Password
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#password-section')).not.toHaveClass(/hidden/);
+
+    // Toggle: Password -> Key
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+
+    // Track all requests
+    const requests: string[] = [];
+    page.on('request', (req) => {
+      const url = req.url();
+      if (url.includes('/share') || url.includes('/key/share')) {
+        requests.push(req.method() + ' ' + new URL(url).pathname);
+      }
+    });
+
+    // Click the key share button
+    await page.locator('#share-key-btn').click();
+
+    // Wait for the key share modal to appear
+    const modal = page.locator('#key_share_modal');
+    await expect(modal).toHaveAttribute('open', '', { timeout: 10000 });
+
+    // Verify only one request was made and it was the key share
+    expect(requests.length).toBe(1);
+    expect(requests[0]).toBe('POST /key/share');
+  });
+
+  test('should correctly set window.generationMode after rapid toggles', async ({ page }) => {
+    await page.goto('/');
+
+    // Wait for initial load
+    await expect(page.locator('#password-input')).not.toHaveValue('');
+
+    // Verify default mode is password
+    let mode = await page.evaluate(() => window.generationMode);
+    expect(mode).toBe('password');
+
+    // Rapid toggles: Password -> Key -> Password -> Key -> Password
+    for (let i = 0; i < 4; i++) {
+      await page.locator('#custom-toggle').click();
+      // Small delay to let the click handler execute
+      await page.waitForTimeout(50);
+    }
+
+    // After even number of toggles, should be back to password
+    mode = await page.evaluate(() => window.generationMode);
+    expect(mode).toBe('password');
+
+    // One more toggle should put us in key mode
+    await page.locator('#custom-toggle').click();
+    await page.waitForTimeout(50);
+    mode = await page.evaluate(() => window.generationMode);
+    expect(mode).toBe('key');
+  });
+});
+
+test.describe('Fresh Page Load with Stored Mode', () => {
+  // Guarantee localStorage cleanup even if a test fails mid-way
+  test.afterEach(async ({ page }) => {
+    await page.evaluate(() => localStorage.removeItem('generation-mode-hidden'));
+  });
+
+  test('should load in key mode when localStorage has generation-mode-hidden=key', async ({ page }) => {
+    // Pre-set localStorage before navigating
+    await page.goto('/');
+    await page.evaluate(() => localStorage.setItem('generation-mode-hidden', 'key'));
+
+    // Reload the page so initGenerationToggle() reads from localStorage
+    await page.reload();
+
+    // Key section should be visible, password section should be hidden
+    await expect(page.locator('#keygen-section')).toBeVisible();
+    await expect(page.locator('#password-section')).toBeHidden();
+
+    // window.generationMode should be 'key'
+    const mode = await page.evaluate(() => window.generationMode);
+    expect(mode).toBe('key');
+
+    // Toggle thumb should be translated to the key position
+    const thumbTransform = await page.locator('#toggle-thumb').evaluate(
+      (el) => (el as HTMLElement).style.transform
+    );
+    expect(thumbTransform).toBe('translateX(60px)');
+  });
+
+  test('should load in password mode when localStorage has generation-mode-hidden=password', async ({ page }) => {
+    // Pre-set localStorage before navigating
+    await page.goto('/');
+    await page.evaluate(() => localStorage.setItem('generation-mode-hidden', 'password'));
+
+    // Reload
+    await page.reload();
+
+    // Password section should be visible, key section should be hidden
+    await expect(page.locator('#password-section')).toBeVisible();
+    await expect(page.locator('#keygen-section')).toBeHidden();
+
+    // window.generationMode should be 'password'
+    const mode = await page.evaluate(() => window.generationMode);
+    expect(mode).toBe('password');
+  });
+
+  test('should default to password mode when localStorage has no stored mode', async ({ page }) => {
+    // Ensure no stored mode
+    await page.goto('/');
+    await page.evaluate(() => localStorage.removeItem('generation-mode-hidden'));
+
+    // Reload
+    await page.reload();
+
+    // Password section should be visible
+    await expect(page.locator('#password-section')).toBeVisible();
+    await expect(page.locator('#keygen-section')).toBeHidden();
+
+    // window.generationMode should be 'password'
+    const mode = await page.evaluate(() => window.generationMode);
+    expect(mode).toBe('password');
   });
 });

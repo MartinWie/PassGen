@@ -15,7 +15,7 @@ fun getLandingPage(pageTitle: String): String =
                     classes = setOf("transition-all", "duration-300", "ease-out", "transform", "relative", "z-20")
                     // original password generator container
                     div(
-                        "flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-3 border border-gray-200 rounded-xl p-2 md:p-3 focus-within:ring-1 focus-within:ring-base-content focus-within:border-base-content shadow-xs",
+                        "flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-3 border border-base-300 rounded-xl p-2 md:p-3 focus-within:ring-1 focus-within:ring-base-content focus-within:border-base-content shadow-xs",
                     ) {
                         textArea {
                             id = "password-input"
@@ -97,20 +97,7 @@ fun getLandingPage(pageTitle: String): String =
                                                 value = "GER"
                                                 +"Deutsch"
                                             }
-                                            addJs(
-                                                """
-                                                const languageSelect = document.getElementById('language-select');
-                                                const savedLanguage = localStorage.getItem('word-language');
-                                                        
-                                                // Set language based on localStorage or default to ENG
-                                                if (savedLanguage) {
-                                                    languageSelect.value = savedLanguage;
-                                                } else {
-                                                    languageSelect.value = 'ENG';
-                                                    localStorage.setItem('word-language', 'ENG');
-                                                }
-                                                """.trimIndent(),
-                                            )
+                                            // Language restored from localStorage by initLandingPageSettings() in app.js
                                         }
                                     }
 
@@ -145,23 +132,7 @@ fun getLandingPage(pageTitle: String): String =
                                                 localStorage.setItem('word-amount', this.value);
                                                 """.trimIndent(),
                                             )
-                                            addJs(
-                                                """
-                                                const wordAmountSlider = document.getElementById('word-amount-slider');
-                                                const wordAmountSpan = document.getElementById('word-amount');
-                                                const savedWordAmount = localStorage.getItem('word-amount');
-                                                        
-                                                // Set language based on localStorage or default to ENG
-                                                if (savedWordAmount) {
-                                                    wordAmountSlider.value = savedWordAmount;
-                                                    wordAmountSpan.textContent = savedWordAmount;
-                                                } else {
-                                                    wordAmountSlider.value = '4';
-                                                    wordAmountSpan.textContent = '4';
-                                                    localStorage.setItem('word-amount', '4');
-                                                }
-                                                """.trimIndent(),
-                                            )
+                                            // Word amount restored from localStorage by initLandingPageSettings() in app.js
                                         }
                                         input(InputType.number) {
                                             min = "1"
@@ -178,22 +149,7 @@ fun getLandingPage(pageTitle: String): String =
                                                 localStorage.setItem('word-amount', this.value.toString());
                                                 """.trimIndent(),
                                             )
-                                            addJs(
-                                                """
-                                                document.addEventListener('DOMContentLoaded', function() {
-                                                    const wordAmountSelect = document.getElementById('word-input');
-                                                    const savedWordAmount = localStorage.getItem('word-amount');
-                                                            
-                                                    // Set word amount based on localStorage or default to 4
-                                                    if (savedWordAmount) {
-                                                        wordAmountSelect.value = savedWordAmount;
-                                                    } else {
-                                                        wordAmountSelect.value = '4';
-                                                        localStorage.setItem('word-amount', '4');
-                                                    }
-                                                });
-                                                """.trimIndent(),
-                                            )
+                                            // Word input value restored by initLandingPageSettings() in app.js
                                         }
                                     }
 
@@ -217,22 +173,7 @@ fun getLandingPage(pageTitle: String): String =
                                                 localStorage.setItem('word-separator', this.value);
                                                 """.trimIndent(),
                                             )
-                                            addJs(
-                                                """
-                                                document.addEventListener('DOMContentLoaded', function() {
-                                                    const wordSeparator = document.getElementById('word-separator');
-                                                    const savedSeparator = localStorage.getItem('word-separator');
-                                                            
-                                                    // Set word amount based on localStorage or default to 4
-                                                    if (savedSeparator) {
-                                                        wordSeparator.value = savedSeparator;
-                                                    } else {
-                                                        localStorage.setItem('word-separator', '-');
-                                                        wordSeparator.value = '-';
-                                                    }
-                                                });
-                                                """.trimIndent(),
-                                            )
+                                            // Separator restored by initLandingPageSettings() in app.js
                                         }
                                     }
 
@@ -259,16 +200,7 @@ fun getLandingPage(pageTitle: String): String =
                                                     }
                                                     """.trimIndent(),
                                                 )
-                                                addJs(
-                                                    """
-                                                    document.addEventListener('DOMContentLoaded', function() {
-                                                        const includeNumberCheckbox = document.getElementById('include-numbers');
-                                                        const includeNumbers = localStorage.getItem('include-numbers');
-                                                    
-                                                       includeNumberCheckbox.checked = includeNumbers === 'true';
-                                                    });
-                                                    """.trimIndent(),
-                                                )
+                                                // Checkbox state restored by initLandingPageSettings() in app.js
                                             }
                                             span {
                                                 classes = setOf("label-text text-sm")
@@ -299,16 +231,7 @@ fun getLandingPage(pageTitle: String): String =
                                                     }
                                                     """.trimIndent(),
                                                 )
-                                                addJs(
-                                                    """
-                                                    document.addEventListener('DOMContentLoaded', function() {
-                                                        const includeNumberCheckbox = document.getElementById('include-special');
-                                                        const includeSpecial = localStorage.getItem('include-special');
-                                                    
-                                                        includeNumberCheckbox.checked = includeSpecial === 'true';
-                                                    });
-                                                    """.trimIndent(),
-                                                )
+                                                // Checkbox state restored by initLandingPageSettings() in app.js
                                             }
                                             span {
                                                 classes = setOf("label-text text-sm")
@@ -316,18 +239,7 @@ fun getLandingPage(pageTitle: String): String =
                                             }
                                         }
                                     }
-                                    // Trigger initial password load after all settings are restored
-                                    addJs(
-                                        """
-                                        document.addEventListener('DOMContentLoaded', function() {
-                                            // Use requestAnimationFrame to ensure all other DOMContentLoaded
-                                            // handlers have completed and DOM updates are applied
-                                            requestAnimationFrame(function() {
-                                                document.body.dispatchEvent(new CustomEvent('load-password'));
-                                            });
-                                        });
-                                        """.trimIndent(),
-                                    )
+                                    // Initial password load triggered by initLandingPageSettings() in app.js
                                 }
                             }
 
@@ -349,10 +261,11 @@ fun getLandingPage(pageTitle: String): String =
                 // KEY GENERATION SECTION with slide + scale transition (hidden by default)
                 div {
                     id = "keygen-section"
-                    classes = setOf("hidden", "transition-all", "duration-300", "ease-out", "transform", "relative", "z-20")
+                    classes =
+                        setOf("hidden", "transition-all", "duration-300", "ease-out", "transform", "relative", "z-20")
                     // Main container matching password UI style
                     div(
-                        "flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-3 border border-gray-200 rounded-xl p-2 md:p-3 focus-within:ring-1 focus-within:ring-base-content focus-within:border-base-content shadow-xs",
+                        "flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-3 border border-base-300 rounded-xl p-2 md:p-3 focus-within:ring-1 focus-within:ring-base-content focus-within:border-base-content shadow-xs",
                     ) {
                         // Key output preview area (like password textarea)
                         div("grow flex flex-col justify-center min-h-14 py-2 px-1") {
@@ -393,7 +306,6 @@ fun getLandingPage(pageTitle: String): String =
                             button(classes = "btn btn-ghost") {
                                 id = "generate-key-btn"
                                 title = "Generate Key"
-                                span("hidden md:inline") { +"Generate" }
                                 span {
                                     id = "keygen-icon"
                                     embedSvg("/static/svg/regen.svg")
@@ -431,6 +343,7 @@ fun getLandingPage(pageTitle: String): String =
                                         }
                                         select {
                                             id = "key-algorithm"
+                                            name = "algorithm"
                                             classes = setOf("select select-bordered w-full")
                                             option {
                                                 value = "ed25519"
@@ -463,6 +376,7 @@ fun getLandingPage(pageTitle: String): String =
                                         }
                                         select {
                                             id = "key-purpose"
+                                            name = "purpose"
                                             classes = setOf("select select-bordered w-full")
                                             option {
                                                 value = "ssh"
@@ -521,6 +435,19 @@ fun getLandingPage(pageTitle: String): String =
                                     }
                                 }
                             }
+
+                            // Share Button - creates a pending share link for someone else to generate a key
+                            button(classes = "btn btn-ghost") {
+                                id = "share-key-btn"
+                                title = "Create Share Link"
+                                hxPost("/key/share")
+                                hxInclude("#key-algorithm, #key-purpose")
+                                hxDisabled("#share-key-btn")
+                                hxTarget("#key-share-result")
+                                hxSwap(HxSwapOption.INNER_HTML)
+                                hxApplyDuringRequest("animate-pulse")
+                                embedSvg("/static/svg/share.svg")
+                            }
                         }
                     }
 
@@ -536,9 +463,9 @@ fun getLandingPage(pageTitle: String): String =
                     // Expandable key output section (hidden until generated)
                     div("hidden mt-3") {
                         id = "key-output-section"
-                        div("border border-gray-200 rounded-xl overflow-hidden") {
+                        div("border border-base-300 rounded-xl overflow-hidden") {
                             // Tabs for Public/Private (accessible tablist)
-                            div("flex border-b border-gray-200 bg-base-200/50") {
+                            div("flex border-b border-base-300 bg-base-200/50") {
                                 role = "tablist"
                                 attributes["aria-label"] = "Key output tabs"
                                 button(
@@ -572,6 +499,7 @@ fun getLandingPage(pageTitle: String): String =
                                 attributes["aria-labelledby"] = "tab-public"
                                 textArea {
                                     id = "public-key-output"
+                                    name = "public-key"
                                     classes =
                                         setOf("textarea textarea-bordered font-mono text-xs leading-tight h-32 w-full bg-base-200/30")
                                     attributes["readonly"] = "readonly"
@@ -648,6 +576,12 @@ fun getLandingPage(pageTitle: String): String =
                     }
                 }
 
+                // Key share result container (for modal)
+                div {
+                    id = "key-share-result"
+                    classes = setOf("flex flex-col justify-center text-center mt-3")
+                }
+
                 // Mode Toggle (below both password and key sections)
                 div("flex flex-col justify-center items-center gap-3 mt-4 md:sticky md:top-20 z-10") {
                     // Hidden checkbox for form submission
@@ -660,6 +594,10 @@ fun getLandingPage(pageTitle: String): String =
                     // Custom toggle with icons inside
                     div {
                         id = "custom-toggle"
+                        role = "switch"
+                        attributes["aria-checked"] = "false"
+                        attributes["aria-label"] = "Toggle between password and key generation"
+                        tabIndex = "0"
                         classes =
                             setOf(
                                 "relative w-32 h-10 bg-base-300 rounded-full cursor-pointer transition-all duration-300 flex items-center p-0.5",
@@ -676,6 +614,7 @@ fun getLandingPage(pageTitle: String): String =
 
                         // Toggle icons container
                         div("relative flex w-full z-20") {
+                            attributes["aria-hidden"] = "true"
                             // Password icon
                             div("flex-1 flex items-center justify-center text-base-content") {
                                 id = "password-icon"
@@ -694,91 +633,8 @@ fun getLandingPage(pageTitle: String): String =
                                 }
                             }
                         }
-
-                        // Toggle behavior script with slide + scale animation
-                        addJs(
-                            """
-                            document.addEventListener('DOMContentLoaded', function(){
-                              const toggle = document.getElementById('custom-toggle');
-                              const toggleInput = document.getElementById('generation-mode-hidden');
-                              const thumb = document.getElementById('toggle-thumb');
-                              const pwd = document.getElementById('password-section');
-                              const key = document.getElementById('keygen-section');
-                              
-                              // Animation helper - applies transform classes
-                              function setTransform(el, translateX, scale, opacity) {
-                                el.style.transform = 'translateX(' + translateX + ') scale(' + scale + ')';
-                                el.style.opacity = opacity;
-                              }
-                              
-                              function apply(mode, animate){
-                                const duration = 250;
-                                
-                                if(mode==='key'){
-                                  if(animate){
-                                    // Slide password out to the left + scale down
-                                    setTransform(pwd, '-20px', '0.95', '0');
-                                    
-                                    setTimeout(() => {
-                                      pwd.classList.add('hidden');
-                                      // Prepare key section: start from right, scaled down
-                                      key.classList.remove('hidden');
-                                      setTransform(key, '20px', '0.95', '0');
-                                      
-                                      // Force reflow
-                                      key.offsetHeight;
-                                      
-                                      // Animate in
-                                      setTransform(key, '0px', '1', '1');
-                                    }, duration);
-                                  } else {
-                                    pwd.classList.add('hidden');
-                                    key.classList.remove('hidden');
-                                    setTransform(pwd, '0px', '1', '1');
-                                    setTransform(key, '0px', '1', '1');
-                                  }
-                                  thumb.style.transform='translateX(60px)';
-                                } else {
-                                  if(animate){
-                                    // Slide key out to the right + scale down
-                                    setTransform(key, '20px', '0.95', '0');
-                                    
-                                    setTimeout(() => {
-                                      key.classList.add('hidden');
-                                      // Prepare password section: start from left, scaled down
-                                      pwd.classList.remove('hidden');
-                                      setTransform(pwd, '-20px', '0.95', '0');
-                                      
-                                      // Force reflow
-                                      pwd.offsetHeight;
-                                      
-                                      // Animate in
-                                      setTransform(pwd, '0px', '1', '1');
-                                    }, duration);
-                                  } else {
-                                    key.classList.add('hidden');
-                                    pwd.classList.remove('hidden');
-                                    setTransform(pwd, '0px', '1', '1');
-                                    setTransform(key, '0px', '1', '1');
-                                  }
-                                  thumb.style.transform='translateX(0)';
-                                }
-                              }
-                              
-                              const stored = localStorage.getItem('generation-mode-hidden');
-                              const mode = stored==='key' ? 'key' : 'password';
-                              toggleInput.checked = mode==='key';
-                              apply(mode, false); // No animation on initial load
-                              
-                              toggle.addEventListener('click', ()=>{ 
-                                const newMode = toggleInput.checked ? 'password':'key'; 
-                                toggleInput.checked = newMode==='key'; 
-                                localStorage.setItem('generation-mode-hidden', newMode); 
-                                apply(newMode, true);
-                              });
-                            });
-                            """,
-                        )
+                        // Toggle behavior (slide + scale animation, mode persistence,
+                        // htmx:confirm guards) is handled by initGenerationToggle() in app.js
                     }
                 }
 
@@ -795,94 +651,78 @@ fun getBasePage(
     bodyTags: TagConsumer<StringBuilder>.() -> Unit,
 ): String =
     "<!DOCTYPE html>" +
-        buildHTMLString {
-            getPageHead(pageTitle)
+            buildHTMLString {
+                getPageHead(pageTitle)
 
-            body {
-                classes =
-                    setOf(
-                        "min-h-screen flex flex-col",
-                    )
-
-                // Navbar with logo
-                div {
+                body {
                     classes =
-                        setOf("navbar bg-base-100 flex place-content-between fixed top-0 left-0 right-0 z-30") // ensure on top
+                        setOf(
+                            "min-h-screen flex flex-col",
+                        )
+
+                    // Navbar with logo
                     div {
-                        classes = setOf("flex justify-center items-center ml-3")
-                        a(href = "/") {
-                            img(src = "/static/apple-touch-icon.png", alt = "PassGen Logo") {
-                                classes = setOf("h-12 w-12 rounded-xl")
+                        classes =
+                            setOf("navbar bg-base-100 flex place-content-between fixed top-0 left-0 right-0 z-30") // ensure on top
+                        div {
+                            classes = setOf("flex justify-center items-center ml-3")
+                            a(href = "/") {
+                                img(src = "/static/apple-touch-icon.png", alt = "PassGen Logo") {
+                                    classes = setOf("h-12 w-12 rounded-xl")
+                                }
+                            }
+                            a(href = "/") {
+                                classes = setOf("btn btn-ghost text-xl")
+                                +"PassGen"
                             }
                         }
-                        a(href = "/") {
-                            classes = setOf("btn btn-ghost text-xl")
-                            +"PassGen"
+
+                        label {
+                            id = "theme-toggle-label"
+                            classes = setOf("swap swap-rotate mr-3")
+                            attributes["aria-label"] = "Toggle dark mode"
+                            input {
+                                id = "theme-switcher"
+                                type = InputType.checkBox
+                                attributes["aria-label"] = "Toggle dark mode"
+                                // Theme init and toggle handled by initTheme() in app.js
+                            }
+                            span {
+                                attributes["aria-hidden"] = "true"
+                                embedSvg("/static/svg/moon.svg")
+                            }
+
+                            span {
+                                attributes["aria-hidden"] = "true"
+                                embedSvg("/static/svg/sun.svg")
+                            }
                         }
                     }
 
-                    label {
-                        id = "theme-toggle-label"
-                        classes = setOf("swap swap-rotate mr-3")
-                        input {
-                            id = "theme-switcher"
-                            type = InputType.checkBox
-                            addJs(
-                                """
-                                document.addEventListener('DOMContentLoaded', function() {
-                                    const themeToggle = document.getElementById('theme-switcher');
-                                    const themeLabel = document.getElementById('theme-toggle-label');
-                                    const savedTheme = localStorage.getItem('theme');
-                                    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                                    const activeTheme = savedTheme ? savedTheme : (prefersDark ? 'dark' : 'light');                            
-                                    document.documentElement.setAttribute('data-theme', activeTheme);
-                                    themeToggle.checked = activeTheme === 'dark';
-                                    
-                                    // Add click event listener to the label
-                                    themeLabel.addEventListener('click', function() {
-                                        // The checkbox state will be toggled after this click, so we read it in a setTimeout
-                                        setTimeout(function() {
-                                            const theme = themeToggle.checked ? 'dark' : 'light';
-                                            console.log('Theme toggle clicked, setting theme to:', theme);
-                                            document.documentElement.setAttribute('data-theme', theme);
-                                            localStorage.setItem('theme', theme);
-                                            console.log('Current data-theme attribute:', document.documentElement.getAttribute('data-theme'));
-                                        }, 0);
-                                    });
-                                });
-                                """.trimIndent(),
-                            )
+                    // Copy Success Tooltip (aria-live for screen readers)
+                    div("toast toast-top toast-center z-50 pointer-events-none") {
+                        attributes["aria-live"] = "polite"
+                        attributes["aria-atomic"] = "true"
+                        role = "status"
+                        div("alert alert-success shadow-lg transition-opacity duration-300 invisible opacity-0") {
+                            id = "copy-tooltip"
+                            span {
+                                +"Copied to clipboard!"
+                            }
                         }
-                        embedSvg("/static/svg/moon.svg")
-
-                        embedSvg("/static/svg/sun.svg")
+                        div("alert alert-error shadow-lg transition-opacity duration-300 invisible opacity-0") {
+                            id = "copy-tooltip-failed"
+                            span {
+                                +"Failed to copy"
+                            }
+                        }
                     }
+
+                    div {
+                        classes = setOf("grow")
+                        bodyTags()
+                    }
+
+                    getFooter()
                 }
-
-                // Copy Success Tooltip (aria-live for screen readers)
-                div("toast toast-top toast-center z-50 pointer-events-none") {
-                    attributes["aria-live"] = "polite"
-                    attributes["aria-atomic"] = "true"
-                    role = "status"
-                    div("alert alert-success shadow-lg transition-opacity duration-300 invisible opacity-0") {
-                        id = "copy-tooltip"
-                        span {
-                            +"Copied to clipboard!"
-                        }
-                    }
-                    div("alert alert-error shadow-lg transition-opacity duration-300 invisible opacity-0") {
-                        id = "copy-tooltip-failed"
-                        span {
-                            +"Failed to copy"
-                        }
-                    }
-                }
-
-                div {
-                    classes = setOf("grow")
-                    bodyTags()
-                }
-
-                getFooter()
             }
-        }

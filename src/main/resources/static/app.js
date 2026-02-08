@@ -64,12 +64,68 @@ function fallbackCopyToClipboard(text) {
     return success;
 }
 
+/**
+ * Show the copy-success or copy-failed tooltip.
+ * @param {boolean} success - true for success tooltip, false for failure.
+ */
+function showTooltip(success) {
+    const id = success ? 'copy-tooltip' : 'copy-tooltip-failed';
+    const tooltip = document.getElementById(id);
+    if (tooltip) removeHideThenFadeout(tooltip);
+}
+
+/**
+ * Copy text to the clipboard using the modern API with a legacy fallback.
+ * Shows the appropriate success/failure tooltip automatically.
+ * @param {string} text - The text to copy.
+ */
+function writeToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(
+            () => showTooltip(true),
+            (err) => {
+                console.warn('Clipboard API failed, trying fallback:', err);
+                showTooltip(fallbackCopyToClipboard(text));
+            },
+        );
+    } else {
+        if (fallbackCopyToClipboard(text)) {
+            showTooltip(true);
+        } else {
+            console.error('Failed to copy to clipboard');
+            showTooltip(false);
+        }
+    }
+}
+
+/**
+ * Download text content as a file.
+ * Ensures a trailing newline (POSIX convention for SSH key files).
+ * @param {string} text - File content.
+ * @param {string} filename - Name for the downloaded file.
+ * @param {string} [mime='application/octet-stream'] - MIME type.
+ */
+function downloadAsFile(text, filename, mime) {
+    mime = mime || 'application/octet-stream';
+    const needsNewline = text.endsWith('\n') ? '' : '\n';
+    const blob = new Blob([text + needsNewline], {type: mime});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+        URL.revokeObjectURL(a.href);
+        a.remove();
+    }, 1500);
+}
+
 function copyToClipboard(elementId) {
     const element = document.getElementById(elementId);
     if (!element) {
         console.error('Copy target element not found:', elementId);
-        const tooltip = document.getElementById('copy-tooltip-failed');
-        if (tooltip) removeHideThenFadeout(tooltip);
+        showTooltip(false);
         return;
     }
     let textToCopy;
@@ -84,104 +140,281 @@ function copyToClipboard(elementId) {
         textToCopy = element.textContent || element.innerText;
     }
 
-    // Use modern clipboard API if available, otherwise fallback
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(textToCopy).then(
-            () => {
-                // Show copy success tooltip
-                const tooltip = document.getElementById('copy-tooltip');
-                if (tooltip) removeHideThenFadeout(tooltip);
-            },
-            (err) => {
-                /* clipboard write failed, try fallback */
-                console.warn('Clipboard API failed, trying fallback:', err);
-                if (fallbackCopyToClipboard(textToCopy)) {
-                    const tooltip = document.getElementById('copy-tooltip');
-                    if (tooltip) removeHideThenFadeout(tooltip);
-                } else {
-                    const tooltip = document.getElementById('copy-tooltip-failed');
-                    if (tooltip) removeHideThenFadeout(tooltip);
-                }
-            },
-        );
-    } else {
-        // Fallback for browsers without clipboard API
-        if (fallbackCopyToClipboard(textToCopy)) {
-            const tooltip = document.getElementById('copy-tooltip');
-            if (tooltip) removeHideThenFadeout(tooltip);
-        } else {
-            console.error('Failed to copy to clipboard');
-            const tooltip = document.getElementById('copy-tooltip-failed');
-            if (tooltip) removeHideThenFadeout(tooltip);
-        }
-    }
+    writeToClipboard(textToCopy);
 }
 
 function copyShareUrl() {
-    // Get the URL from the share-result area
-    const shareResult = document.getElementById('share-result');
-    const anchor = shareResult?.querySelector('a');
-    const shareUrl = anchor?.href;
+    // Get the fully-resolved URL from the hidden share link anchor
+    const link = document.getElementById('password-share-link');
+    const shareUrl = link?.href;
 
     if (!shareUrl) {
         console.error('No share URL found');
-        const tooltip = document.getElementById('copy-tooltip-failed');
-        if (tooltip) removeHideThenFadeout(tooltip);
+        showTooltip(false);
         return;
     }
 
-    // Use modern clipboard API if available, otherwise fallback
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(shareUrl).then(
-            () => {
-                // Show copy success tooltip
-                const tooltip = document.getElementById('copy-tooltip');
-                if (tooltip) removeHideThenFadeout(tooltip);
-            },
-            (err) => {
-                /* clipboard write failed, try fallback */
-                console.warn('Clipboard API failed, trying fallback:', err);
-                if (fallbackCopyToClipboard(shareUrl)) {
-                    const tooltip = document.getElementById('copy-tooltip');
-                    if (tooltip) removeHideThenFadeout(tooltip);
-                } else {
-                    const tooltip = document.getElementById('copy-tooltip-failed');
-                    if (tooltip) removeHideThenFadeout(tooltip);
-                }
-            },
-        );
-    } else {
-        // Fallback for browsers without clipboard API
-        if (fallbackCopyToClipboard(shareUrl)) {
-            const tooltip = document.getElementById('copy-tooltip');
-            if (tooltip) removeHideThenFadeout(tooltip);
-        } else {
-            console.error('Failed to copy to clipboard');
-            const tooltip = document.getElementById('copy-tooltip-failed');
-            if (tooltip) removeHideThenFadeout(tooltip);
-        }
-    }
+    writeToClipboard(shareUrl);
 }
+
+function copyKeyShareUrl() {
+    // Get the URL from the key share modal link.
+    // Using link.href (the resolved property) instead of getAttribute('href')
+    // avoids double-origin bugs with manual URL construction.
+    const link = document.getElementById('key-share-link');
+    if (!link) {
+        console.error('No key share link found');
+        showTooltip(false);
+        return;
+    }
+    const fullUrl = link.href;
+    writeToClipboard(fullUrl);
+}
+
+// Track per-element timers to prevent stacking timeouts on rapid calls
+const _tooltipTimers = new WeakMap();
 
 function removeHideThenFadeout(element) {
     if (!element) return;
+
+    // Cancel any in-flight show/fade timers for this element
+    const prev = _tooltipTimers.get(element);
+    if (prev) {
+        if (prev.show) clearTimeout(prev.show);
+        if (prev.fade) clearTimeout(prev.fade);
+    }
 
     // Show element: remove invisible/opacity-0, add opacity-1
     element.classList.remove('invisible', 'opacity-0');
     element.classList.add('opacity-100');
 
     // Fade out tooltip after 2 seconds
-    setTimeout(() => {
+    const show = setTimeout(() => {
         // Start the fade out transition
         element.classList.remove('opacity-100');
         element.classList.add('opacity-0');
 
         // Wait for transition to complete before hiding
-        setTimeout(() => {
-            // After fading is complete, hide the element completely
+        const fade = setTimeout(() => {
             element.classList.add('invisible');
+            _tooltipTimers.delete(element);
         }, 300); // Match this with CSS transition duration
+        _tooltipTimers.set(element, {show: null, fade});
     }, 2000);
+    _tooltipTimers.set(element, {show, fade: null});
+}
+
+/**
+ * Restore landing page settings from localStorage on load.
+ * Handles: word-language, word-amount, word-separator,
+ * include-numbers, include-special checkboxes, and triggers the initial
+ * password generation once settings are applied.
+ *
+ * No-op on pages that don't have the relevant form elements.
+ */
+function initLandingPageSettings() {
+    // Language select
+    const languageSelect = document.getElementById('language-select');
+    if (languageSelect) {
+        const savedLanguage = localStorage.getItem('word-language');
+        languageSelect.value = savedLanguage || 'ENG';
+        if (!savedLanguage) localStorage.setItem('word-language', 'ENG');
+    }
+
+    // Word amount (slider + number input + display span)
+    const wordAmountSlider = document.getElementById('word-amount-slider');
+    const wordAmountSpan = document.getElementById('word-amount');
+    const wordInput = document.getElementById('word-input');
+    if (wordAmountSlider && wordAmountSpan) {
+        const savedWordAmount = localStorage.getItem('word-amount');
+        const amount = savedWordAmount || '4';
+        wordAmountSlider.value = amount;
+        wordAmountSpan.textContent = amount;
+        if (wordInput) wordInput.value = amount;
+        if (!savedWordAmount) localStorage.setItem('word-amount', '4');
+    }
+
+    // Word separator
+    const wordSeparator = document.getElementById('word-separator');
+    if (wordSeparator) {
+        const savedSeparator = localStorage.getItem('word-separator');
+        wordSeparator.value = savedSeparator || '-';
+        if (!savedSeparator) localStorage.setItem('word-separator', '-');
+    }
+
+    // Include numbers checkbox
+    const includeNumbers = document.getElementById('include-numbers');
+    if (includeNumbers) {
+        includeNumbers.checked = localStorage.getItem('include-numbers') === 'true';
+    }
+
+    // Include special characters checkbox
+    const includeSpecial = document.getElementById('include-special');
+    if (includeSpecial) {
+        includeSpecial.checked = localStorage.getItem('include-special') === 'true';
+    }
+
+    // Trigger initial password load after all settings are restored.
+    // Use requestAnimationFrame to ensure DOM updates from the above are painted.
+    if (languageSelect || wordAmountSlider) {
+        requestAnimationFrame(function () {
+            document.body.dispatchEvent(new CustomEvent('load-password'));
+        });
+    }
+}
+
+/**
+ * Initialize theme from localStorage or system preference.
+ * No-op on pages without the theme toggle.
+ */
+function initTheme() {
+    const themeToggle = document.getElementById('theme-switcher');
+    const themeLabel = document.getElementById('theme-toggle-label');
+    if (!themeToggle || !themeLabel) return;
+
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const activeTheme = savedTheme || (prefersDark ? 'dark' : 'light');
+
+    document.documentElement.setAttribute('data-theme', activeTheme);
+    themeToggle.checked = activeTheme === 'dark';
+
+    // Listen on the checkbox change event directly
+    themeToggle.addEventListener('change', function () {
+        const theme = this.checked ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+    });
+}
+
+/**
+ * Initialize the password/key generation mode toggle on the landing page.
+ * Handles slide + scale animation, localStorage persistence, and
+ * per-element htmx:confirm guards for dual-fire prevention.
+ *
+ * This is a no-op on pages that don't have the toggle elements.
+ */
+function initGenerationToggle() {
+    const toggle = document.getElementById('custom-toggle');
+    const toggleInput = document.getElementById('generation-mode-hidden');
+    const thumb = document.getElementById('toggle-thumb');
+    const pwd = document.getElementById('password-section');
+    const key = document.getElementById('keygen-section');
+    const pwdShareBtn = document.getElementById('shareButton');
+    const keyShareBtn = document.getElementById('share-key-btn');
+
+    // Bail out early on pages without the toggle (e.g. share view page)
+    if (!toggle || !toggleInput || !thumb || !pwd || !key) return;
+
+    // Animation helper — applies transform + opacity in one call
+    function setTransform(el, translateX, scale, opacity) {
+        el.style.transform = 'translateX(' + translateX + ') scale(' + scale + ')';
+        el.style.opacity = opacity;
+    }
+
+    // Track which mode is active so we can block HTMX requests from the inactive section.
+    // HTMX 2.x caches internal event handlers, so removing hx-post or setting disabled
+    // is NOT sufficient to prevent requests. We use htmx:confirm to veto them instead.
+    // The canonical source of truth is window.generationMode (set in apply()).
+
+    // Per-element htmx:confirm guards (defense-in-depth alongside the global beforeRequest guard)
+    if (pwdShareBtn) {
+        pwdShareBtn.addEventListener('htmx:confirm', function (e) {
+            if (window.generationMode !== 'password') {
+                e.preventDefault();
+            }
+        });
+    }
+    if (keyShareBtn) {
+        keyShareBtn.addEventListener('htmx:confirm', function (e) {
+            if (window.generationMode !== 'key') {
+                e.preventDefault();
+            }
+        });
+    }
+
+    let animationTimer = null;
+
+    function apply(mode, animate) {
+        const duration = 250;
+        // Cancel any in-flight animation to avoid race conditions on rapid toggle
+        if (animationTimer) {
+            clearTimeout(animationTimer);
+            animationTimer = null;
+        }
+        // Expose to global scope so the global htmx:beforeRequest guard
+        // and the per-element htmx:confirm handlers can see the active mode.
+        window.generationMode = mode;
+        toggle.setAttribute('aria-checked', mode === 'key' ? 'true' : 'false');
+
+        if (mode === 'key') {
+            if (animate) {
+                // Slide password out to the left + scale down
+                setTransform(pwd, '-20px', '0.95', '0');
+
+                animationTimer = setTimeout(() => {
+                    animationTimer = null;
+                    pwd.classList.add('hidden');
+                    // Prepare key section: start from right, scaled down
+                    key.classList.remove('hidden');
+                    setTransform(key, '20px', '0.95', '0');
+                    // Force reflow
+                    key.offsetHeight; // eslint-disable-line no-unused-expressions
+                    // Animate in
+                    setTransform(key, '0px', '1', '1');
+                }, duration);
+            } else {
+                pwd.classList.add('hidden');
+                key.classList.remove('hidden');
+                setTransform(pwd, '0px', '1', '1');
+                setTransform(key, '0px', '1', '1');
+            }
+            thumb.style.transform = 'translateX(60px)';
+        } else {
+            if (animate) {
+                // Slide key out to the right + scale down
+                setTransform(key, '20px', '0.95', '0');
+
+                animationTimer = setTimeout(() => {
+                    animationTimer = null;
+                    key.classList.add('hidden');
+                    // Prepare password section: start from left, scaled down
+                    pwd.classList.remove('hidden');
+                    setTransform(pwd, '-20px', '0.95', '0');
+                    // Force reflow
+                    pwd.offsetHeight; // eslint-disable-line no-unused-expressions
+                    // Animate in
+                    setTransform(pwd, '0px', '1', '1');
+                }, duration);
+            } else {
+                key.classList.add('hidden');
+                pwd.classList.remove('hidden');
+                setTransform(pwd, '0px', '1', '1');
+                setTransform(key, '0px', '1', '1');
+            }
+            thumb.style.transform = 'translateX(0)';
+        }
+    }
+
+    const stored = localStorage.getItem('generation-mode-hidden');
+    const mode = stored === 'key' ? 'key' : 'password';
+    toggleInput.checked = mode === 'key';
+    apply(mode, false); // No animation on initial load
+
+    toggle.addEventListener('click', () => {
+        const newMode = toggleInput.checked ? 'password' : 'key';
+        toggleInput.checked = newMode === 'key';
+        localStorage.setItem('generation-mode-hidden', newMode);
+        apply(newMode, true);
+    });
+
+    // Allow keyboard activation (Enter/Space) for the switch role
+    toggle.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggle.click();
+        }
+    });
 }
 
 document.addEventListener("DOMContentLoaded", (event) => {
@@ -194,19 +427,65 @@ document.addEventListener("DOMContentLoaded", (event) => {
             evt.detail.isError = false;
         }
     });
+
+    // Centralized modal opening after HTMX swaps in share-result fragments.
+    // This is the SINGLE source of truth for opening share modals; the server
+    // fragments no longer contain inline showModal() calls.
+    // Only react when the swap targeted a share-result container to avoid
+    // accidentally opening modals on unrelated swaps.
+    document.body.addEventListener('htmx:afterSwap', function (evt) {
+        const targetId = evt.detail?.target?.id;
+        if (!targetId) return;
+        if (targetId === 'key-share-result') {
+            const keyShareModal = document.getElementById('key_share_modal');
+            if (keyShareModal && !keyShareModal.hasAttribute('open')) {
+                keyShareModal.showModal();
+            }
+        } else if (targetId === 'share-result') {
+            const shareModal = document.getElementById('share_modal');
+            if (shareModal && !shareModal.hasAttribute('open')) {
+                shareModal.showModal();
+            }
+        }
+    });
+
+    // Global guard: block HTMX share requests that don't match the active generation mode.
+    // This is a belt-and-suspenders safeguard on top of the per-element htmx:confirm listeners
+    // to prevent both share flows from firing after rapid toggling between modes.
+    document.body.addEventListener('htmx:beforeRequest', function (evt) {
+        const elt = evt.detail?.elt;
+        if (!elt?.id) return;
+        const mode = window.generationMode || 'password';
+        if (elt.id === 'shareButton' && mode !== 'password') {
+            console.debug('[htmx guard] Blocking /share because generationMode=', mode);
+            evt.preventDefault();
+            return;
+        }
+        if (elt.id === 'share-key-btn' && mode !== 'key') {
+            console.debug('[htmx guard] Blocking /key/share because generationMode=', mode);
+            evt.preventDefault();
+            return;
+        }
+    });
+
+    // Initialize generation mode toggle (no-op on non-landing pages)
+    initGenerationToggle();
+
+    // Restore landing page form settings from localStorage
+    initLandingPageSettings();
+
+    // Initialize theme from localStorage or system preference
+    initTheme();
 });
 
-// Default loading animation for elements that trigger a request(add skeleton class from daisyUI)
+// Default loading animation for elements that trigger a request (add skeleton class from daisyUI)
 document.addEventListener("htmx:configRequest", function (evt) {
-    // Overriding the event when htmx starts a request
-    let element = evt.detail.elt;
+    const element = evt.detail.elt;
     element.classList.add('skeleton');
 
-    // Adding an event listener to remove the class after the request completes
+    // Remove the class after the request completes; listener self-removes to prevent memory leaks
     element.addEventListener('htmx:afterRequest', function clearLoading() {
         element.classList.remove('skeleton');
-
-        // Optionally remove the event listener afterward to prevent memory leaks
         element.removeEventListener('htmx:afterRequest', clearLoading);
     });
 });
@@ -228,20 +507,9 @@ function downloadKey(elementId) {
     const baseName = algoBaseName(algo, purpose);
     const filename = isPublic ? baseName + '.pub' : baseName; // keep no extension for private
     const text = document.getElementById(elementId).value;
-    const needsNewline = text.endsWith('\n') ? '' : '\n';
     // Use octet-stream for private key without extension to avoid some browsers (Safari) appending .txt
     const mime = isPublic ? 'text/plain' : 'application/octet-stream';
-    const blob = new Blob([text + needsNewline], {type: mime});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = filename;
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => {
-        URL.revokeObjectURL(a.href);
-        a.remove();
-    }, 1500);
+    downloadAsFile(text, filename, mime);
 }
 
 // Security helper: best-effort zeroing of Uint8Array buffers
@@ -815,10 +1083,6 @@ async function generateKey() {
     }
 }
 
-function escapeHtml(str) {
-    return str.replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
-}
-
 // Identifier validation: printable ASCII (space 0x20 to ~ 0x7E), length 0..256
 function isValidIdentifier(id) {
     return id.length <= 256 && /^[ -~]*$/.test(id);
@@ -830,18 +1094,15 @@ function updateInstructions(purpose, algo, identifier) {
     // Clear existing
     while (el.firstChild) el.removeChild(el.firstChild);
     const baseName = algoBaseName(algo, purpose);
-    const safeAlgo = escapeHtml(algo);
-    const safeBase = escapeHtml(baseName);
-    const safeId = isValidIdentifier(identifier) ? identifier : '';
     if (purpose === 'ssh') {
         const p1 = document.createElement('p');
         p1.textContent = '1. Append Public Key to ~/.ssh/authorized_keys.';
         el.appendChild(p1);
         const p2 = document.createElement('p');
-        p2.textContent = `2. Save Private Key as ${safeBase}; chmod 600 ${safeBase}.`;
+        p2.textContent = `2. Save Private Key as ${baseName}; chmod 600 ${baseName}.`;
         el.appendChild(p2);
         const p3 = document.createElement('p');
-        p3.textContent = `3. Use: ssh -i ${safeBase} user@host.`;
+        p3.textContent = `3. Use: ssh -i ${baseName} user@host.`;
         el.appendChild(p3);
     } else {
         if (algo === 'ed25519') {
@@ -851,10 +1112,10 @@ function updateInstructions(purpose, algo, identifier) {
             const ol = document.createElement('ol');
             ol.className = 'list-decimal list-inside';
             const steps = [
-                `Save private key: ${safeBase}`,
-                `Public key: ${safeBase}.pub → add as Public key.`,
+                `Save private key: ${baseName}`,
+                `Public key: ${baseName}.pub → add as Public key.`,
                 'git config --global gpg.format ssh',
-                `git config --global user.signingkey ${safeBase}`,
+                `git config --global user.signingkey ${baseName}`,
                 '(Optional) git config --global commit.gpgsign true',
                 'Sign commits: git commit -S -m "msg"'
             ];
@@ -866,7 +1127,13 @@ function updateInstructions(purpose, algo, identifier) {
             el.appendChild(ol);
         } else {
             const p = document.createElement('p');
-            p.innerHTML = `For Git SSH signing, Ed25519 is strongly recommended. Current algorithm <code>${safeAlgo}</code> is usable for SSH auth but not ideal for signing portability.`;
+            const code = document.createElement('code');
+            code.textContent = algo;
+            p.append(
+                'For Git SSH signing, Ed25519 is strongly recommended. Current algorithm ',
+                code,
+                ' is usable for SSH auth but not ideal for signing portability.'
+            );
             el.appendChild(p);
         }
     }
@@ -1041,6 +1308,205 @@ document.addEventListener('click', (ev) => {
     if (clearEl) {
         clearPrivateKey();
     }
+    // Generate share key button (key share pending page)
+    const genShareEl = ev.target.closest && ev.target.closest('#generate-share-key-btn');
+    if (genShareEl) {
+        generateShareKey();
+    }
+    // Share key button now uses HTMX - no JavaScript handler needed
 });
 
 document.addEventListener('DOMContentLoaded', attachKeyGenHandlers);
+
+/**
+ * Generate a key pair for a pending share and submit the public key to the server.
+ * This is called from the share page when a recipient clicks "Generate Key Pair".
+ */
+async function generateShareKey() {
+    const shareId = document.getElementById('share-id')?.value;
+    const algo = document.getElementById('share-algorithm')?.value;
+    const purpose = document.getElementById('share-purpose')?.value;
+    const label = document.getElementById('share-label')?.value || '';
+    const errAlert = document.getElementById('share-key-error');
+    const errText = document.getElementById('share-key-error-text');
+    const generateBtn = document.getElementById('generate-share-key-btn');
+    const keygenIcon = document.getElementById('share-keygen-icon');
+
+    if (!shareId || !algo || !purpose) {
+        if (errText) errText.textContent = 'Missing share configuration.';
+        if (errAlert) errAlert.classList.remove('hidden');
+        return;
+    }
+
+    // Check for secure context requirement for ECDSA/RSA
+    if (algo !== 'ed25519' && !window.isSecureContext) {
+        if (errText) errText.textContent = 'ECDSA and RSA require HTTPS. Please access via HTTPS.';
+        if (errAlert) errAlert.classList.remove('hidden');
+        return;
+    }
+
+    // Check crypto.subtle availability
+    if (algo !== 'ed25519' && (!window.crypto || !window.crypto.subtle)) {
+        if (errText) errText.textContent = 'Web Crypto API not available. Please use a modern browser with HTTPS.';
+        if (errAlert) errAlert.classList.remove('hidden');
+        return;
+    }
+
+    if (errAlert) errAlert.classList.add('hidden');
+
+    // Add spinning animation and disable button
+    if (keygenIcon) keygenIcon.classList.add('animate-spin-reverse');
+    if (generateBtn) generateBtn.disabled = true;
+
+    // Track sensitive buffers for cleanup
+    let sensitiveBuffers = [];
+
+    try {
+        let publicKeyText = '';
+        let privateKeyText = '';
+        const comment = label || '';
+
+        if (algo === 'ed25519') {
+            if (!window.nacl || !nacl.sign) throw new Error('TweetNaCl library not loaded. Please refresh the page.');
+            const kp = nacl.sign.keyPair();
+            const pub = kp.publicKey;
+            const sec = kp.secretKey;
+            sensitiveBuffers.push(sec);
+            const blob = buildSshBufferEd25519(pub);
+            publicKeyText = 'ssh-ed25519 ' + bytesToBase64(blob) + (comment ? ' ' + comment : '');
+            privateKeyText = buildOpenSSHPrivateKeyEd25519(sec, pub, comment);
+        } else if (algo.startsWith('ecdsa-')) {
+            const curveMap = {'ecdsa-p256': 'nistp256', 'ecdsa-p384': 'nistp384', 'ecdsa-p521': 'nistp521'};
+            const named = curveMap[algo];
+            if (!named) throw new Error('Unsupported ECDSA curve');
+            const webCurve = {nistp256: 'P-256', nistp384: 'P-384', nistp521: 'P-521'}[named];
+            const keyPair = await crypto.subtle.generateKey({
+                name: 'ECDSA',
+                namedCurve: webCurve
+            }, true, ['sign', 'verify']);
+            const jwkPub = await crypto.subtle.exportKey('jwk', keyPair.publicKey);
+            const jwkPriv = await crypto.subtle.exportKey('jwk', keyPair.privateKey);
+            const x = base64UrlToBytes(jwkPub.x);
+            const y = base64UrlToBytes(jwkPub.y);
+            const point = new Uint8Array(1 + x.length + y.length);
+            point[0] = 0x04;
+            point.set(x, 1);
+            point.set(y, 1 + x.length);
+            const dBytes = base64UrlToBytes(jwkPriv.d);
+            sensitiveBuffers.push(dBytes);
+            publicKeyText = buildOpenSshEcdsaPublic(jwkPub, named, comment);
+            privateKeyText = buildOpenSSHPrivateKeyECDSA(named, point, jwkPriv.d, comment);
+            jwkPriv.d = '';
+        } else if (algo.startsWith('rsa-')) {
+            const size = parseInt(algo.split('-')[1], 10);
+            const keyPair = await crypto.subtle.generateKey({
+                name: 'RSASSA-PKCS1-v1_5',
+                modulusLength: size,
+                publicExponent: new Uint8Array([1, 0, 1]),
+                hash: 'SHA-256'
+            }, true, ['sign', 'verify']);
+            const jwkPub = await crypto.subtle.exportKey('jwk', keyPair.publicKey);
+            const jwkPriv = await crypto.subtle.exportKey('jwk', keyPair.privateKey);
+            ['d', 'p', 'q', 'dp', 'dq', 'qi'].forEach(field => {
+                if (jwkPriv[field]) {
+                    sensitiveBuffers.push(base64UrlToBytes(jwkPriv[field]));
+                }
+            });
+            publicKeyText = buildOpenSshRsaPublic(jwkPub, comment);
+            privateKeyText = buildOpenSSHPrivateKeyRSA(jwkPriv, comment);
+            ['d', 'p', 'q', 'dp', 'dq', 'qi'].forEach(field => {
+                jwkPriv[field] = '';
+            });
+        } else {
+            throw new Error('Unknown algorithm');
+        }
+
+        // Download the private key automatically
+        downloadSharePrivateKey(privateKeyText, algo, purpose);
+
+        // Clear private key from memory as soon as possible
+        privateKeyText = '';
+
+        // POST the public key to the server
+        const formData = new URLSearchParams();
+        formData.append('public-key', publicKeyText);
+        formData.append('algorithm', algo);
+
+        const response = await fetch(`/key/share/${shareId}/complete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: formData.toString()
+        });
+
+        const responseHtml = await response.text();
+
+        if (!response.ok) {
+            // Server returned an error
+            if (errText) errText.textContent = 'Failed to save public key. Please try again.';
+            if (errAlert) errAlert.classList.remove('hidden');
+            console.error('Server error:', responseHtml);
+            return;
+        }
+
+        // Success! Replace the share content with the completed view via HTMX swap
+        // Using htmx.swap avoids raw innerHTML and ensures any hx-* attributes
+        // in the response fragment are properly processed by HTMX.
+        const shareContent = document.getElementById('share-content');
+        if (shareContent) {
+            htmx.swap(shareContent, responseHtml, {swapStyle: 'innerHTML'});
+        }
+
+    } catch (e) {
+        console.error('Key generation failed:', e);
+
+        let userMessage;
+        if (e.message && e.message.includes('TweetNaCl')) {
+            userMessage = e.message;
+        } else if (e.message === 'Unsupported ECDSA curve' || e.message === 'Unknown algorithm') {
+            userMessage = e.message;
+        } else if (e.name === 'NotSupportedError') {
+            userMessage = 'This algorithm is not supported by your browser.';
+        } else if (e.name === 'OperationError') {
+            userMessage = 'Key generation operation failed. Please try again.';
+        } else if (!window.isSecureContext) {
+            userMessage = 'Secure context required. Please use HTTPS.';
+        } else {
+            userMessage = 'Key generation failed: ' + (e.message || 'Unknown error');
+        }
+        if (errText) errText.textContent = userMessage;
+        if (errAlert) errAlert.classList.remove('hidden');
+    } finally {
+        if (keygenIcon) keygenIcon.classList.remove('animate-spin-reverse');
+        if (generateBtn) generateBtn.disabled = false;
+        secureZeroAll(...sensitiveBuffers);
+        sensitiveBuffers = null;
+    }
+}
+
+/**
+ * Download the private key generated on the share page.
+ */
+function downloadSharePrivateKey(privateKeyText, algo, purpose) {
+    const baseName = algoBaseName(algo, purpose);
+    downloadAsFile(privateKeyText, baseName, 'application/octet-stream');
+}
+
+/**
+ * Download the public key from a completed share page.
+ * Uses hidden inputs for algorithm and purpose to determine filename.
+ */
+function downloadSharePublicKey() {
+    const publicKey = document.getElementById('public-key-display')?.value;
+    const algorithm = document.getElementById('share-algorithm')?.value || 'ed25519';
+    const purpose = document.getElementById('share-purpose')?.value || 'ssh';
+
+    if (!publicKey) {
+        console.error('No public key found to download');
+        return;
+    }
+
+    const baseName = algoBaseName(algorithm, purpose);
+    downloadAsFile(publicKey, baseName + '.pub', 'text/plain');
+}

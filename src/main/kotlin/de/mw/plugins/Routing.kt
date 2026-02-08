@@ -1,6 +1,7 @@
 package de.mw.plugins
 
 import de.mw.frontend.pages.getLandingPage
+import de.mw.plugins.routes.keyRouting
 import de.mw.plugins.routes.passwordRouting
 import io.github.martinwie.htmx.PageSecurityContext
 import io.ktor.http.*
@@ -41,6 +42,7 @@ fun Application.configureRouting() {
         }
 
         passwordRouting()
+        keyRouting()
 
         staticResources("/static", "static")
     }

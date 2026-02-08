@@ -78,12 +78,18 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 
 ## Todo's
 
-- Add option to generate Public/Private Keypair in browser client(some sort of toggle)
-    - Add option("Share" Pk with details on the process) feature similar to password share where we can share a
-      link where the user can download a specific private key(
-      will be generated on click and afterward the link only shows the public key for the user(the private key is only
-      generated on the client(make sure the public key that is sent to the server is handled safely so a malicious
-      actor can not inject html or js there)))
+- Key Share modal "Security" icon and text alignemnt and copy button me design consistent
+- After downloading the private key just show success and text box for the public key, but not the download button(less
+  technical users get confused by the next download view. But when opening the link again the interface is good)
+- Update "Click Generate to create a key pair" to something like "On device private key generation" with the smal infro
+  icon when hovering short explain all 3 buttons and ondevice generation
+- Rate-limiting / abuse prevention on share endpoints
+- Label input on landing page share UI
+- Share expiry/cleanup (expires_at)
+- Security: Make PageSecurityContext.scriptNonce request-scoped
+- CSP rule cleanup for production
+- cleanup review codebase check for duplicated or old orphane logic and clean up
+- make sure all test coverage is good also for e2e testing
 - Checkout how to move password generation to client
     - list of hidden tags and take form there?
     - Alpine.js
@@ -91,18 +97,23 @@ aenv -e Prod -s Passgen bash fullBuild.sh
     - Add local storage loading request to text area response(normal return + random wordlist to local storage)
         - hx-Ext json-enc
         - and from buttons and settings use local storage
-        - Change slider so live and not only release
-- Fix bug: First loaded password is default and not the user config(potentially already rewrite to client side
-  generation)(if still relevant)
+        - Change slider so live and not only release(if the password is generated locally no need to only generate on
+          release)
+- See what we can clean up when we still generated the passwords on the server(additional request handling, server side
+  generation code, etc)
+- Check if we can remove the "Centralized modal opening" and "Global guard: block HTMX share"
+- Is all places were we reference the public key are referenced escaping correct(double check, this is user created, so
+  will be malicious)?
 - Do personal security audit of the key gen and check if messed up somewhere (make sure we are secure)
 - Add go home button to expired shares page
-- Make contrast/shadows on light theme better
-- add required footer stuff(use marble game repo as inspiration) and add a about page with technical explanation and why
+- Add multi language support similar to marble game(start with DE and ENG)
+- add required footer stuff(use marble game repo as inspiration) and add an about page with technical explanation and
+  why
   this is secure. -> that explains the process
     - Password generation
     - How a share is stored
     - What is used for the Keygen
-- security page in footer, private key on device generation + describe how password sharing is made save.
+    - remove the report a bug/feedback link to github issue(later will add a real feedback process)
 - host(passgen io/sh/...?)
     - For docker image check out distroless(similar setup as marbles)
 - Add Keyboard navigation(small icon that reveals the keymap)
@@ -122,8 +133,8 @@ aenv -e Prod -s Passgen bash fullBuild.sh
         - Normal users can just manage their own shares
 - auto delete of shares(cleanup process 7days pro and business users can set any number up to a year or unlimited(job
   that changes the status of a user also needs to cleanup))
+- Add posthog feedback setup
 - Marketing: Checkout quota and Reddit for password sharing SFTP setup admin subreddit
-- Add feedback option/page(look into new project for that, maybe posthog has something)
 - Optimize
     - click to response time?
         - Check where we can add loaders
@@ -141,6 +152,7 @@ aenv -e Prod -s Passgen bash fullBuild.sh
     - How often can a password be clicked?
         - Implement
         - Add remaining views to password page
+- move "validAlgorithms" and other hardcoded strings inified place and get rid of magic strings
 - General README.MD cleanup
     - Logo
     - Texts
@@ -151,7 +163,6 @@ aenv -e Prod -s Passgen bash fullBuild.sh
     - Update README.MD
     - Add docs for API to page
 - SSH connection to get a password?(Good practice not really useful here)
-- Store selection state /reload it for crashes(always check for state file in current dir)
 
 https://p.7mw.de/
 
