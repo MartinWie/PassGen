@@ -78,7 +78,6 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 
 ## Todo's
 
-- Key Share modal "Security" icon and text alignemnt and copy button me design consistent
 - After downloading the private key just show success and text box for the public key, but not the download button(less
   technical users get confused by the next download view. But when opening the link again the interface is good)
 - Update "Click Generate to create a key pair" to something like "On device private key generation" with the smal infro

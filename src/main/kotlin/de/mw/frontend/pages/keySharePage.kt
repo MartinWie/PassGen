@@ -1,7 +1,10 @@
 package de.mw.frontend.pages
 
 import de.mw.models.SharePublicKey
-import io.github.martinwie.htmx.*
+import io.github.martinwie.htmx.JsEvent
+import io.github.martinwie.htmx.buildHTMLString
+import io.github.martinwie.htmx.embedSvg
+import io.github.martinwie.htmx.onEvent
 import kotlinx.html.*
 import java.util.*
 
@@ -356,7 +359,16 @@ fun getKeyShareCreateResult(shareId: UUID) =
                         span("label-text font-medium text-sm") { +"Share Link" }
                     }
                     div {
-                        classes = setOf("flex", "items-center", "gap-2", "bg-base-200/50", "border", "border-base-300", "rounded-lg", "p-3")
+                        classes = setOf(
+                            "flex",
+                            "items-center",
+                            "gap-2",
+                            "bg-base-200/50",
+                            "border",
+                            "border-base-300",
+                            "rounded-lg",
+                            "p-3"
+                        )
                         div("flex-1 min-w-0") {
                             a {
                                 id = "key-share-link"
@@ -367,13 +379,12 @@ fun getKeyShareCreateResult(shareId: UUID) =
                             }
                         }
                         button {
-                            classes = setOf("btn", "btn-sm", "btn-primary")
+                            classes = setOf("btn", "btn-ghost", "ml-2")
                             onEvent(JsEvent.ON_CLICK, "copyKeyShareUrl();")
                             span {
                                 attributes["aria-hidden"] = "true"
                                 embedSvg("/static/svg/copy.svg")
                             }
-                            span("ml-1") { +"Copy" }
                         }
                     }
                 }
@@ -400,14 +411,14 @@ fun getKeyShareCreateResult(shareId: UUID) =
                 }
 
                 // Security note
-                div("bg-base-200/50 border border-warning/30 text-base-content p-3 rounded-lg text-sm text-left") {
-                    div("flex items-start gap-2") {
-                        span("w-4 h-4 flex-shrink-0 mt-0.5 text-warning") {
+                div("bg-base-200/50 border border-warning/30 text-base-content p-4 rounded-lg text-left") {
+                    div("flex items-center gap-3") {
+                        span("w-5 h-5 flex-shrink-0 text-warning") {
                             attributes["aria-hidden"] = "true"
                             embedSvg("/static/svg/alert-info.svg")
                         }
-                        p {
-                            strong { +"Security: " }
+                        p("text-sm text-base-content/70") {
+                            strong("text-base-content") { +"Security: " }
                             +"The private key never leaves the recipient's device."
                         }
                     }
