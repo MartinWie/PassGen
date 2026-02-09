@@ -271,9 +271,53 @@ fun getLandingPage(pageTitle: String): String =
                         div("grow flex flex-col justify-center min-h-14 py-2 px-1") {
                             id = "key-preview"
                             // Empty state
-                            span("text-base-content/50 text-sm") {
+                            div("text-base-content/50 text-sm") {
                                 id = "key-empty-state"
-                                +"Click Generate to create a key pair"
+                                div("dropdown") {
+                                    label {
+                                        tabIndex = "0"
+                                        classes = setOf("cursor-pointer", "inline-flex", "items-center", "gap-1.5")
+                                        span { +"On-device key generation" }
+                                        span("w-4 h-4 flex-shrink-0 opacity-60 hover:opacity-100 inline-flex items-center") {
+                                            embedSvg("/static/svg/alert-info.svg")
+                                        }
+                                    }
+                                    div("dropdown-content z-50 p-4 shadow-lg bg-base-100 rounded-xl w-72 text-base text-base-content") {
+                                        tabIndex = "0"
+                                        p("text-sm text-base-content/70 mb-3") {
+                                            +"Keys are generated in your browser — private keys never leave your device."
+                                        }
+                                        ul("space-y-2") {
+                                            li("flex items-center gap-2 text-sm") {
+                                                span("w-5 h-5 flex-shrink-0 opacity-70") {
+                                                    embedSvg("/static/svg/regen.svg")
+                                                }
+                                                span {
+                                                    strong { +"Generate" }
+                                                    +" — create a new key pair"
+                                                }
+                                            }
+                                            li("flex items-center gap-2 text-sm") {
+                                                span("w-5 h-5 flex-shrink-0 opacity-70") {
+                                                    embedSvg("/static/svg/settings.svg")
+                                                }
+                                                span {
+                                                    strong { +"Settings" }
+                                                    +" — choose algorithm & purpose"
+                                                }
+                                            }
+                                            li("flex items-center gap-2 text-sm") {
+                                                span("w-5 h-5 flex-shrink-0 opacity-70") {
+                                                    embedSvg("/static/svg/share.svg")
+                                                }
+                                                span {
+                                                    strong { +"Share" }
+                                                    +" — create a link for someone else to generate a key and get the public key"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                             // Generated state (hidden initially)
                             div("hidden") {
@@ -651,78 +695,78 @@ fun getBasePage(
     bodyTags: TagConsumer<StringBuilder>.() -> Unit,
 ): String =
     "<!DOCTYPE html>" +
-            buildHTMLString {
-                getPageHead(pageTitle)
+        buildHTMLString {
+            getPageHead(pageTitle)
 
-                body {
+            body {
+                classes =
+                    setOf(
+                        "min-h-screen flex flex-col",
+                    )
+
+                // Navbar with logo
+                div {
                     classes =
-                        setOf(
-                            "min-h-screen flex flex-col",
-                        )
-
-                    // Navbar with logo
+                        setOf("navbar bg-base-100 flex place-content-between fixed top-0 left-0 right-0 z-30") // ensure on top
                     div {
-                        classes =
-                            setOf("navbar bg-base-100 flex place-content-between fixed top-0 left-0 right-0 z-30") // ensure on top
-                        div {
-                            classes = setOf("flex justify-center items-center ml-3")
-                            a(href = "/") {
-                                img(src = "/static/apple-touch-icon.png", alt = "PassGen Logo") {
-                                    classes = setOf("h-12 w-12 rounded-xl")
-                                }
-                            }
-                            a(href = "/") {
-                                classes = setOf("btn btn-ghost text-xl")
-                                +"PassGen"
+                        classes = setOf("flex justify-center items-center ml-3")
+                        a(href = "/") {
+                            img(src = "/static/apple-touch-icon.png", alt = "PassGen Logo") {
+                                classes = setOf("h-12 w-12 rounded-xl")
                             }
                         }
+                        a(href = "/") {
+                            classes = setOf("btn btn-ghost text-xl")
+                            +"PassGen"
+                        }
+                    }
 
-                        label {
-                            id = "theme-toggle-label"
-                            classes = setOf("swap swap-rotate mr-3")
+                    label {
+                        id = "theme-toggle-label"
+                        classes = setOf("swap swap-rotate mr-3")
+                        attributes["aria-label"] = "Toggle dark mode"
+                        input {
+                            id = "theme-switcher"
+                            type = InputType.checkBox
                             attributes["aria-label"] = "Toggle dark mode"
-                            input {
-                                id = "theme-switcher"
-                                type = InputType.checkBox
-                                attributes["aria-label"] = "Toggle dark mode"
-                                // Theme init and toggle handled by initTheme() in app.js
-                            }
-                            span {
-                                attributes["aria-hidden"] = "true"
-                                embedSvg("/static/svg/moon.svg")
-                            }
+                            // Theme init and toggle handled by initTheme() in app.js
+                        }
+                        span {
+                            attributes["aria-hidden"] = "true"
+                            embedSvg("/static/svg/moon.svg")
+                        }
 
-                            span {
-                                attributes["aria-hidden"] = "true"
-                                embedSvg("/static/svg/sun.svg")
-                            }
+                        span {
+                            attributes["aria-hidden"] = "true"
+                            embedSvg("/static/svg/sun.svg")
                         }
                     }
-
-                    // Copy Success Tooltip (aria-live for screen readers)
-                    div("toast toast-top toast-center z-50 pointer-events-none") {
-                        attributes["aria-live"] = "polite"
-                        attributes["aria-atomic"] = "true"
-                        role = "status"
-                        div("alert alert-success shadow-lg transition-opacity duration-300 invisible opacity-0") {
-                            id = "copy-tooltip"
-                            span {
-                                +"Copied to clipboard!"
-                            }
-                        }
-                        div("alert alert-error shadow-lg transition-opacity duration-300 invisible opacity-0") {
-                            id = "copy-tooltip-failed"
-                            span {
-                                +"Failed to copy"
-                            }
-                        }
-                    }
-
-                    div {
-                        classes = setOf("grow")
-                        bodyTags()
-                    }
-
-                    getFooter()
                 }
+
+                // Copy Success Tooltip (aria-live for screen readers)
+                div("toast toast-top toast-center z-50 pointer-events-none") {
+                    attributes["aria-live"] = "polite"
+                    attributes["aria-atomic"] = "true"
+                    role = "status"
+                    div("alert alert-success shadow-lg transition-opacity duration-300 invisible opacity-0") {
+                        id = "copy-tooltip"
+                        span {
+                            +"Copied to clipboard!"
+                        }
+                    }
+                    div("alert alert-error shadow-lg transition-opacity duration-300 invisible opacity-0") {
+                        id = "copy-tooltip-failed"
+                        span {
+                            +"Failed to copy"
+                        }
+                    }
+                }
+
+                div {
+                    classes = setOf("grow")
+                    bodyTags()
+                }
+
+                getFooter()
             }
+        }

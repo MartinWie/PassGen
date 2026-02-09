@@ -78,8 +78,6 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 
 ## Todo's
 
-- Update "Click Generate to create a key pair" to something like "On device private key generation" with the smal infro
-  icon when hovering short explain all 3 buttons and ondevice generation
 - Rate-limiting / abuse prevention on share endpoints
 - Label input on landing page share UI
 - Share expiry/cleanup (expires_at)

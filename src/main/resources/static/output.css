@@ -2213,6 +2213,9 @@
   .w-64 {
     width: calc(var(--spacing) * 64);
   }
+  .w-72 {
+    width: calc(var(--spacing) * 72);
+  }
   .w-full {
     width: 100%;
   }
@@ -2333,6 +2336,9 @@
   }
   .gap-1 {
     gap: calc(var(--spacing) * 1);
+  }
+  .gap-1\.5 {
+    gap: calc(var(--spacing) * 1.5);
   }
   .gap-2 {
     gap: calc(var(--spacing) * 2);
