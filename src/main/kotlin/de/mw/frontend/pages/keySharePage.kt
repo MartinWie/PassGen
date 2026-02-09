@@ -220,6 +220,10 @@ private fun FlowContent.getKeyShareCompletedContent(share: SharePublicKey) {
 /**
  * HTML fragment returned after successfully completing a share.
  * Used by HTMX to replace the pending UI.
+ *
+ * Unlike [getKeyShareCompletedContent] (used when revisiting the link), this fragment
+ * omits the public-key download button because the private key was just auto-downloaded
+ * and showing another download button immediately would confuse non-technical users.
  */
 fun getKeyShareCompletedFragment(share: SharePublicKey): String =
     buildHTMLString {
@@ -250,6 +254,20 @@ fun getKeyShareCompletedFragment(share: SharePublicKey): String =
                 }
             }
 
+            // Private key download confirmation
+            div("bg-success/10 border border-success/30 text-base-content p-4 rounded-lg mb-6 text-left") {
+                div("flex items-center gap-3") {
+                    span("w-5 h-5 flex-shrink-0 text-success") {
+                        attributes["aria-hidden"] = "true"
+                        embedSvg("/static/svg/download.svg")
+                    }
+                    p("text-sm text-base-content/70") {
+                        strong("text-base-content") { +"Private key downloaded " }
+                        +"— store it safely, it cannot be recovered."
+                    }
+                }
+            }
+
             // Public Key Display
             div("mb-6") {
                 label("label py-1") {
@@ -275,29 +293,19 @@ fun getKeyShareCompletedFragment(share: SharePublicKey): String =
                 }
             }
 
-            // Action buttons - Download and Copy side by side
             div("flex gap-3") {
                 button(classes = "btn btn-primary flex-1") {
-                    id = "download-public-btn"
-                    onEvent(JsEvent.ON_CLICK, "downloadSharePublicKey();")
-                    span {
-                        attributes["aria-hidden"] = "true"
-                        embedSvg("/static/svg/download.svg")
-                    }
-                    span("ml-1") { +"Download" }
-                }
-                button(classes = "btn btn-outline flex-1") {
                     title = "Copy public key"
                     onEvent(JsEvent.ON_CLICK, "copyToClipboard('public-key-display');")
                     span {
                         attributes["aria-hidden"] = "true"
                         embedSvg("/static/svg/copy.svg")
                     }
-                    span("ml-1") { +"Copy" }
+                    span("ml-1") { +"Copy Public Key" }
                 }
             }
 
-            // Hidden data for JS (used by downloadSharePublicKey in app.js)
+            // Hidden data for JS
             input(InputType.hidden) {
                 id = "share-algorithm"
                 value = share.algorithm

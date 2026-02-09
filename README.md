@@ -78,8 +78,6 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 
 ## Todo's
 
-- After downloading the private key just show success and text box for the public key, but not the download button(less
-  technical users get confused by the next download view. But when opening the link again the interface is good)
 - Update "Click Generate to create a key pair" to something like "On device private key generation" with the smal infro
   icon when hovering short explain all 3 buttons and ondevice generation
 - Rate-limiting / abuse prevention on share endpoints
@@ -115,11 +113,9 @@ aenv -e Prod -s Passgen bash fullBuild.sh
     - remove the report a bug/feedback link to github issue(later will add a real feedback process)
 - host(passgen io/sh/...?)
     - For docker image check out distroless(similar setup as marbles)
-- Add Keyboard navigation(small icon that reveals the keymap)
-    - UI for this? mini icon with popup on click
-    - Mac vs Linux vs Win
-    - K vs P for main screen S for the share variant R for (re)gen
 - Add posthog(similar setup as marbles with different project)
+    - Switch to pay as you go and set spending limits of 10 bucks per project
+    - Generate new token and then setup project
 - Cookie banner?(Similar as marbles)
 - Add workos for logins
     - login functionality requires monthly fee(check how this works with payment provider)
@@ -133,6 +129,10 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 - auto delete of shares(cleanup process 7days pro and business users can set any number up to a year or unlimited(job
   that changes the status of a user also needs to cleanup))
 - Add posthog feedback setup
+- Add Keyboard navigation(small icon that reveals the keymap)
+    - UI for this? mini icon with popup on click
+    - Mac vs Linux vs Win
+    - K vs P for main screen S for the share variant R for (re)gen
 - Marketing: Checkout quota and Reddit for password sharing SFTP setup admin subreddit
 - Optimize
     - click to response time?

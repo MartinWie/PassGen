@@ -2410,6 +2410,12 @@
   .border-primary {
     border-color: var(--color-primary);
   }
+  .border-success\/30 {
+    border-color: var(--color-success);
+    @supports (color: color-mix(in lab, red, red)) {
+      border-color: color-mix(in oklab, var(--color-success) 30%, transparent);
+    }
+  }
   .border-transparent {
     border-color: transparent;
   }
@@ -2439,6 +2445,12 @@
   }
   .bg-base-300 {
     background-color: var(--color-base-300);
+  }
+  .bg-success\/10 {
+    background-color: var(--color-success);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--color-success) 10%, transparent);
+    }
   }
   .bg-success\/20 {
     background-color: var(--color-success);
