@@ -59,6 +59,8 @@ dependencies {
     implementation("io.ktor:ktor-server-call-logging-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-host-common-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-status-pages-jvm:$ktor_version")
+    implementation("io.ktor:ktor-server-rate-limit:$ktor_version")
+    implementation("io.ktor:ktor-server-forwarded-header:$ktor_version")
     implementation("io.ktor:ktor-server-sessions:$ktor_version")
     implementation("io.ktor:ktor-server-auth-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-auth:$ktor_version")
@@ -111,6 +113,16 @@ flyway {
 tasks {
     generateJooqClasses {
         basePackageName.set("de.mw.generated")
+        // Generate into src/main/java so classes are committed to git.
+        // Docker builds skip this task (-x generateJooqClasses) and use the committed copies,
+        // avoiding the Docker-in-Docker requirement for testcontainers.
+        outputDirectory.set(project.layout.projectDirectory.dir("src/main/java"))
+    }
+
+    // Ensure JOOQ classes are (re)generated before compilation in normal builds.
+    // Docker builds skip this via: gradle shadowJar -x generateJooqClasses
+    named("compileKotlin") {
+        dependsOn("generateJooqClasses")
     }
 
     withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
@@ -122,10 +134,6 @@ tasks {
     named("flywayMigrate") {
         inputs.files(fileTree("src/main/resources/db/migration"))
         outputs.dir("${layout.buildDirectory}/flyway-output")
-    }
-
-    named("compileKotlin") {
-        dependsOn("generateJooqClasses")
     }
 
     test {

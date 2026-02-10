@@ -76,9 +76,69 @@ Run migrations and build current version:
 aenv -e Prod -s Passgen bash fullBuild.sh
 ```
 
+### Rate limiting
+
+Per-IP rate limiting is applied to all share and generation endpoints using Ktor's built-in `RateLimit` plugin (token
+bucket algorithm). The limits are:
+
+| Tier           | Limit        | Endpoints                                                                  |
+|----------------|--------------|----------------------------------------------------------------------------|
+| CREATE_SHARE   | 10 req / 60s | `POST /share`, `POST /key/share`                                           |
+| COMPLETE_SHARE | 5 req / 60s  | `POST /key/share/{id}/complete`                                            |
+| VIEW_SHARE     | 30 req / 60s | `GET /share/{id}/{salt}`, `POST /share/{id}/{salt}`, `GET /key/share/{id}` |
+| GENERATE       | 30 req / 60s | `GET /word`                                                                |
+
+When a client exceeds the limit they receive HTTP 429 with a `Retry-After` header and a DaisyUI warning alert (
+HTMX-friendly).
+
+**Reverse proxy / Dokploy:** The `XForwardedHeaders` Ktor plugin is installed so that `request.origin.remoteHost`
+resolves to the real client IP (via the `X-Forwarded-For` header set by Traefik). This works out of the box with
+Dokploy's default Traefik setup.
+
+**Scaling note:** Rate limiting is in-memory (per application instance). For a single-container deployment (typical
+Dokploy setup) this is correct. If you scale to multiple replicas, each instance maintains its own buckets — meaning
+effective limits multiply by the number of instances. For strict global limits across replicas, switch to a distributed
+rate limiter (e.g. Bucket4j + Redis).
+
+### Docker / Dokploy deployment
+
+The app ships with a multi-stage `Dockerfile`:
+
+- **Builder stage:** `gradle:8.13-jdk21` downloads dependencies and builds the fat JAR (skipping JOOQ generation — uses
+  committed sources in `src/main/java/`).
+- **Runtime stage:** `gcr.io/distroless/java21-debian12:nonroot` — minimal, secure image with only the JRE and the fat
+  JAR.
+
+To build and run locally:
+
+```Terminal
+docker build -t passgen:latest .
+docker run -p 8080:8080 \
+  -e SECRET_PASSGEN_DB-HOST=host.docker.internal \
+  -e SECRET_PASSGEN_DB-USER=admin \
+  -e SECRET_PASSGEN_DB-PASSWORD=your-password \
+  passgen:latest
+```
+
+To deploy with Dokploy:
+
+1. Point Dokploy to the repo — it builds the Docker image from the `Dockerfile` automatically (no pre-built JAR
+   required).
+2. The `XForwardedHeaders` plugin ensures rate limiting uses the real client IP from Traefik's `X-Forwarded-For` header.
+3. Set the required environment variables in Dokploy's service config:
+    - `SECRET_PASSGEN_DB-HOST` — PostgreSQL host (Dokploy internal service name or external)
+    - `SECRET_PASSGEN_DB-USER` — Database user
+    - `SECRET_PASSGEN_DB-PASSWORD` — Database password
+    - `APP_HOST` — Bind address (default `0.0.0.0`, usually fine)
+4. Health check: Traefik can use the `/health` endpoint (returns 200 OK).
+
+**JOOQ class generation:** JOOQ sources are committed to `src/main/java/de/mw/generated/`. Every normal build (
+`./gradlew build`) automatically regenerates them via testcontainers (requires Docker running locally). The Docker image
+build skips JOOQ generation (`-x generateJooqClasses`) and uses the committed copies instead, avoiding Docker-in-Docker.
+After changing DB migrations, just run `./gradlew build` and commit the updated generated files.
+
 ## Todo's
 
-- Rate-limiting / abuse prevention on share endpoints
 - Label input on landing page share UI
 - Share expiry/cleanup (expires_at)
 - Security: Make PageSecurityContext.scriptNonce request-scoped
@@ -110,7 +170,6 @@ aenv -e Prod -s Passgen bash fullBuild.sh
     - What is used for the Keygen
     - remove the report a bug/feedback link to github issue(later will add a real feedback process)
 - host(passgen io/sh/...?)
-    - For docker image check out distroless(similar setup as marbles)
 - Add posthog(similar setup as marbles with different project)
     - Switch to pay as you go and set spending limits of 10 bucks per project
     - Generate new token and then setup project

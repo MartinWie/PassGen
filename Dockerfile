@@ -1,17 +1,29 @@
-# Use Amazon Corretto 21 as the base image
-FROM amazoncorretto:21-alpine
+# Stage 1: Build the application
+FROM gradle:8.13-jdk21 AS builder
 
-# Healthcheck
-HEALTHCHECK --interval=20s --timeout=5s --retries=3 CMD curl -f http://localhost/health || exit 1
-
-# Set the working directory inside the container
 WORKDIR /app
 
-# Copy the JAR file from your build output directory to the container
-COPY build/libs/de.mw.passgen-all.jar /app/app.jar
+# Copy gradle config files first for better layer caching
+COPY gradle.properties settings.gradle.kts build.gradle.kts ./
+COPY gradle ./gradle
 
-# Expose a port if your application requires it (replace 8080 with your application's port)
+# Download dependencies (cached unless gradle files change)
+RUN gradle dependencies --no-daemon --no-configuration-cache -x generateJooqClasses
+
+# Copy source code (includes committed JOOQ classes in src/main/java/)
+COPY src ./src
+
+# Build the fat jar, skipping JOOQ generation (uses committed sources) and tests
+RUN gradle shadowJar --no-daemon --no-configuration-cache -x generateJooqClasses -x test
+
+# Stage 2: Runtime with distroless
+FROM gcr.io/distroless/java21-debian12:nonroot
+
+WORKDIR /app
+
+# Copy the fat jar from builder
+COPY --from=builder /app/build/libs/de.mw.passgen-all.jar app.jar
+
 EXPOSE 8080
 
-# Define the entry point for the container to run the application
-CMD ["java", "-jar", "/app/app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]

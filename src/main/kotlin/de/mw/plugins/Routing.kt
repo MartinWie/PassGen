@@ -7,7 +7,9 @@ import io.github.martinwie.htmx.PageSecurityContext
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
+import io.ktor.server.plugins.origin
 import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import java.security.SecureRandom
@@ -15,6 +17,26 @@ import java.util.*
 
 fun Application.configureRouting() {
     install(StatusPages) {
+        status(HttpStatusCode.TooManyRequests) { call, _ ->
+            call.application.log.warn(
+                "Rate limited: {} on {}",
+                call.request.origin.remoteHost,
+                call.request.path(),
+            )
+            if (call.request.headers["HX-Request"] != null) {
+                call.respondText(
+                    """<div class="alert alert-warning">Too many requests — please wait a moment and try again.</div>""",
+                    ContentType.Text.Html,
+                    HttpStatusCode.TooManyRequests,
+                )
+            } else {
+                call.respondText(
+                    "Too many requests — please wait a moment and try again.",
+                    ContentType.Text.Plain,
+                    HttpStatusCode.TooManyRequests,
+                )
+            }
+        }
         exception<Throwable> { call, cause ->
             call.application.log.error("Unhandled exception", cause)
             call.respond(HttpStatusCode.InternalServerError, "Internal Server Error")

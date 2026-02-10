@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import de.mw.daos.KeyShareDao
 import de.mw.daos.PasswordDao
+import de.mw.plugins.configureRateLimiting
 import de.mw.plugins.configureRouting
 import de.mw.services.KeyService
 import de.mw.services.PasswordService
@@ -24,7 +25,6 @@ val postgresHost: String = System.getenv("SECRET_PASSGEN_DB-HOST") ?: "localhost
 val postgresUser: String = System.getenv("SECRET_PASSGEN_DB-USER") ?: "admin"
 val postgresPassword: String =
     System.getenv("SECRET_PASSGEN_DB-PASSWORD") ?: "Helpless-Phrase-Unrushed-Radar0-Buzz-Curling-Haggler"
-val fullDomain: String = System.getenv("SECRET_PASSGEN_DOMAIN") ?: "http://localhost:8080"
 
 // HikariCP data source configuration
 val hikariConfig =
@@ -67,5 +67,6 @@ fun main() {
 }
 
 fun Application.module() {
+    configureRateLimiting()
     configureRouting()
 }

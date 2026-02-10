@@ -1,0 +1,26 @@
+# Build artifacts
+build/
+.gradle/
+
+# IDE
+.idea/
+
+# Node / frontend tooling
+node_modules/
+playwright-report/
+test-results/
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Misc
+*.md
+*.pid
+.DS_Store
+.env*
+.serena/
