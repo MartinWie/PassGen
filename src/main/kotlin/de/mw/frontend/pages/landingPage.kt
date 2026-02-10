@@ -17,16 +17,13 @@ fun getLandingPage(pageTitle: String): String =
                     div(
                         "flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-3 border border-base-300 rounded-xl p-2 md:p-3 focus-within:ring-1 focus-within:ring-base-content focus-within:border-base-content shadow-xs",
                     ) {
+                        // Initial empty placeholder — app.js fires htmx.ajax()
+                        // after restoring settings from localStorage, replacing this
+                        // element with the server-rendered password textarea.
                         textArea {
                             id = "password-input"
                             classes =
                                 setOf("grow resize-none h-14 py-[14px]")
-                            hxGet("/word")
-                            hxSwap(HxSwapOption.OUTER_HTML)
-                            hxTrigger("load-password from:body")
-                            hxInclude(
-                                "[name='language-select'], [name='word-amount-slider'], [name='include-special'], [name='include-numbers'], [name='separator']",
-                            )
                         }
 
                         div("flex justify-center md:justify-end gap-2 md:gap-3 mt-1 md:mt-0") {
@@ -760,6 +757,16 @@ fun getBasePage(
                             +"Failed to copy"
                         }
                     }
+                }
+
+                // Global notification region for server-side alerts (e.g. 429 rate-limit).
+                // HTMX responses can target this via HX-Retarget so they never accidentally
+                // replace form content.
+                div("toast toast-top toast-end z-50 pointer-events-auto") {
+                    id = "global-notification"
+                    attributes["aria-live"] = "assertive"
+                    attributes["aria-atomic"] = "true"
+                    role = "alert"
                 }
 
                 div {

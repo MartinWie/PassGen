@@ -6,6 +6,7 @@ import de.mw.frontend.pages.getSharePage
 import de.mw.models.WordLanguage
 import de.mw.passwordService
 import de.mw.plugins.RateLimitTiers
+import de.mw.plugins.respondHtmlWithCsp
 import io.github.martinwie.htmx.*
 import io.ktor.http.*
 import io.ktor.server.plugins.ratelimit.*
@@ -13,8 +14,6 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.html.*
-import java.security.SecureRandom
-import java.util.*
 
 fun Route.passwordRouting() {
     rateLimit(RateLimitTiers.GENERATE) {
@@ -114,24 +113,7 @@ fun Route.passwordRouting() {
                     "Invalid salt format",
                 )
 
-            // Generate nonce for CSP
-            val nonceBytes = ByteArray(16)
-            SecureRandom().nextBytes(nonceBytes)
-            val nonce = Base64.getEncoder().encodeToString(nonceBytes)
-            PageSecurityContext.scriptNonce = nonce
-
-            try {
-                call.response.headers.append(
-                    "Content-Security-Policy",
-                    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:3000; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self' http://localhost:3000 ws://localhost:3000 wss://localhost:3000;",
-                )
-                call.respondText(
-                    getSharePage(shareId, salt),
-                    ContentType.Text.Html,
-                )
-            } finally {
-                PageSecurityContext.scriptNonce = null
-            }
+            call.respondHtmlWithCsp { getSharePage(shareId, salt) }
         }
 
         // Fetch the info for a given share

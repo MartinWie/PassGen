@@ -3,7 +3,6 @@ package de.mw.plugins
 import de.mw.frontend.pages.getLandingPage
 import de.mw.plugins.routes.keyRouting
 import de.mw.plugins.routes.passwordRouting
-import io.github.martinwie.htmx.PageSecurityContext
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
@@ -12,8 +11,6 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import java.security.SecureRandom
-import java.util.*
 
 fun Application.configureRouting() {
     install(StatusPages) {
@@ -24,8 +21,14 @@ fun Application.configureRouting() {
                 call.request.path(),
             )
             if (call.request.headers["HX-Request"] != null) {
+                // Retarget the response into the global notification region so HTMX
+                // never accidentally replaces the form or other page content.
+                call.response.headers.append("HX-Retarget", "#global-notification")
+                call.response.headers.append("HX-Reswap", "innerHTML")
                 call.respondText(
-                    """<div class="alert alert-warning">Too many requests — please wait a moment and try again.</div>""",
+                    """<div class="alert alert-warning shadow-lg" role="alert">""" +
+                        """<span>Too many requests — please wait a moment and try again.</span>""" +
+                        """</div>""",
                     ContentType.Text.Html,
                     HttpStatusCode.TooManyRequests,
                 )
@@ -44,19 +47,7 @@ fun Application.configureRouting() {
     }
     routing {
         get("/") {
-            val nonceBytes = ByteArray(16)
-            SecureRandom().nextBytes(nonceBytes)
-            val nonce = Base64.getEncoder().encodeToString(nonceBytes)
-            PageSecurityContext.scriptNonce = nonce
-            try {
-                call.response.headers.append(
-                    "Content-Security-Policy",
-                    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:3000; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self' http://localhost:3000 ws://localhost:3000 wss://localhost:3000;",
-                )
-                call.respondText(getLandingPage("PassGen"), ContentType.Text.Html)
-            } finally {
-                PageSecurityContext.scriptNonce = null
-            }
+            call.respondHtmlWithCsp { getLandingPage("PassGen") }
         }
 
         get("/health") {

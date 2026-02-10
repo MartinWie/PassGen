@@ -5,7 +5,7 @@ import de.mw.frontend.pages.getKeyShareCreateResult
 import de.mw.frontend.pages.getKeySharePage
 import de.mw.keyService
 import de.mw.plugins.RateLimitTiers
-import io.github.martinwie.htmx.PageSecurityContext
+import de.mw.plugins.respondHtmlWithCsp
 import io.github.martinwie.htmx.addJs
 import io.github.martinwie.htmx.buildHTMLString
 import io.ktor.http.*
@@ -15,8 +15,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.html.div
 import kotlinx.html.p
-import java.security.SecureRandom
-import java.util.*
 
 fun Route.keyRouting() {
     rateLimit(RateLimitTiers.CREATE_SHARE) {
@@ -80,24 +78,7 @@ fun Route.keyRouting() {
                     "Key share not found",
                 )
 
-            // Generate nonce for CSP
-            val nonceBytes = ByteArray(16)
-            SecureRandom().nextBytes(nonceBytes)
-            val nonce = Base64.getEncoder().encodeToString(nonceBytes)
-            PageSecurityContext.scriptNonce = nonce
-
-            try {
-                call.response.headers.append(
-                    "Content-Security-Policy",
-                    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:3000; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self' http://localhost:3000 ws://localhost:3000 wss://localhost:3000;",
-                )
-                call.respondText(
-                    getKeySharePage(share),
-                    ContentType.Text.Html,
-                )
-            } finally {
-                PageSecurityContext.scriptNonce = null
-            }
+            call.respondHtmlWithCsp { getKeySharePage(share) }
         }
     }
 

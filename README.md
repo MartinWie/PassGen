@@ -81,12 +81,12 @@ aenv -e Prod -s Passgen bash fullBuild.sh
 Per-IP rate limiting is applied to all share and generation endpoints using Ktor's built-in `RateLimit` plugin (token
 bucket algorithm). The limits are:
 
-| Tier           | Limit        | Endpoints                                                                  |
-|----------------|--------------|----------------------------------------------------------------------------|
-| CREATE_SHARE   | 10 req / 60s | `POST /share`, `POST /key/share`                                           |
-| COMPLETE_SHARE | 5 req / 60s  | `POST /key/share/{id}/complete`                                            |
-| VIEW_SHARE     | 30 req / 60s | `GET /share/{id}/{salt}`, `POST /share/{id}/{salt}`, `GET /key/share/{id}` |
-| GENERATE       | 30 req / 60s | `GET /word`                                                                |
+| Tier           | Limit         | Endpoints                                                                  |
+|----------------|---------------|----------------------------------------------------------------------------|
+| CREATE_SHARE   | 10 req / 60s  | `POST /share`, `POST /key/share`                                           |
+| COMPLETE_SHARE | 5 req / 60s   | `POST /key/share/{id}/complete`                                            |
+| VIEW_SHARE     | 30 req / 60s  | `GET /share/{id}/{salt}`, `POST /share/{id}/{salt}`, `GET /key/share/{id}` |
+| GENERATE       | 120 req / 60s | `GET /word`                                                                |
 
 When a client exceeds the limit they receive HTTP 429 with a `Retry-After` header and a DaisyUI warning alert (
 HTMX-friendly).
@@ -139,21 +139,21 @@ After changing DB migrations, just run `./gradlew build` and commit the updated 
 
 ## Todo's
 
-- Label input on landing page share UI
-- Share expiry/cleanup (expires_at)
-- Security: Make PageSecurityContext.scriptNonce request-scoped
 - CSP rule cleanup for production
+- Security: Make PageSecurityContext.scriptNonce request-scoped
+- Share expiry/cleanup (expires_at)
 - cleanup review codebase check for duplicated or old orphane logic and clean up
 - make sure all test coverage is good also for e2e testing
-- Checkout how to move password generation to client
+- Checkout how to move password generation to client here are some ideas:
     - list of hidden tags and take form there?
     - Alpine.js
     - Hyperscript?
     - Add local storage loading request to text area response(normal return + random wordlist to local storage)
         - hx-Ext json-enc
         - and from buttons and settings use local storage
-        - Change slider so live and not only release(if the password is generated locally no need to only generate on
-          release)
+- Change password amount slider so live and not only release(if the password is generated locally no need to only
+  generate on
+  release)
 - See what we can clean up when we still generated the passwords on the server(additional request handling, server side
   generation code, etc)
 - Check if we can remove the "Centralized modal opening" and "Global guard: block HTMX share"
@@ -191,6 +191,7 @@ After changing DB migrations, just run `./gradlew build` and commit the updated 
     - Mac vs Linux vs Win
     - K vs P for main screen S for the share variant R for (re)gen
 - Marketing: Checkout quota and Reddit for password sharing SFTP setup admin subreddit
+- Check/test if rate limiting works with current deployment
 - Optimize
     - click to response time?
         - Check where we can add loaders

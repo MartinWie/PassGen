@@ -63,7 +63,7 @@ fun Application.configureRateLimiting() {
         }
 
         register(RateLimitTiers.GENERATE) {
-            rateLimiter(limit = 30, refillPeriod = 60.seconds)
+            rateLimiter(limit = 120, refillPeriod = 60.seconds)
             byClientIp()
         }
     }

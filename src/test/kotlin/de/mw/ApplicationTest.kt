@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.server.testing.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class ApplicationTest {
@@ -82,10 +83,34 @@ class ApplicationTest {
         }
 
     @Test
+    fun `homepage includes Content-Security-Policy header`() =
+        testApplication {
+            setupApp()
+            client.get("/").apply {
+                assertEquals(HttpStatusCode.OK, status)
+                val csp = headers["Content-Security-Policy"]
+                assertTrue(csp != null, "CSP header should be present")
+                assertTrue(csp.contains("default-src 'self'"), "CSP should contain default-src")
+                assertTrue(csp.contains("frame-ancestors 'none'"), "CSP should block framing")
+            }
+        }
+
+    @Test
+    fun `homepage includes global notification region`() =
+        testApplication {
+            setupApp()
+            client.get("/").apply {
+                assertEquals(HttpStatusCode.OK, status)
+                val body = bodyAsText()
+                assertTrue(body.contains("id=\"global-notification\""), "Page should contain global-notification region")
+            }
+        }
+
+    @Test
     fun `rate limit returns 429 after exceeding generate tier limit`() =
         testApplication {
             setupApp()
-            val limit = 30 // GENERATE tier limit
+            val limit = 120 // GENERATE tier limit
             // Send exactly `limit` requests — all should succeed
             repeat(limit) { i ->
                 client.get("/word").apply {
@@ -106,7 +131,7 @@ class ApplicationTest {
     fun `rate limit 429 returns HTMX fragment when HX-Request header is set`() =
         testApplication {
             setupApp()
-            val limit = 30
+            val limit = 120
             repeat(limit) {
                 client.get("/word")
             }
@@ -119,6 +144,8 @@ class ApplicationTest {
                     val body = bodyAsText()
                     assertTrue(body.contains("alert"), "429 body should contain alert class for HTMX")
                     assertTrue(body.contains("Too many requests"), "429 body should contain rate limit message")
+                    assertEquals("#global-notification", headers["HX-Retarget"], "429 should retarget to notification region")
+                    assertEquals("innerHTML", headers["HX-Reswap"], "429 should use innerHTML swap")
                 }
         }
 
@@ -126,7 +153,7 @@ class ApplicationTest {
     fun `rate limit 429 returns plain text for non-HTMX requests`() =
         testApplication {
             setupApp()
-            val limit = 30
+            val limit = 120
             repeat(limit) {
                 client.get("/word")
             }
@@ -135,6 +162,8 @@ class ApplicationTest {
                 assertEquals(HttpStatusCode.TooManyRequests, status)
                 val body = bodyAsText()
                 assertEquals("Too many requests — please wait a moment and try again.", body)
+                assertNull(headers["HX-Retarget"], "Plain text 429 should not have HX-Retarget header")
+                assertNull(headers["HX-Reswap"], "Plain text 429 should not have HX-Reswap header")
             }
         }
 

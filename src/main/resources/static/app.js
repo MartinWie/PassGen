@@ -254,12 +254,19 @@ function initLandingPageSettings() {
         includeSpecial.checked = localStorage.getItem('include-special') === 'true';
     }
 
-    // Trigger initial password load after all settings are restored.
-    // Use requestAnimationFrame to ensure DOM updates from the above are painted.
+    // Trigger initial password generation after all settings are restored.
+    // We use htmx.ajax() directly instead of dispatching a custom event
+    // because the declarative hx-trigger on the textarea may not yet be
+    // processed by HTMX at this point, causing a race condition where the
+    // event fires but HTMX hasn't attached its listener yet.
     if (languageSelect || wordAmountSlider) {
-        requestAnimationFrame(function () {
-            document.body.dispatchEvent(new CustomEvent('load-password'));
-        });
+        var params = {};
+        if (languageSelect) params['language-select'] = languageSelect.value;
+        if (wordAmountSlider) params['word-amount-slider'] = wordAmountSlider.value;
+        if (includeSpecial && includeSpecial.checked) params['include-special'] = 'on';
+        if (includeNumbers && includeNumbers.checked) params['include-numbers'] = 'on';
+        if (wordSeparator) params['separator'] = wordSeparator.value;
+        htmx.ajax('GET', '/word', {target: '#password-input', swap: 'outerHTML', values: params});
     }
 }
 
@@ -419,12 +426,23 @@ function initGenerationToggle() {
 
 document.addEventListener("DOMContentLoaded", (event) => {
     document.body.addEventListener('htmx:beforeSwap', function (evt) {
-        if (evt.detail.xhr.status === 422 || evt.detail.xhr.status === 404 || evt.detail.xhr.status === 401 || evt.detail.xhr.status === 400) {
-            // Allow 422, 404, 401 and 400 responses to swap.
+        const status = evt.detail.xhr.status;
+        if (status === 429 || status === 422 || status === 404 || status === 401 || status === 400) {
+            // Allow 429, 422, 404, 401 and 400 responses to swap.
             //
             // set isError to false to avoid error logging in console
             evt.detail.shouldSwap = true;
             evt.detail.isError = false;
+        }
+    });
+
+    // Auto-dismiss global notifications (e.g. 429 rate-limit alerts) after 5 seconds.
+    // Listens for content settling into the #global-notification region and clears it.
+    document.body.addEventListener('htmx:afterSettle', function (evt) {
+        if (evt.detail.target && evt.detail.target.id === 'global-notification' && evt.detail.target.innerHTML.trim() !== '') {
+            setTimeout(function () {
+                evt.detail.target.innerHTML = '';
+            }, 5000);
         }
     });
 

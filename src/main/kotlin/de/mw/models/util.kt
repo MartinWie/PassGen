@@ -34,18 +34,7 @@ object LocalDateTimeSerializer : KSerializer<LocalDateTime> {
     }
 }
 
-fun getUUIDorNull(id: String?): UUID? {
-    val boardUUID: UUID
-    try {
-        boardUUID = UUID.fromString(id)
-    } catch (exception: Exception) {
-        return null
-    }
-
-    return boardUUID
-}
-
-enum class WordLanguage{
+enum class WordLanguage {
     ENG,
     GER
 }
