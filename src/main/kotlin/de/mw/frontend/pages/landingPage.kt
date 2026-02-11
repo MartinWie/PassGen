@@ -78,14 +78,7 @@ fun getLandingPage(pageTitle: String): String =
                                         select {
                                             id = "language-select"
                                             name = "language-select"
-                                            classes = setOf("select", "select-bordered", "w-full")
-                                            onEvent(
-                                                JsEvent.ON_CHANGE,
-                                                """
-                                                document.getElementById('regen-button').click();
-                                                localStorage.setItem('word-language', this.options[this.selectedIndex].value);
-                                                """.trimIndent(),
-                                            )
+                                            classes = setOf("select", "select-bordered", "w-full", "setting-regen")
                                             option {
                                                 value = "ENG"
                                                 +"English"
@@ -116,19 +109,7 @@ fun getLandingPage(pageTitle: String): String =
                                             max = "50"
                                             step = "1"
                                             id = "word-amount-slider"
-                                            classes = setOf("range mb-3")
-                                            onEvent(
-                                                JsEvent.ON_CHANGE,
-                                                "document.getElementById('regen-button').click();",
-                                            )
-                                            onEvent(
-                                                JsEvent.ON_INPUT,
-                                                """
-                                                document.getElementById('word-amount').textContent = this.value;
-                                                document.getElementById('word-input').value = this.value;
-                                                localStorage.setItem('word-amount', this.value);
-                                                """.trimIndent(),
-                                            )
+                                            classes = setOf("range mb-3", "setting-regen")
                                             // Word amount restored from localStorage by initLandingPageSettings() in app.js
                                         }
                                         input(InputType.number) {
@@ -136,16 +117,6 @@ fun getLandingPage(pageTitle: String): String =
                                             max = "50"
                                             id = "word-input"
                                             classes = setOf("input", "input-bordered", "w-full")
-                                            onEvent(
-                                                JsEvent.ON_INPUT,
-                                                """
-                                                if(this.value > 50) this.value = 50;
-                                                document.getElementById('word-amount').textContent = this.value;
-                                                document.getElementById('word-amount-slider').value = this.value;
-                                                document.getElementById('regen-button').click();
-                                                localStorage.setItem('word-amount', this.value.toString());
-                                                """.trimIndent(),
-                                            )
                                             // Word input value restored by initLandingPageSettings() in app.js
                                         }
                                     }
@@ -163,14 +134,9 @@ fun getLandingPage(pageTitle: String): String =
                                             maxLength = 1.toString()
                                             id = "word-separator"
                                             classes = setOf("input", "input-bordered", "w-full")
-                                            onEvent(
-                                                JsEvent.ON_INPUT,
-                                                """
-                                                document.getElementById('regen-button').click();
-                                                localStorage.setItem('word-separator', this.value);
-                                                """.trimIndent(),
-                                            )
                                             // Separator restored by initLandingPageSettings() in app.js
+                                            // Regen handled by dedicated input handler in app.js (not setting-regen)
+                                            // to avoid duplicate regen on change+input
                                         }
                                     }
 
@@ -184,19 +150,8 @@ fun getLandingPage(pageTitle: String): String =
                                                 type = InputType.checkBox
                                                 id = "include-numbers"
                                                 name = "include-numbers"
-                                                classes = setOf("checkbox checkbox-sm")
+                                                classes = setOf("checkbox checkbox-sm", "setting-regen")
                                                 checked = false
-                                                onEvent(
-                                                    JsEvent.ON_CHANGE,
-                                                    """
-                                                    document.getElementById('regen-button').click();
-                                                    if (this.checked) {                                                    
-                                                        localStorage.setItem('include-numbers', 'true');
-                                                    } else {
-                                                        localStorage.setItem('include-numbers', 'false');
-                                                    }
-                                                    """.trimIndent(),
-                                                )
                                                 // Checkbox state restored by initLandingPageSettings() in app.js
                                             }
                                             span {
@@ -215,19 +170,8 @@ fun getLandingPage(pageTitle: String): String =
                                                 type = InputType.checkBox
                                                 id = "include-special"
                                                 name = "include-special"
-                                                classes = setOf("checkbox checkbox-sm")
+                                                classes = setOf("checkbox checkbox-sm", "setting-regen")
                                                 checked = false
-                                                onEvent(
-                                                    JsEvent.ON_CHANGE,
-                                                    """
-                                                    document.getElementById('regen-button').click();
-                                                    if (this.checked) {                                                    
-                                                        localStorage.setItem('include-special', 'true');
-                                                    } else {
-                                                        localStorage.setItem('include-special', 'false');
-                                                    }
-                                                    """.trimIndent(),
-                                                )
                                                 // Checkbox state restored by initLandingPageSettings() in app.js
                                             }
                                             span {
@@ -439,21 +383,6 @@ fun getLandingPage(pageTitle: String): String =
                                                 classes = setOf("checkbox", "checkbox-sm")
                                                 attributes["aria-expanded"] = "false"
                                                 attributes["aria-controls"] = "identifier-input-wrapper"
-                                                onEvent(
-                                                    JsEvent.ON_CHANGE,
-                                                    """
-                                                    const wrapper = document.getElementById('identifier-input-wrapper');
-                                                    if(this.checked) {
-                                                        wrapper.classList.remove('hidden');
-                                                        this.setAttribute('aria-expanded', 'true');
-                                                        document.getElementById('key-identifier').focus();
-                                                    } else {
-                                                        wrapper.classList.add('hidden');
-                                                        this.setAttribute('aria-expanded', 'false');
-                                                        document.getElementById('key-identifier').value = '';
-                                                    }
-                                                    """.trimIndent(),
-                                                )
                                             }
                                             span("label-text text-sm") { +"Add key comment" }
                                             div("tooltip tooltip-right") {
@@ -643,14 +572,12 @@ fun getLandingPage(pageTitle: String): String =
                             setOf(
                                 "relative w-32 h-10 bg-base-300 rounded-full cursor-pointer transition-all duration-300 flex items-center p-0.5",
                             )
-                        style = "transition: all 0.3s;"
 
                         // Toggle thumb
                         div {
                             id = "toggle-thumb"
                             classes =
-                                setOf("absolute w-16 h-9 bg-accent rounded-full transition-all duration-300 shadow-md z-10")
-                            style = "left:2px;"
+                                setOf("absolute w-16 h-9 bg-accent rounded-full transition-all duration-300 shadow-md z-10 left-0.5")
                         }
 
                         // Toggle icons container
@@ -698,7 +625,7 @@ fun getBasePage(
             body {
                 classes =
                     setOf(
-                        "min-h-screen flex flex-col",
+                        "min-h-screen flex flex-col antialiased",
                     )
 
                 // Navbar with logo

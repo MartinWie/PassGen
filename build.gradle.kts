@@ -49,7 +49,7 @@ repositories {
 
 dependencies {
     // HTMX utilities for kotlinx-html
-    implementation("io.github.martinwie:kotlinx-htmx:0.1.0")
+    implementation("io.github.martinwie:kotlinx-htmx:0.2.0")
 
     implementation("io.ktor:ktor-server-html-builder-jvm:$ktor_version")
     implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.12.0")

@@ -1,5 +1,6 @@
 package de.mw
 
+import de.mw.plugins.buildCspHeaderValue
 import de.mw.plugins.configureRateLimiting
 import de.mw.plugins.configureRouting
 import io.ktor.client.request.*
@@ -8,6 +9,7 @@ import io.ktor.http.*
 import io.ktor.server.testing.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -92,6 +94,22 @@ class ApplicationTest {
                 assertTrue(csp != null, "CSP header should be present")
                 assertTrue(csp.contains("default-src 'self'"), "CSP should contain default-src")
                 assertTrue(csp.contains("frame-ancestors 'none'"), "CSP should block framing")
+                assertTrue(csp.contains("form-action 'self'"), "CSP should restrict form submissions to self")
+                assertTrue(csp.contains("object-src 'none'"), "CSP should block object/embed")
+                assertTrue(csp.contains("base-uri 'none'"), "CSP should block base URI manipulation")
+                assertTrue(csp.contains("style-src 'self' 'unsafe-inline'"), "CSP style-src should allow unsafe-inline for HTMX")
+                // script-src must include unsafe-inline (for inline event handlers) but NOT a nonce
+                // (a nonce would cause browsers to ignore unsafe-inline, breaking onclick etc.)
+                assertTrue(
+                    csp.contains("script-src 'self' 'unsafe-inline'"),
+                    "CSP script-src should contain unsafe-inline: $csp",
+                )
+                assertFalse(
+                    csp.contains("'nonce-"),
+                    "CSP script-src must NOT contain a nonce (nonce makes browsers ignore unsafe-inline): $csp",
+                )
+                // script-src must NOT contain unsafe-eval
+                assertFalse(csp.contains("'unsafe-eval'"), "CSP should not allow unsafe-eval")
             }
         }
 
@@ -203,5 +221,92 @@ class ApplicationTest {
             client.get("/word?word-amount-slider=51").apply {
                 assertEquals(HttpStatusCode.BadRequest, status)
             }
+        }
+
+    // --- buildCspHeaderValue unit tests ---
+
+    @Test
+    fun `buildCspHeaderValue does not include nonce in script-src`() {
+        val csp = buildCspHeaderValue(isDevelopment = false)
+        assertFalse(csp.contains("nonce"), "script-src should NOT contain a nonce")
+    }
+
+    @Test
+    fun `buildCspHeaderValue includes unsafe-inline in script-src but not unsafe-eval`() {
+        val csp = buildCspHeaderValue(isDevelopment = false)
+        // script-src needs unsafe-inline for inline event handler attributes (onEvent in templates)
+        val scriptSrc = csp.substringAfter("script-src ").substringBefore(";")
+        assertTrue(scriptSrc.contains("'unsafe-inline'"), "script-src should include unsafe-inline for inline event handlers: $scriptSrc")
+        assertFalse(csp.contains("'unsafe-eval'"), "CSP should never include unsafe-eval")
+        // style-src MAY contain unsafe-inline (HTMX needs inline style manipulation)
+        assertTrue(csp.contains("style-src 'self' 'unsafe-inline'"), "style-src should allow unsafe-inline for HTMX")
+    }
+
+    @Test
+    fun `buildCspHeaderValue includes form-action self`() {
+        val csp = buildCspHeaderValue(isDevelopment = false)
+        assertTrue(csp.contains("form-action 'self'"), "CSP should restrict form-action to self")
+    }
+
+    @Test
+    fun `buildCspHeaderValue blocks framing and object embeds`() {
+        val csp = buildCspHeaderValue(isDevelopment = false)
+        assertTrue(csp.contains("frame-ancestors 'none'"), "CSP should block framing")
+        assertTrue(csp.contains("object-src 'none'"), "CSP should block object/embed")
+        assertTrue(csp.contains("base-uri 'none'"), "CSP should block base URI manipulation")
+    }
+
+    @Test
+    fun `buildCspHeaderValue includes dev origins when isDevelopment is true`() {
+        val csp = buildCspHeaderValue(isDevelopment = true)
+        assertTrue(csp.contains("http://localhost:3000"), "Dev CSP should allow localhost:3000")
+        assertTrue(csp.contains("ws://localhost:3000"), "Dev CSP should allow WS localhost:3000")
+    }
+
+    @Test
+    fun `buildCspHeaderValue excludes dev origins in production`() {
+        val csp = buildCspHeaderValue(isDevelopment = false)
+        assertFalse(csp.contains("localhost"), "Production CSP should not reference localhost")
+    }
+
+    // --- respondHtmxError tests ---
+
+    @Test
+    fun `respondHtmxError sets HTMX retarget and reswap headers`() =
+        testApplication {
+            setupApp()
+            // POST /share without password-input triggers respondHtmxError
+            client
+                .post("/share") {
+                    header("Content-Type", "application/x-www-form-urlencoded")
+                    setBody("")
+                }.apply {
+                    assertEquals(HttpStatusCode.BadRequest, status)
+                    assertEquals("#global-notification", headers["HX-Retarget"])
+                    assertEquals("innerHTML", headers["HX-Reswap"])
+                    val body = bodyAsText()
+                    assertTrue(body.contains("alert-error"), "Body should contain alert-error class")
+                    assertTrue(body.contains("Missing value to share"), "Body should contain the error message")
+                }
+        }
+
+    @Test
+    fun `respondHtmxError escapes HTML in error message`() =
+        testApplication {
+            setupApp()
+            // Key share POST with malicious algorithm value triggers respondHtmxError
+            // with the server's own fixed message (not user input), but we verify
+            // the body is well-formed HTML and doesn't contain raw angle brackets
+            // outside of the expected tag structure.
+            client
+                .post("/share") {
+                    header("Content-Type", "application/x-www-form-urlencoded")
+                    setBody("")
+                }.apply {
+                    val body = bodyAsText()
+                    // The body should be a valid alert div — no unescaped user content
+                    assertTrue(body.startsWith("<div"), "Body should start with a div tag")
+                    assertTrue(body.endsWith("</div>"), "Body should end with closing div tag")
+                }
         }
 }

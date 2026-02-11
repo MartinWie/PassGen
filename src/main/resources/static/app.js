@@ -260,7 +260,7 @@ function initLandingPageSettings() {
     // processed by HTMX at this point, causing a race condition where the
     // event fires but HTMX hasn't attached its listener yet.
     if (languageSelect || wordAmountSlider) {
-        var params = {};
+        const params = {};
         if (languageSelect) params['language-select'] = languageSelect.value;
         if (wordAmountSlider) params['word-amount-slider'] = wordAmountSlider.value;
         if (includeSpecial && includeSpecial.checked) params['include-special'] = 'on';
@@ -268,6 +268,116 @@ function initLandingPageSettings() {
         if (wordSeparator) params['separator'] = wordSeparator.value;
         htmx.ajax('GET', '/word', {target: '#password-input', swap: 'outerHTML', values: params});
     }
+}
+
+/**
+ * Attach delegated event handlers for landing page setting controls.
+ * These were previously inline onEvent handlers; now they are CSP-safe
+ * delegated listeners.
+ *
+ * Handles:
+ * - .setting-regen elements: persist to localStorage + trigger regen on change/input
+ * - #word-amount-slider: sync display span + number input on input
+ * - #word-input: clamp value, sync slider + display, trigger regen on input
+ * - #show-identifier-toggle: show/hide identifier input wrapper
+ * - .auto-resize-textarea: auto-resize password textarea on input
+ *
+ * No-op on pages that don't have the relevant elements.
+ */
+function initSettingHandlers() {
+    // --- localStorage key mapping for setting elements ---
+    const storageKeyMap = {
+        'language-select': 'word-language',
+        'word-amount-slider': 'word-amount',
+        'word-separator': 'word-separator',
+        'include-numbers': 'include-numbers',
+        'include-special': 'include-special',
+    };
+
+    // Helper: persist a setting element's value to localStorage
+    function persistSetting(el) {
+        const key = storageKeyMap[el.id];
+        if (!key) return;
+        if (el.type === 'checkbox') {
+            localStorage.setItem(key, el.checked ? 'true' : 'false');
+        } else if (el.tagName === 'SELECT') {
+            localStorage.setItem(key, el.options[el.selectedIndex].value);
+        } else {
+            localStorage.setItem(key, el.value);
+        }
+    }
+
+    // Helper: trigger password regeneration by clicking the regen button
+    function triggerRegen() {
+        const btn = document.getElementById('regen-button');
+        if (btn) btn.click();
+    }
+
+    // Delegated change handler for .setting-regen elements
+    // (language select, checkboxes, separator, slider on change)
+    document.addEventListener('change', (ev) => {
+        const el = ev.target.closest && ev.target.closest('.setting-regen');
+        if (el) {
+            persistSetting(el);
+            triggerRegen();
+        }
+
+        // Identifier toggle checkbox
+        if (ev.target.id === 'show-identifier-toggle') {
+            const wrapper = document.getElementById('identifier-input-wrapper');
+            if (!wrapper) return;
+            if (ev.target.checked) {
+                wrapper.classList.remove('hidden');
+                ev.target.setAttribute('aria-expanded', 'true');
+                const idInput = document.getElementById('key-identifier');
+                if (idInput) idInput.focus();
+            } else {
+                wrapper.classList.add('hidden');
+                ev.target.setAttribute('aria-expanded', 'false');
+                const idInput = document.getElementById('key-identifier');
+                if (idInput) idInput.value = '';
+            }
+        }
+    });
+
+    // Delegated input handler for slider/number sync and separator/textarea
+    document.addEventListener('input', (ev) => {
+        // Word amount slider: sync display + number input + persist
+        if (ev.target.id === 'word-amount-slider') {
+            const span = document.getElementById('word-amount');
+            const numInput = document.getElementById('word-input');
+            if (span) span.textContent = ev.target.value;
+            if (numInput) numInput.value = ev.target.value;
+            localStorage.setItem('word-amount', ev.target.value);
+        }
+
+        // Word number input: clamp, sync slider + display, persist + regen
+        if (ev.target.id === 'word-input') {
+            let v = Number(ev.target.value);
+            if (isNaN(v) || v < 1) ev.target.value = 1;
+            else if (v > 50) ev.target.value = 50;
+            const span = document.getElementById('word-amount');
+            const slider = document.getElementById('word-amount-slider');
+            if (span) span.textContent = ev.target.value;
+            if (slider) slider.value = ev.target.value;
+            localStorage.setItem('word-amount', ev.target.value.toString());
+            triggerRegen();
+        }
+
+        // Separator input: persist + regen
+        if (ev.target.id === 'word-separator') {
+            localStorage.setItem('word-separator', ev.target.value);
+            triggerRegen();
+        }
+
+        // Auto-resize textarea (password input)
+        const textarea = ev.target.closest && ev.target.closest('.auto-resize-textarea');
+        if (textarea) {
+            textarea.parentNode.dataset.clonedVal = textarea.value;
+            const lineCount = (textarea.value.match(/\n/g) || []).length + 1;
+            textarea.style.height = Math.min(675, Math.max(56, lineCount * 25)) + 'px';
+        }
+    });
 }
 
 /**
@@ -491,6 +601,9 @@ document.addEventListener("DOMContentLoaded", (event) => {
 
     // Restore landing page form settings from localStorage
     initLandingPageSettings();
+
+    // Attach delegated handlers for setting controls, textarea auto-resize, etc.
+    initSettingHandlers();
 
     // Initialize theme from localStorage or system preference
     initTheme();
@@ -1331,7 +1444,6 @@ document.addEventListener('click', (ev) => {
     if (genShareEl) {
         generateShareKey();
     }
-    // Share key button now uses HTMX - no JavaScript handler needed
 });
 
 document.addEventListener('DOMContentLoaded', attachKeyGenHandlers);

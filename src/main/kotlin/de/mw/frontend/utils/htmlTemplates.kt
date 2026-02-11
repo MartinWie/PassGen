@@ -1,6 +1,5 @@
 package de.mw.frontend.utils
 
-import io.github.martinwie.htmx.PageSecurityContext
 import io.github.martinwie.htmx.embedSvg
 import kotlinx.html.*
 import java.time.Year
@@ -14,9 +13,9 @@ fun TagConsumer<StringBuilder>.getPageHead(pageTitle: String = "") {
     head {
         title { +pageTitle }
 
-        // Set theme immediately before page renders to prevent flash
+        // Set theme immediately before page renders to prevent flash.
+        // Allowed by 'unsafe-inline' in script-src (no nonce needed).
         script {
-            PageSecurityContext.scriptNonce?.let { attributes["nonce"] = it }
             unsafe {
                 raw(
                     """
@@ -88,21 +87,6 @@ fun TagConsumer<StringBuilder>.getPageHead(pageTitle: String = "") {
 
         meta {
             charset = "UTF-8"
-        }
-
-        // Default font and font smoothing styles
-        style {
-            unsafe {
-                raw(
-                    """
-                    body {
-                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-                        -webkit-font-smoothing: antialiased;
-                        -moz-osx-font-smoothing: grayscale;
-                    }
-                    """.trimIndent(),
-                )
-            }
         }
     }
 }

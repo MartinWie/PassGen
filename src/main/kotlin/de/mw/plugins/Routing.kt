@@ -1,6 +1,7 @@
 package de.mw.plugins
 
 import de.mw.frontend.pages.getLandingPage
+import de.mw.frontend.utils.escapeHtml
 import de.mw.plugins.routes.keyRouting
 import de.mw.plugins.routes.passwordRouting
 import io.ktor.http.*
@@ -11,6 +12,27 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+
+/**
+ * Responds with an error alert fragment that HTMX will swap into `#global-notification`.
+ *
+ * Sets `HX-Retarget` and `HX-Reswap` headers so the error toast appears in the
+ * global notification region instead of the element that initiated the request.
+ * The toast is auto-dismissed by app.js (htmx:afterSettle listener).
+ */
+suspend fun RoutingCall.respondHtmxError(
+    message: String,
+    status: HttpStatusCode = HttpStatusCode.BadRequest,
+) {
+    val escaped = message.escapeHtml()
+    response.headers.append("HX-Retarget", "#global-notification")
+    response.headers.append("HX-Reswap", "innerHTML")
+    respondText(
+        """<div class="alert alert-error shadow-lg" role="alert"><span>$escaped</span></div>""",
+        ContentType.Text.Html,
+        status,
+    )
+}
 
 fun Application.configureRouting() {
     install(StatusPages) {

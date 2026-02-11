@@ -26,3 +26,15 @@ fun String.sanitizeStrict(): String? {
     val allowedChars = "[^a-zA-Z0-9\\-]".toRegex()
     return this.replace(allowedChars, "").ifEmpty { null }
 }
+
+/**
+ * Escapes HTML special characters to prevent XSS when interpolating
+ * into raw HTML fragments.
+ */
+fun String.escapeHtml(): String =
+    this
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace("\"", "&quot;")
+        .replace("'", "&#x27;")

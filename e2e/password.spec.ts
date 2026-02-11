@@ -1546,3 +1546,166 @@ test.describe('Fresh Page Load with Stored Mode', () => {
     expect(mode).toBe('password');
   });
 });
+
+test.describe('Password Share & Reveal', () => {
+  test('should share a password, view the share page, and reveal via modal', async ({ page }) => {
+    await page.goto('/');
+
+    // Wait for password to be generated
+    const passwordInput = page.locator('#password-input');
+    await expect(passwordInput).not.toHaveValue('');
+    const originalPassword = await passwordInput.inputValue();
+
+    // Click the share button (creates a share via HTMX POST)
+    await page.locator('#shareButton').click();
+
+    // Wait for the share modal to open
+    const shareModal = page.locator('#share_modal');
+    await expect(shareModal).toHaveAttribute('open', '', { timeout: 10000 });
+
+    // Get the share URL from the modal link
+    const shareLink = page.locator('#password-share-link');
+    const sharePath = await shareLink.getAttribute('href');
+    expect(sharePath).toBeTruthy();
+
+    // Navigate to the share page
+    await page.goto(sharePath!);
+
+    // Verify the share page loads with the "View Password" button
+    await expect(page.locator('h1')).toContainText('Shared Password');
+    const viewBtn = page.locator('button:has-text("View Password")');
+    await expect(viewBtn).toBeVisible();
+
+    // Click "View Password" — triggers HTMX POST that returns the revealed content
+    await viewBtn.click();
+
+    // Wait for the password-retrieved UI to appear
+    await expect(page.locator('h1')).toContainText('Password Retrieved', { timeout: 10000 });
+
+    // Verify the password placeholder is visible (masked)
+    const placeholder = page.locator('#password-field-placeholder');
+    await expect(placeholder).toBeVisible();
+
+    // Click the "Reveal" button — uses inline onclick to open the dialog.
+    // This is the critical CSP test: if 'unsafe-inline' is blocked by a nonce,
+    // this click will silently fail and the modal will NOT open.
+    const revealBtn = page.locator('#reveal-btn');
+    await expect(revealBtn).toBeVisible();
+    await revealBtn.click();
+
+    // The view_share_modal dialog should now be open
+    const viewModal = page.locator('#view_share_modal');
+    await expect(viewModal).toHaveAttribute('open', '', { timeout: 5000 });
+
+    // Verify the actual password is displayed inside the modal
+    const passwordField = page.locator('#password-field');
+    await expect(passwordField).toBeVisible();
+    const revealedPassword = await passwordField.textContent();
+    expect(revealedPassword).toBe(originalPassword);
+  });
+
+  test('should not have CSP violations blocking inline event handlers', async ({ page }) => {
+    // Collect console errors related to CSP
+    const cspViolations: string[] = [];
+    page.on('console', (msg) => {
+      if (msg.type() === 'error' && msg.text().includes('Content Security Policy')) {
+        cspViolations.push(msg.text());
+      }
+    });
+
+    await page.goto('/');
+
+    // Wait for password to be generated
+    const passwordInput = page.locator('#password-input');
+    await expect(passwordInput).not.toHaveValue('');
+
+    // Create a share
+    await page.locator('#shareButton').click();
+    const shareModal = page.locator('#share_modal');
+    await expect(shareModal).toHaveAttribute('open', '', { timeout: 10000 });
+
+    // Navigate to share page
+    const sharePath = await page.locator('#password-share-link').getAttribute('href');
+    await page.goto(sharePath!);
+
+    // View the password
+    await page.locator('button:has-text("View Password")').click();
+    await expect(page.locator('h1')).toContainText('Password Retrieved', { timeout: 10000 });
+
+    // Click reveal — this triggers an inline onclick handler
+    await page.locator('#reveal-btn').click();
+
+    // If CSP is misconfigured, the modal won't open. Verify it does.
+    const viewModal = page.locator('#view_share_modal');
+    await expect(viewModal).toHaveAttribute('open', '', { timeout: 5000 });
+
+    // Assert no CSP violations were logged
+    expect(cspViolations).toEqual([]);
+  });
+
+  test('should copy password from share modal', async ({ page, context }) => {
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+
+    await page.goto('/');
+
+    // Wait for password to be generated
+    const passwordInput = page.locator('#password-input');
+    await expect(passwordInput).not.toHaveValue('');
+
+    // Create a share
+    await page.locator('#shareButton').click();
+    const shareModal = page.locator('#share_modal');
+    await expect(shareModal).toHaveAttribute('open', '', { timeout: 10000 });
+
+    // Navigate to share page
+    const sharePath = await page.locator('#password-share-link').getAttribute('href');
+    await page.goto(sharePath!);
+
+    // View and reveal the password
+    await page.locator('button:has-text("View Password")').click();
+    await expect(page.locator('h1')).toContainText('Password Retrieved', { timeout: 10000 });
+    await page.locator('#reveal-btn').click();
+    await expect(page.locator('#view_share_modal')).toHaveAttribute('open', '', { timeout: 5000 });
+
+    // Click copy button inside the modal — also an inline onclick handler
+    const modalCopyBtn = page.locator('#view_share_modal button:has-text("Copy")');
+    await modalCopyBtn.click();
+
+    // Verify clipboard contains the password
+    const clipboardContent = await page.evaluate(() => navigator.clipboard.readText());
+    const passwordText = await page.locator('#password-field').textContent();
+    expect(clipboardContent).toBe(passwordText);
+  });
+
+  test('should close share modal via close button', async ({ page }) => {
+    await page.goto('/');
+
+    // Wait for password to be generated
+    const passwordInput = page.locator('#password-input');
+    await expect(passwordInput).not.toHaveValue('');
+
+    // Create a share
+    await page.locator('#shareButton').click();
+    const shareModal = page.locator('#share_modal');
+    await expect(shareModal).toHaveAttribute('open', '', { timeout: 10000 });
+
+    // Navigate to share page and view password
+    const sharePath = await page.locator('#password-share-link').getAttribute('href');
+    await page.goto(sharePath!);
+    await page.locator('button:has-text("View Password")').click();
+    await expect(page.locator('h1')).toContainText('Password Retrieved', { timeout: 10000 });
+
+    // Open the reveal modal
+    await page.locator('#reveal-btn').click();
+    const viewModal = page.locator('#view_share_modal');
+    await expect(viewModal).toHaveAttribute('open', '', { timeout: 5000 });
+
+    // Close the modal via the "Close" button — uses inline onsubmit handler.
+    // Use .modal-action to distinguish from the backdrop's hidden "close" button.
+    const closeBtn = page.locator('#view_share_modal .modal-action button:has-text("Close")');
+    await closeBtn.click();
+
+    // Modal should be closed
+    await expect(viewModal).not.toHaveAttribute('open', '', { timeout: 5000 });
+  });
+});

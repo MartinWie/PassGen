@@ -13,7 +13,16 @@ fun getSharePage(
             classes = setOf("flex", "items-center", "justify-center", "min-h-screen", "p-4")
             div {
                 id = "password-container"
-                classes = setOf("border", "border-base-300", "rounded-xl", "p-6", "shadow-sm", "bg-base-100", "max-w-md", "w-full")
+                classes = setOf(
+                    "border",
+                    "border-base-300",
+                    "rounded-xl",
+                    "p-6",
+                    "shadow-sm",
+                    "bg-base-100",
+                    "max-w-md",
+                    "w-full"
+                )
 
                 // Header
                 div("flex items-center gap-4 mb-6") {
@@ -45,7 +54,7 @@ fun getSharePage(
                                 +"One-Time View"
                             }
                             p("text-sm text-base-content/70") {
-                                +"This password can only be viewed once. After you leave this page, it cannot be retrieved again."
+                                +"This password can only be viewed once. After you pressed the button below, it cannot be retrieved again."
                             }
                         }
                     }

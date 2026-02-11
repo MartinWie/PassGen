@@ -6,7 +6,7 @@ import de.mw.frontend.pages.getKeySharePage
 import de.mw.keyService
 import de.mw.plugins.RateLimitTiers
 import de.mw.plugins.respondHtmlWithCsp
-import io.github.martinwie.htmx.addJs
+import de.mw.plugins.respondHtmxError
 import io.github.martinwie.htmx.buildHTMLString
 import io.ktor.http.*
 import io.ktor.server.plugins.ratelimit.*
@@ -14,7 +14,6 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.html.div
-import kotlinx.html.p
 
 fun Route.keyRouting() {
     rateLimit(RateLimitTiers.CREATE_SHARE) {
@@ -24,36 +23,21 @@ fun Route.keyRouting() {
             val parameters = call.receiveParameters()
 
             val algorithm =
-                parameters["algorithm"] ?: return@post call.respond(
-                    HttpStatusCode.BadRequest,
-                    buildHTMLString {
-                        p {
-                            addJs("alert('Missing algorithm');")
-                        }
-                    },
+                parameters["algorithm"] ?: return@post call.respondHtmxError(
+                    "Missing algorithm",
                 )
 
             val purpose =
-                parameters["purpose"] ?: return@post call.respond(
-                    HttpStatusCode.BadRequest,
-                    buildHTMLString {
-                        p {
-                            addJs("alert('Missing purpose');")
-                        }
-                    },
+                parameters["purpose"] ?: return@post call.respondHtmxError(
+                    "Missing purpose",
                 )
 
             val label = parameters["label"]?.takeIf { it.isNotBlank() }
 
             val shareId =
                 keyService.createPendingShare(algorithm, purpose, label)
-                    ?: return@post call.respond(
-                        HttpStatusCode.BadRequest,
-                        buildHTMLString {
-                            p {
-                                addJs("alert('Failed to create key share - invalid parameters');")
-                            }
-                        },
+                    ?: return@post call.respondHtmxError(
+                        "Failed to create key share — invalid parameters",
                     )
 
             call.respondText(

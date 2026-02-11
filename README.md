@@ -139,11 +139,8 @@ After changing DB migrations, just run `./gradlew build` and commit the updated 
 
 ## Todo's
 
-- CSP rule cleanup for production
-- Security: Make PageSecurityContext.scriptNonce request-scoped
-- Share expiry/cleanup (expires_at)
-- cleanup review codebase check for duplicated or old orphane logic and clean up
-- make sure all test coverage is good also for e2e testing
+- cleanup codebase: check for duplicated or old orphane logic and clean up
+- make sure test coverage is good also for e2e testing
 - Checkout how to move password generation to client here are some ideas:
     - list of hidden tags and take form there?
     - Alpine.js
@@ -154,7 +151,8 @@ After changing DB migrations, just run `./gradlew build` and commit the updated 
 - Change password amount slider so live and not only release(if the password is generated locally no need to only
   generate on
   release)
-- See what we can clean up when we still generated the passwords on the server(additional request handling, server side
+- See what we can clean up from the time when we still generated the passwords on the server(additional request
+  handling, server side
   generation code, etc)
 - Check if we can remove the "Centralized modal opening" and "Global guard: block HTMX share"
 - Is all places were we reference the public key are referenced escaping correct(double check, this is user created, so
@@ -184,7 +182,8 @@ After changing DB migrations, just run `./gradlew build` and commit the updated 
         - Admins can view/delete all subdomain shares
         - Normal users can just manage their own shares
 - auto delete of shares(cleanup process 7days pro and business users can set any number up to a year or unlimited(job
-  that changes the status of a user also needs to cleanup))
+  that changes the status of a user also needs to cleanup))(could create a Scheduled Tasks in dokploy vs job/task in
+  passgen)
 - Add posthog feedback setup
 - Add Keyboard navigation(small icon that reveals the keymap)
     - UI for this? mini icon with popup on click

@@ -7,13 +7,17 @@ import de.mw.models.WordLanguage
 import de.mw.passwordService
 import de.mw.plugins.RateLimitTiers
 import de.mw.plugins.respondHtmlWithCsp
-import io.github.martinwie.htmx.*
+import de.mw.plugins.respondHtmxError
+import io.github.martinwie.htmx.buildHTMLString
 import io.ktor.http.*
 import io.ktor.server.plugins.ratelimit.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.html.*
+import kotlinx.html.classes
+import kotlinx.html.id
+import kotlinx.html.spellCheck
+import kotlinx.html.textArea
 
 fun Route.passwordRouting() {
     rateLimit(RateLimitTiers.GENERATE) {
@@ -49,15 +53,8 @@ fun Route.passwordRouting() {
                         classes =
                             setOf(
                                 "grow resize-none h-14 min-h-[56px] border-none focus:outline-hidden bg-transparent px-2 box-border text-base align-middle leading-[1.5] py-[14px] whitespace-nowrap overflow-x-auto",
+                                "auto-resize-textarea",
                             )
-                        onEvent(
-                            JsEvent.ON_INPUT,
-                            """
-                            this.parentNode.dataset.clonedVal = this.value;
-                            const lineCount = (this.value.match(/\n/g) || []).length + 1;
-                            this.style.height = Math.min(675,Math.max(56, lineCount * 25)) + 'px';
-                            """.trimIndent(),
-                        )
                         +passwordService.getWords(wordAmount, language, spacialChars, numbers).joinToString(separator)
                     }
                 }
@@ -70,25 +67,15 @@ fun Route.passwordRouting() {
         post("/share") {
             val parameters = call.receiveParameters()
             val value =
-                parameters["password-input"] ?: return@post call.respond(
-                    HttpStatusCode.BadRequest,
-                    buildHTMLString {
-                        p {
-                            addJs("alert('Missing value to share');")
-                        }
-                    },
+                parameters["password-input"] ?: return@post call.respondHtmxError(
+                    "Missing value to share",
                 )
 
             val viewCount = parameters["view-count"]?.toBigDecimalOrNull() ?: java.math.BigDecimal.ONE
 
             val shareResult =
-                passwordService.createShare(value, viewCount) ?: return@post call.respond(
-                    HttpStatusCode.BadRequest,
-                    buildHTMLString {
-                        p {
-                            addJs("alert('Failed to create share - value too large');")
-                        }
-                    },
+                passwordService.createShare(value, viewCount) ?: return@post call.respondHtmxError(
+                    "Failed to create share — value too large",
                 )
 
             val (shareId, salt) = shareResult
@@ -133,7 +120,7 @@ fun Route.passwordRouting() {
             val decryptedValue =
                 passwordService.getShare(shareId, salt) ?: return@post call.respond(
                     HttpStatusCode.NotFound,
-                    "Share not found or expired",
+                    "Share not found, already viewed or expired",
                 )
 
             val share = getPasswordLoaded(decryptedValue)

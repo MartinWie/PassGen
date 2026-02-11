@@ -1,5 +1,6 @@
 package de.mw.services.utils
 
+import de.mw.frontend.utils.escapeHtml
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -109,5 +110,30 @@ class StringUtilsTest {
         for (char in SPECIAL_CHARS) {
             assertFalse(char.isLetterOrDigit(), "SPECIAL_CHARS should not contain '$char'")
         }
+    }
+
+    @Test
+    fun `escapeHtml escapes ampersand`() {
+        assertEquals("foo &amp; bar", "foo & bar".escapeHtml())
+    }
+
+    @Test
+    fun `escapeHtml escapes angle brackets`() {
+        assertEquals("&lt;script&gt;alert(1)&lt;/script&gt;", "<script>alert(1)</script>".escapeHtml())
+    }
+
+    @Test
+    fun `escapeHtml escapes quotes`() {
+        assertEquals("&quot;hello&quot; &#x27;world&#x27;", "\"hello\" 'world'".escapeHtml())
+    }
+
+    @Test
+    fun `escapeHtml returns empty string unchanged`() {
+        assertEquals("", "".escapeHtml())
+    }
+
+    @Test
+    fun `escapeHtml preserves safe text`() {
+        assertEquals("Hello World 123", "Hello World 123".escapeHtml())
     }
 }
