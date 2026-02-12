@@ -82,9 +82,9 @@ test.describe('Password Generation', () => {
     
     const newPassword = await passwordInput.inputValue();
     
-    // Passwords should be different (statistically very likely)
-    // Note: There's a tiny chance they could be the same, but it's negligible
+    // New password should be non-empty and different from the initial one
     expect(newPassword.length).toBeGreaterThan(0);
+    expect(newPassword).not.toBe(initialPassword);
   });
 
   test('should open settings dropdown', async ({ page }) => {

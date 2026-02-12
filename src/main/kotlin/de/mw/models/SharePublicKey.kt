@@ -11,6 +11,7 @@ data class SharePublicKey(
     val purpose: String,
     val label: String?, // Optional label set by admin to identify this share
     val completedAt: LocalDateTime?, // Set when recipient generates and submits the public key
+    val format: String = "openssh", // Key format: "openssh" or "pem"
 ) {
     /**
      * Returns true if this share is still pending (recipient hasn't generated key yet)

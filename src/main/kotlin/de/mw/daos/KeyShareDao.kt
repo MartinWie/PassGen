@@ -53,6 +53,7 @@ class KeyShareDao(
             setPurpose(this@toRecord.purpose)
             setLabel(this@toRecord.label)
             setCompletedAt(this@toRecord.completedAt)
+            setFormat(this@toRecord.format)
         }
 
     private fun SharePublicKeyRecord.toModel() =
@@ -64,5 +65,6 @@ class KeyShareDao(
             purpose = this.purpose,
             label = this.label,
             completedAt = this.completedAt,
+            format = this.format,
         )
 }

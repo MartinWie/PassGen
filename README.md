@@ -139,7 +139,8 @@ After changing DB migrations, just run `./gradlew build` and commit the updated 
 
 ## Todo's
 
-- cleanup codebase: check for duplicated or old orphane logic and clean up
+- Test pem and all key combinations
+- Also perist the key settings in local storage(restore on page load)
 - make sure test coverage is good also for e2e testing
 - Checkout how to move password generation to client here are some ideas:
     - list of hidden tags and take form there?
@@ -176,11 +177,14 @@ After changing DB migrations, just run `./gradlew build` and commit the updated 
     - login functionality requires monthly fee(check how this works with payment provider)
     - Remove bottom Github and donation link and add imp
     - users can view/delete their own shares
+    - Users can set the expiry time for their shares(UTC timestamp(max 1 year) default 7 days enterprice can set any
+      timestamp or 0/null for infinite)
     - enterprise users can create subdomains like companyX.passgen....(checkout workos pricing for SSO to see how much
       enterprise would cost)
     - enterprise users can can invite other users to the subdomain(admin and users)
         - Admins can view/delete all subdomain shares
         - Normal users can just manage their own shares
+- Pricing and payment setup(Base: free, User: 1Euro per month or 10 a year)
 - auto delete of shares(cleanup process 7days pro and business users can set any number up to a year or unlimited(job
   that changes the status of a user also needs to cleanup))(could create a Scheduled Tasks in dokploy vs job/task in
   passgen)
@@ -191,6 +195,7 @@ After changing DB migrations, just run `./gradlew build` and commit the updated 
     - K vs P for main screen S for the share variant R for (re)gen
 - Marketing: Checkout quota and Reddit for password sharing SFTP setup admin subreddit
 - Check/test if rate limiting works with current deployment
+- Log analytics? Check open source projects or just sentry(self eval)
 - Optimize
     - click to response time?
         - Check where we can add loaders
@@ -203,12 +208,12 @@ After changing DB migrations, just run `./gradlew build` and commit the updated 
     - Cronjob?
     - Database config?
 - Extend share settings
-    - Custom Expire date
+    - Custom Expire date(hard coded for free(greyed out))
     - IP whitelisting(CIDR/Single address)
     - How often can a password be clicked?
         - Implement
         - Add remaining views to password page
-- move "validAlgorithms" and other hardcoded strings inified place and get rid of magic strings
+- move "validAlgorithms" and other hardcoded strings unified place and get rid of magic strings
 - General README.MD cleanup
     - Logo
     - Texts

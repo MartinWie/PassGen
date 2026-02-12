@@ -119,6 +119,10 @@ private fun FlowContent.getKeySharePendingContent(share: SharePublicKey) {
             id = "share-label"
             value = share.label ?: ""
         }
+        input(InputType.hidden) {
+            id = "share-format"
+            value = share.format
+        }
 
         // Result container for HTMX swap after completion
         div {
@@ -150,7 +154,8 @@ private fun FlowContent.getKeyShareCompletedContent(share: SharePublicKey) {
                 p("text-sm text-base-content/60 mt-0.5") {
                     val algoDisplay = formatAlgorithm(share.algorithm)
                     val purposeDisplay = if (share.purpose == "git") "Git Signing" else "SSH"
-                    +"$algoDisplay • $purposeDisplay"
+                    val formatDisplay = if (share.format == "pem") "PEM" else "OpenSSH"
+                    +"$algoDisplay • $purposeDisplay • $formatDisplay"
                     if (share.label != null) {
                         +" • ${share.label}"
                     }
@@ -214,6 +219,10 @@ private fun FlowContent.getKeyShareCompletedContent(share: SharePublicKey) {
             id = "share-purpose"
             value = share.purpose
         }
+        input(InputType.hidden) {
+            id = "share-format"
+            value = share.format
+        }
     }
 }
 
@@ -246,7 +255,8 @@ fun getKeyShareCompletedFragment(share: SharePublicKey): String =
                     p("text-sm text-base-content/60 mt-0.5") {
                         val algoDisplay = formatAlgorithm(share.algorithm)
                         val purposeDisplay = if (share.purpose == "git") "Git Signing" else "SSH"
-                        +"$algoDisplay • $purposeDisplay"
+                        val formatDisplay = if (share.format == "pem") "PEM" else "OpenSSH"
+                        +"$algoDisplay • $purposeDisplay • $formatDisplay"
                         if (share.label != null) {
                             +" • ${share.label}"
                         }
@@ -367,16 +377,17 @@ fun getKeyShareCreateResult(shareId: UUID) =
                         span("label-text font-medium text-sm") { +"Share Link" }
                     }
                     div {
-                        classes = setOf(
-                            "flex",
-                            "items-center",
-                            "gap-2",
-                            "bg-base-200/50",
-                            "border",
-                            "border-base-300",
-                            "rounded-lg",
-                            "p-3"
-                        )
+                        classes =
+                            setOf(
+                                "flex",
+                                "items-center",
+                                "gap-2",
+                                "bg-base-200/50",
+                                "border",
+                                "border-base-300",
+                                "rounded-lg",
+                                "p-3",
+                            )
                         div("flex-1 min-w-0") {
                             a {
                                 id = "key-share-link"

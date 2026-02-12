@@ -33,9 +33,10 @@ fun Route.keyRouting() {
                 )
 
             val label = parameters["label"]?.takeIf { it.isNotBlank() }
+            val format = parameters["format"] ?: "openssh"
 
             val shareId =
-                keyService.createPendingShare(algorithm, purpose, label)
+                keyService.createPendingShare(algorithm, purpose, label, format)
                     ?: return@post call.respondHtmxError(
                         "Failed to create key share — invalid parameters",
                     )

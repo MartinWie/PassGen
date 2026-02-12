@@ -354,6 +354,36 @@ fun getLandingPage(pageTitle: String): String =
                                         }
                                     }
 
+                                    // Key Format Selection
+                                    div("form-control mb-3") {
+                                        label("label py-1") {
+                                            div("flex items-center gap-1") {
+                                                span("label-text text-sm") { +"Format" }
+                                                div("tooltip tooltip-bottom") {
+                                                    attributes["data-tip"] =
+                                                        "OpenSSH: standard SSH format | PEM: PKCS#8/SPKI for broader tool compatibility"
+                                                    span("w-4 h-4 opacity-60 hover:opacity-100 cursor-help inline-flex") {
+                                                        embedSvg("/static/svg/alert-info.svg")
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        select {
+                                            id = "key-format"
+                                            name = "format"
+                                            classes = setOf("select select-bordered w-full")
+                                            option {
+                                                value = "openssh"
+                                                selected = true
+                                                +"OpenSSH"
+                                            }
+                                            option {
+                                                value = "pem"
+                                                +"PEM (PKCS#8)"
+                                            }
+                                        }
+                                    }
+
                                     // Purpose Selection
                                     div("form-control mb-3") {
                                         label("label py-1") {
@@ -375,7 +405,7 @@ fun getLandingPage(pageTitle: String): String =
                                     }
 
                                     // Key Comment (optional, collapsible)
-                                    div("form-control") {
+                                    div("form-control mb-3") {
                                         // Toggle to show/hide comment input
                                         label("label py-1 cursor-pointer justify-start gap-2") {
                                             input(InputType.checkBox) {
@@ -411,7 +441,7 @@ fun getLandingPage(pageTitle: String): String =
                                 id = "share-key-btn"
                                 title = "Create Share Link"
                                 hxPost("/key/share")
-                                hxInclude("#key-algorithm, #key-purpose")
+                                hxInclude("#key-algorithm, #key-purpose, #key-format")
                                 hxDisabled("#share-key-btn")
                                 hxTarget("#key-share-result")
                                 hxSwap(HxSwapOption.INNER_HTML)

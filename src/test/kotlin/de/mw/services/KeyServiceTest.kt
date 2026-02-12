@@ -539,6 +539,279 @@ class KeyServiceTest {
         assertTrue(share.isCompleted())
     }
 
+    // --- PEM format sanitizePublicKey Tests ---
+
+    // Sample valid PEM public keys for testing
+    private val validPemEd25519Key =
+        "-----BEGIN PUBLIC KEY-----\n" +
+            "MCowBQYDK2VwAyEAAAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=\n" +
+            "-----END PUBLIC KEY-----"
+
+    private val validPemEcdsaKey =
+        "-----BEGIN PUBLIC KEY-----\n" +
+            "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEAAECAwQFBgcICQoLDA0ODxAREhMU\n" +
+            "FRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0+Pw==\n" +
+            "-----END PUBLIC KEY-----"
+
+    private val validPemRsaKey =
+        "-----BEGIN PUBLIC KEY-----\n" +
+            "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4v\n" +
+            "MDEyMzQ1Njc4OTo7PD0+P0BBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWltcXV5f\n" +
+            "YGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fn+AgYKDhIWGh4iJiouMjY6P\n" +
+            "kJGSk5SVlpeYmZqbnJ2en6ChoqOkpaanqKmqq6ytrq+wsbKztLW2t7i5uru8vb6/\n" +
+            "wMHCw8TFxsfIycrLzM3Oz9DR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v\n" +
+            "8PHy8/T19vf4+fr7/P3+/w==\n" +
+            "-----END PUBLIC KEY-----"
+
+    @Test
+    fun `sanitizePublicKey PEM accepts valid Ed25519 SPKI key`() {
+        val fakeDao = FakeKeyShareDao()
+        val service = KeyService(fakeDao)
+
+        val result = service.sanitizePublicKey(validPemEd25519Key, format = "pem")
+
+        assertNotNull(result)
+        assertTrue(result.startsWith("-----BEGIN PUBLIC KEY-----"))
+        assertTrue(result.endsWith("-----END PUBLIC KEY-----"))
+    }
+
+    @Test
+    fun `sanitizePublicKey PEM accepts valid ECDSA SPKI key`() {
+        val fakeDao = FakeKeyShareDao()
+        val service = KeyService(fakeDao)
+
+        val result = service.sanitizePublicKey(validPemEcdsaKey, format = "pem")
+
+        assertNotNull(result)
+        assertTrue(result.startsWith("-----BEGIN PUBLIC KEY-----"))
+        assertTrue(result.endsWith("-----END PUBLIC KEY-----"))
+    }
+
+    @Test
+    fun `sanitizePublicKey PEM accepts valid RSA SPKI key`() {
+        val fakeDao = FakeKeyShareDao()
+        val service = KeyService(fakeDao)
+
+        val result = service.sanitizePublicKey(validPemRsaKey, format = "pem")
+
+        assertNotNull(result)
+        assertTrue(result.startsWith("-----BEGIN PUBLIC KEY-----"))
+        assertTrue(result.endsWith("-----END PUBLIC KEY-----"))
+    }
+
+    @Test
+    fun `sanitizePublicKey PEM rejects missing BEGIN header`() {
+        val fakeDao = FakeKeyShareDao()
+        val service = KeyService(fakeDao)
+        val invalidPem = "MCowBQYDK2VwAyEAAAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=\n-----END PUBLIC KEY-----"
+
+        val result = service.sanitizePublicKey(invalidPem, format = "pem")
+
+        assertNull(result)
+    }
+
+    @Test
+    fun `sanitizePublicKey PEM rejects missing END footer`() {
+        val fakeDao = FakeKeyShareDao()
+        val service = KeyService(fakeDao)
+        val invalidPem = "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAAAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8="
+
+        val result = service.sanitizePublicKey(invalidPem, format = "pem")
+
+        assertNull(result)
+    }
+
+    @Test
+    fun `sanitizePublicKey PEM rejects wrong header type`() {
+        val fakeDao = FakeKeyShareDao()
+        val service = KeyService(fakeDao)
+        val wrongHeader =
+            "-----BEGIN PRIVATE KEY-----\n" +
+                "MCowBQYDK2VwAyEAAAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=\n" +
+                "-----END PRIVATE KEY-----"
+
+        val result = service.sanitizePublicKey(wrongHeader, format = "pem")
+
+        assertNull(result)
+    }
+
+    @Test
+    fun `sanitizePublicKey PEM rejects invalid base64 characters`() {
+        val fakeDao = FakeKeyShareDao()
+        val service = KeyService(fakeDao)
+        val invalidBase64 =
+            "-----BEGIN PUBLIC KEY-----\n" +
+                "MCow!@#\$%^&*invalid-base64-data\n" +
+                "-----END PUBLIC KEY-----"
+
+        val result = service.sanitizePublicKey(invalidBase64, format = "pem")
+
+        assertNull(result)
+    }
+
+    @Test
+    fun `sanitizePublicKey PEM rejects body that is too short`() {
+        val fakeDao = FakeKeyShareDao()
+        val service = KeyService(fakeDao)
+        val shortBody =
+            "-----BEGIN PUBLIC KEY-----\n" +
+                "AQID\n" +
+                "-----END PUBLIC KEY-----"
+
+        val result = service.sanitizePublicKey(shortBody, format = "pem")
+
+        assertNull(result)
+    }
+
+    @Test
+    fun `sanitizePublicKey PEM rejects key that is too long`() {
+        val fakeDao = FakeKeyShareDao()
+        val service = KeyService(fakeDao)
+        val longBody = "A".repeat(4000) // Way over the 3000 char limit
+        val tooLong =
+            "-----BEGIN PUBLIC KEY-----\n" +
+                longBody + "\n" +
+                "-----END PUBLIC KEY-----"
+
+        val result = service.sanitizePublicKey(tooLong, format = "pem")
+
+        assertNull(result)
+    }
+
+    @Test
+    fun `sanitizePublicKey PEM normalizes line wrapping to 64 chars`() {
+        val fakeDao = FakeKeyShareDao()
+        val service = KeyService(fakeDao)
+        // Send the ECDSA key with all base64 on a single line (not 64-char wrapped)
+        val unwrapped =
+            "-----BEGIN PUBLIC KEY-----\n" +
+                "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEAAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0+Pw==\n" +
+                "-----END PUBLIC KEY-----"
+
+        val result = service.sanitizePublicKey(unwrapped, format = "pem")
+
+        assertNotNull(result)
+        // After normalization, lines between BEGIN and END should be max 64 chars
+        val lines = result.lines()
+        // Skip first (BEGIN) and last (END) lines
+        for (i in 1 until lines.size - 1) {
+            assertTrue(
+                lines[i].length <= 64,
+                "Line $i should be <= 64 chars, got ${lines[i].length}: '${lines[i]}'",
+            )
+        }
+    }
+
+    @Test
+    fun `sanitizePublicKey PEM trims surrounding whitespace`() {
+        val fakeDao = FakeKeyShareDao()
+        val service = KeyService(fakeDao)
+        val withWhitespace = "  \n$validPemEd25519Key\n  "
+
+        val result = service.sanitizePublicKey(withWhitespace, format = "pem")
+
+        assertNotNull(result)
+        assertTrue(result.startsWith("-----BEGIN"))
+        assertTrue(result.endsWith("-----END PUBLIC KEY-----"))
+    }
+
+    @Test
+    fun `sanitizePublicKey PEM rejects empty body between markers`() {
+        val fakeDao = FakeKeyShareDao()
+        val service = KeyService(fakeDao)
+        val emptyBody = "-----BEGIN PUBLIC KEY-----\n\n-----END PUBLIC KEY-----"
+
+        val result = service.sanitizePublicKey(emptyBody, format = "pem")
+
+        assertNull(result)
+    }
+
+    // --- Format validation in createPendingShare Tests ---
+
+    @Test
+    fun `createPendingShare accepts openssh format`() {
+        val fakeDao = FakeKeyShareDao()
+        val service = KeyService(fakeDao)
+
+        val result = service.createPendingShare("ed25519", "ssh", null, format = "openssh")
+
+        assertNotNull(result)
+        assertEquals("openssh", fakeDao.createdShares[0].format)
+    }
+
+    @Test
+    fun `createPendingShare accepts pem format`() {
+        val fakeDao = FakeKeyShareDao()
+        val service = KeyService(fakeDao)
+
+        val result = service.createPendingShare("ed25519", "ssh", null, format = "pem")
+
+        assertNotNull(result)
+        assertEquals("pem", fakeDao.createdShares[0].format)
+    }
+
+    @Test
+    fun `createPendingShare defaults to openssh format`() {
+        val fakeDao = FakeKeyShareDao()
+        val service = KeyService(fakeDao)
+
+        val result = service.createPendingShare("ed25519", "ssh", null)
+
+        assertNotNull(result)
+        assertEquals("openssh", fakeDao.createdShares[0].format)
+    }
+
+    @Test
+    fun `createPendingShare rejects invalid format`() {
+        val fakeDao = FakeKeyShareDao()
+        val service = KeyService(fakeDao)
+
+        val result = service.createPendingShare("ed25519", "ssh", null, format = "pkcs12")
+
+        assertNull(result)
+        assertEquals(0, fakeDao.createdShares.size)
+    }
+
+    // --- completeShare with PEM format Tests ---
+
+    @Test
+    fun `completeShare succeeds for PEM format share with valid PEM key`() {
+        val fakeDao = FakeKeyShareDao()
+        val service = KeyService(fakeDao)
+        val shareId = service.createPendingShare("ed25519", "ssh", null, format = "pem")!!
+
+        val result = service.completeShare(shareId, validPemEd25519Key, "ed25519")
+
+        assertTrue(result)
+        val completedShare = fakeDao.shares[shareId]
+        assertNotNull(completedShare?.publicKey)
+        assertTrue(completedShare!!.publicKey!!.startsWith("-----BEGIN PUBLIC KEY-----"))
+    }
+
+    @Test
+    fun `completeShare fails for PEM format share with OpenSSH key`() {
+        val fakeDao = FakeKeyShareDao()
+        val service = KeyService(fakeDao)
+        val shareId = service.createPendingShare("ed25519", "ssh", null, format = "pem")!!
+
+        // Try to complete PEM share with OpenSSH-format key
+        val result = service.completeShare(shareId, validEd25519Key, "ed25519")
+
+        assertFalse(result, "Should reject OpenSSH key when share format is PEM")
+    }
+
+    @Test
+    fun `completeShare fails for OpenSSH format share with PEM key`() {
+        val fakeDao = FakeKeyShareDao()
+        val service = KeyService(fakeDao)
+        val shareId = service.createPendingShare("ed25519", "ssh", null, format = "openssh")!!
+
+        // Try to complete OpenSSH share with PEM-format key
+        val result = service.completeShare(shareId, validPemEd25519Key, "ed25519")
+
+        assertFalse(result, "Should reject PEM key when share format is OpenSSH")
+    }
+
     // --- sanitizeLabel Tests ---
 
     @Test
