@@ -1709,3 +1709,372 @@ test.describe('Password Share & Reveal', () => {
     await expect(viewModal).not.toHaveAttribute('open', '', { timeout: 5000 });
   });
 });
+
+test.describe('WebCrypto Key Generation', () => {
+  test('generateEd25519WebCrypto should return valid key components', async ({ page }) => {
+    await page.goto('/');
+
+    const result = await page.evaluate(async () => {
+      // @ts-ignore — app.js globals
+      const ed = await generateEd25519WebCrypto();
+      return {
+        pubLength: ed.pub.length,
+        seedLength: ed.seed.length,
+        secretKey64Length: ed.secretKey64.length,
+        spkiDerLength: ed.spkiDer.length,
+        pkcs8DerLength: ed.pkcs8Der.length,
+        publicPemStartsWith: ed.publicPem.startsWith('-----BEGIN PUBLIC KEY-----'),
+        privatePemStartsWith: ed.privatePem.startsWith('-----BEGIN PRIVATE KEY-----'),
+        publicPemEndsWith: ed.publicPem.trimEnd().endsWith('-----END PUBLIC KEY-----'),
+        privatePemEndsWith: ed.privatePem.trimEnd().endsWith('-----END PRIVATE KEY-----'),
+        // Verify secretKey64 = seed + pub
+        seedPubMatch: Array.from(ed.secretKey64.slice(0, 32)).toString() === Array.from(ed.seed).toString()
+          && Array.from(ed.secretKey64.slice(32)).toString() === Array.from(ed.pub).toString(),
+      };
+    });
+
+    expect(result.pubLength).toBe(32);
+    expect(result.seedLength).toBe(32);
+    expect(result.secretKey64Length).toBe(64);
+    expect(result.spkiDerLength).toBe(44);
+    expect(result.pkcs8DerLength).toBe(48);
+    expect(result.publicPemStartsWith).toBe(true);
+    expect(result.privatePemStartsWith).toBe(true);
+    expect(result.publicPemEndsWith).toBe(true);
+    expect(result.privatePemEndsWith).toBe(true);
+    expect(result.seedPubMatch).toBe(true);
+  });
+
+  test('extractEd25519PublicFromSpki should extract 32-byte public key from valid SPKI', async ({ page }) => {
+    await page.goto('/');
+
+    const result = await page.evaluate(async () => {
+      // Generate a real key and verify round-trip
+      const kp = await crypto.subtle.generateKey({name: 'Ed25519'}, true, ['sign', 'verify']);
+      const spki = new Uint8Array(await crypto.subtle.exportKey('spki', kp.publicKey));
+      // @ts-ignore — app.js global
+      const pub = extractEd25519PublicFromSpki(spki);
+      return {
+        spkiLength: spki.length,
+        pubLength: pub.length,
+        // Verify OID bytes at offset 4: 06 03 2b 65 70
+        oidCorrect: spki[4] === 0x06 && spki[5] === 0x03 && spki[6] === 0x2b
+          && spki[7] === 0x65 && spki[8] === 0x70,
+        // Verify extracted bytes match the last 32 bytes of SPKI
+        matchesTrailing: Array.from(pub).toString() === Array.from(spki.slice(12)).toString(),
+      };
+    });
+
+    expect(result.spkiLength).toBe(44);
+    expect(result.pubLength).toBe(32);
+    expect(result.oidCorrect).toBe(true);
+    expect(result.matchesTrailing).toBe(true);
+  });
+
+  test('extractEd25519SeedFromPkcs8 should extract 32-byte seed from valid PKCS#8', async ({ page }) => {
+    await page.goto('/');
+
+    const result = await page.evaluate(async () => {
+      const kp = await crypto.subtle.generateKey({name: 'Ed25519'}, true, ['sign', 'verify']);
+      const pkcs8 = new Uint8Array(await crypto.subtle.exportKey('pkcs8', kp.privateKey));
+      // @ts-ignore — app.js global
+      const seed = extractEd25519SeedFromPkcs8(pkcs8);
+      return {
+        pkcs8Length: pkcs8.length,
+        seedLength: seed.length,
+        // Verify OID bytes at offset 7: 06 03 2b 65 70
+        oidCorrect: pkcs8[7] === 0x06 && pkcs8[8] === 0x03 && pkcs8[9] === 0x2b
+          && pkcs8[10] === 0x65 && pkcs8[11] === 0x70,
+        // Verify extracted bytes match the last 32 bytes of PKCS#8
+        matchesTrailing: Array.from(seed).toString() === Array.from(pkcs8.slice(16)).toString(),
+      };
+    });
+
+    expect(result.pkcs8Length).toBe(48);
+    expect(result.seedLength).toBe(32);
+    expect(result.oidCorrect).toBe(true);
+    expect(result.matchesTrailing).toBe(true);
+  });
+
+  test('extractEd25519PublicFromSpki should reject wrong-length SPKI', async ({ page }) => {
+    await page.goto('/');
+
+    const error = await page.evaluate(() => {
+      try {
+        // @ts-ignore — app.js global
+        extractEd25519PublicFromSpki(new Uint8Array(40));
+        return null;
+      } catch (e: any) {
+        return e.message;
+      }
+    });
+
+    expect(error).toContain('Unexpected SPKI length');
+    expect(error).toContain('40');
+  });
+
+  test('extractEd25519SeedFromPkcs8 should reject wrong-length PKCS#8', async ({ page }) => {
+    await page.goto('/');
+
+    const error = await page.evaluate(() => {
+      try {
+        // @ts-ignore — app.js global
+        extractEd25519SeedFromPkcs8(new Uint8Array(50));
+        return null;
+      } catch (e: any) {
+        return e.message;
+      }
+    });
+
+    expect(error).toContain('Unexpected PKCS#8 length');
+    expect(error).toContain('50');
+  });
+
+  test('extractEd25519PublicFromSpki should reject invalid OID', async ({ page }) => {
+    await page.goto('/');
+
+    const error = await page.evaluate(() => {
+      // Build a 44-byte buffer with wrong OID
+      const fake = new Uint8Array(44);
+      fake[4] = 0x06; fake[5] = 0x03;
+      fake[6] = 0xFF; fake[7] = 0xFF; fake[8] = 0xFF; // wrong OID
+      try {
+        // @ts-ignore — app.js global
+        extractEd25519PublicFromSpki(fake);
+        return null;
+      } catch (e: any) {
+        return e.message;
+      }
+    });
+
+    expect(error).toContain('Ed25519 OID');
+  });
+
+  test('extractEd25519SeedFromPkcs8 should reject invalid OID', async ({ page }) => {
+    await page.goto('/');
+
+    const error = await page.evaluate(() => {
+      // Build a 48-byte buffer with wrong OID
+      const fake = new Uint8Array(48);
+      fake[7] = 0x06; fake[8] = 0x03;
+      fake[9] = 0xFF; fake[10] = 0xFF; fake[11] = 0xFF; // wrong OID
+      try {
+        // @ts-ignore — app.js global
+        extractEd25519SeedFromPkcs8(fake);
+        return null;
+      } catch (e: any) {
+        return e.message;
+      }
+    });
+
+    expect(error).toContain('Ed25519 OID');
+  });
+
+  test('generateKeyPair should produce valid Ed25519 OpenSSH output', async ({ page }) => {
+    await page.goto('/');
+
+    const result = await page.evaluate(async () => {
+      // @ts-ignore — app.js global
+      const kp = await generateKeyPair('ed25519', 'openssh', 'test@example');
+      return {
+        publicStartsWith: kp.publicKeyText.startsWith('ssh-ed25519 '),
+        publicEndsWithComment: kp.publicKeyText.endsWith(' test@example'),
+        privateStartsWith: kp.privateKeyText.startsWith('-----BEGIN OPENSSH PRIVATE KEY-----'),
+        sensitiveCount: kp.sensitiveBuffers.length,
+      };
+    });
+
+    expect(result.publicStartsWith).toBe(true);
+    expect(result.publicEndsWithComment).toBe(true);
+    expect(result.privateStartsWith).toBe(true);
+    expect(result.sensitiveCount).toBeGreaterThanOrEqual(3); // seed, secretKey64, pkcs8Der
+  });
+
+  test('generateKeyPair should produce valid Ed25519 PEM output', async ({ page }) => {
+    await page.goto('/');
+
+    const result = await page.evaluate(async () => {
+      // @ts-ignore — app.js global
+      const kp = await generateKeyPair('ed25519', 'pem', '');
+      return {
+        publicPem: kp.publicKeyText.startsWith('-----BEGIN PUBLIC KEY-----'),
+        privatePem: kp.privateKeyText.startsWith('-----BEGIN PRIVATE KEY-----'),
+      };
+    });
+
+    expect(result.publicPem).toBe(true);
+    expect(result.privatePem).toBe(true);
+  });
+
+  test('formatKeyGenError should map known error types', async ({ page }) => {
+    await page.goto('/');
+
+    const results = await page.evaluate(() => {
+      // @ts-ignore — app.js global
+      const unsupported = formatKeyGenError(Object.assign(new Error('Unsupported ECDSA curve'), {}));
+      const unknown = formatKeyGenError(Object.assign(new Error('Unknown algorithm'), {}));
+      const notSupported = formatKeyGenError(Object.assign(new Error(''), { name: 'NotSupportedError' }));
+      const opError = formatKeyGenError(Object.assign(new Error(''), { name: 'OperationError' }));
+      const generic = formatKeyGenError(new Error('something broke'));
+      return { unsupported, unknown, notSupported, opError, generic };
+    });
+
+    expect(results.unsupported).toBe('Unsupported ECDSA curve');
+    expect(results.unknown).toBe('Unknown algorithm');
+    expect(results.notSupported).toContain('not supported by your browser');
+    expect(results.opError).toContain('Please try again');
+    expect(results.generic).toContain('something broke');
+  });
+
+  test('generateKeyPair should produce valid ECDSA P-256 OpenSSH output', async ({ page }) => {
+    await page.goto('/');
+
+    const result = await page.evaluate(async () => {
+      // @ts-ignore — app.js global
+      const kp = await generateKeyPair('ecdsa-p256', 'openssh', 'ecdsa-test');
+      return {
+        publicStartsWith: kp.publicKeyText.startsWith('ecdsa-sha2-nistp256 '),
+        publicEndsWithComment: kp.publicKeyText.endsWith(' ecdsa-test'),
+        privateStartsWith: kp.privateKeyText.startsWith('-----BEGIN OPENSSH PRIVATE KEY-----'),
+        privateEndsWith: kp.privateKeyText.trimEnd().endsWith('-----END OPENSSH PRIVATE KEY-----'),
+        sensitiveCount: kp.sensitiveBuffers.length,
+      };
+    });
+
+    expect(result.publicStartsWith).toBe(true);
+    expect(result.publicEndsWithComment).toBe(true);
+    expect(result.privateStartsWith).toBe(true);
+    expect(result.privateEndsWith).toBe(true);
+    expect(result.sensitiveCount).toBeGreaterThanOrEqual(1); // dBytes
+  });
+
+  test('generateKeyPair should produce valid ECDSA P-256 PEM output', async ({ page }) => {
+    await page.goto('/');
+
+    const result = await page.evaluate(async () => {
+      // @ts-ignore — app.js global
+      const kp = await generateKeyPair('ecdsa-p256', 'pem', '');
+      return {
+        publicPem: kp.publicKeyText.startsWith('-----BEGIN PUBLIC KEY-----'),
+        privatePem: kp.privateKeyText.startsWith('-----BEGIN PRIVATE KEY-----'),
+        publicPemEnd: kp.publicKeyText.trimEnd().endsWith('-----END PUBLIC KEY-----'),
+        privatePemEnd: kp.privateKeyText.trimEnd().endsWith('-----END PRIVATE KEY-----'),
+        sensitiveCount: kp.sensitiveBuffers.length,
+      };
+    });
+
+    expect(result.publicPem).toBe(true);
+    expect(result.privatePem).toBe(true);
+    expect(result.publicPemEnd).toBe(true);
+    expect(result.privatePemEnd).toBe(true);
+    expect(result.sensitiveCount).toBeGreaterThanOrEqual(1); // private DER buffer
+  });
+
+  test('generateKeyPair should produce valid RSA-2048 OpenSSH output', async ({ page }) => {
+    await page.goto('/');
+
+    const result = await page.evaluate(async () => {
+      // @ts-ignore — app.js global
+      const kp = await generateKeyPair('rsa-2048', 'openssh', 'rsa-test');
+      return {
+        publicStartsWith: kp.publicKeyText.startsWith('ssh-rsa '),
+        publicEndsWithComment: kp.publicKeyText.endsWith(' rsa-test'),
+        privateStartsWith: kp.privateKeyText.startsWith('-----BEGIN OPENSSH PRIVATE KEY-----'),
+        privateEndsWith: kp.privateKeyText.trimEnd().endsWith('-----END OPENSSH PRIVATE KEY-----'),
+        sensitiveCount: kp.sensitiveBuffers.length,
+      };
+    });
+
+    expect(result.publicStartsWith).toBe(true);
+    expect(result.publicEndsWithComment).toBe(true);
+    expect(result.privateStartsWith).toBe(true);
+    expect(result.privateEndsWith).toBe(true);
+    expect(result.sensitiveCount).toBeGreaterThanOrEqual(1); // RSA private field buffers
+  });
+
+  test('generateKeyPair should produce valid RSA-2048 PEM output', async ({ page }) => {
+    await page.goto('/');
+
+    const result = await page.evaluate(async () => {
+      // @ts-ignore — app.js global
+      const kp = await generateKeyPair('rsa-2048', 'pem', '');
+      return {
+        publicPem: kp.publicKeyText.startsWith('-----BEGIN PUBLIC KEY-----'),
+        privatePem: kp.privateKeyText.startsWith('-----BEGIN PRIVATE KEY-----'),
+        publicPemEnd: kp.publicKeyText.trimEnd().endsWith('-----END PUBLIC KEY-----'),
+        privatePemEnd: kp.privateKeyText.trimEnd().endsWith('-----END PRIVATE KEY-----'),
+        sensitiveCount: kp.sensitiveBuffers.length,
+      };
+    });
+
+    expect(result.publicPem).toBe(true);
+    expect(result.privatePem).toBe(true);
+    expect(result.publicPemEnd).toBe(true);
+    expect(result.privatePemEnd).toBe(true);
+    expect(result.sensitiveCount).toBeGreaterThanOrEqual(1); // private DER buffer
+  });
+
+  test('generateKeyPair should reject unknown algorithm', async ({ page }) => {
+    await page.goto('/');
+
+    const error = await page.evaluate(async () => {
+      try {
+        // @ts-ignore — app.js global
+        await generateKeyPair('unknown-algo', 'openssh', '');
+        return null;
+      } catch (e: any) {
+        return e.message;
+      }
+    });
+
+    expect(error).toBe('Unknown algorithm');
+  });
+
+  test('generateKeyPair should clean up sensitive buffers on internal failure', async ({ page }) => {
+    await page.goto('/');
+
+    // Monkey-patch buildOpenSSHPrivateKeyEd25519 to throw after key generation,
+    // and intercept secureZeroAll to verify it was called with non-empty buffers.
+    const result = await page.evaluate(async () => {
+      // Save originals
+      // @ts-ignore — app.js global
+      const originalBuild = globalThis.buildOpenSSHPrivateKeyEd25519;
+      // @ts-ignore — app.js global
+      const originalZero = globalThis.secureZeroAll;
+
+      let zeroCallCount = 0;
+      let zeroedBufferCount = 0;
+      // @ts-ignore — app.js global
+      globalThis.secureZeroAll = (...buffers: Uint8Array[]) => {
+        zeroCallCount++;
+        zeroedBufferCount += buffers.length;
+        // Call the real implementation so buffers are actually zeroed
+        originalZero(...buffers);
+      };
+
+      // @ts-ignore — app.js global
+      globalThis.buildOpenSSHPrivateKeyEd25519 = () => { throw new Error('injected failure'); };
+
+      let caughtError: string | null = null;
+      try {
+        // @ts-ignore — app.js global
+        await generateKeyPair('ed25519', 'openssh', 'test');
+      } catch (e: any) {
+        caughtError = e.message;
+      } finally {
+        // Restore originals
+        // @ts-ignore — app.js global
+        globalThis.buildOpenSSHPrivateKeyEd25519 = originalBuild;
+        // @ts-ignore — app.js global
+        globalThis.secureZeroAll = originalZero;
+      }
+
+      return { caughtError, zeroCallCount, zeroedBufferCount };
+    });
+
+    expect(result.caughtError).toBe('injected failure');
+    expect(result.zeroCallCount).toBeGreaterThanOrEqual(1);
+    // Should have zeroed at least 3 buffers: seed, secretKey64, pkcs8Der
+    expect(result.zeroedBufferCount).toBeGreaterThanOrEqual(3);
+  });
+});

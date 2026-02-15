@@ -277,7 +277,7 @@ fun getLandingPage(pageTitle: String): String =
                                     // Library info tooltip (shown after generation)
                                     div("tooltip tooltip-bottom") {
                                         id = "key-library-tooltip"
-                                        attributes["data-tip"] = "Generated using TweetNaCl"
+                                        attributes["data-tip"] = "Generated using Web Crypto API"
                                         span("w-4 h-4 opacity-60 hover:opacity-100 cursor-help inline-flex") {
                                             embedSvg("/static/svg/alert-info.svg")
                                         }
@@ -319,7 +319,7 @@ fun getLandingPage(pageTitle: String): String =
                                                 // Info tooltip about libraries used
                                                 div("tooltip tooltip-bottom") {
                                                     attributes["data-tip"] =
-                                                        "Ed25519 uses TweetNaCl | ECDSA/RSA use Web Crypto API"
+                                                        "All algorithms use Web Crypto API"
                                                     span("w-4 h-4 opacity-60 hover:opacity-100 cursor-help inline-flex") {
                                                         embedSvg("/static/svg/alert-info.svg")
                                                     }

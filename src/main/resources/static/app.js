@@ -744,50 +744,70 @@ function toPem(label, derBytes) {
     return `-----BEGIN ${label}-----\n${lines.join('\n')}\n-----END ${label}-----`;
 }
 
-// ─── Ed25519 PEM (PKCS#8 / SPKI) ──────────────────────────────────
-// Ed25519 OID: 1.3.101.112 → 06 03 2B 65 70
-const ED25519_OID = new Uint8Array([0x06, 0x03, 0x2B, 0x65, 0x70]);
+// ─── Ed25519 via WebCrypto ──────────────────────────────────────────
 
 /**
- * Wrap a 32-byte Ed25519 public key in SPKI DER and return PEM.
- * SubjectPublicKeyInfo ::= SEQUENCE {
- *   algorithm  AlgorithmIdentifier ::= SEQUENCE { OID },
- *   subjectPublicKey  BIT STRING (0x00 prefix + raw 32 bytes)
- * }
+ * Generate an Ed25519 key pair using the Web Crypto API.
+ * Returns { pub, seed, secretKey64, publicPem, privatePem, spkiDer, pkcs8Der }
+ * where pub is 32-byte raw public key, seed is 32-byte private seed,
+ * secretKey64 is 64-byte (seed+pub) for OpenSSH format construction,
+ * and PEMs/DER are the browser-exported standard formats.
  */
-function ed25519PublicToSpkiPem(pubBytes32) {
-    // AlgorithmIdentifier: SEQUENCE { OID 1.3.101.112 }
-    const algId = asn1Sequence([ED25519_OID]);
-    // BIT STRING: 0x03, length, 0x00 (no unused bits), then the raw key
-    const bitStringContent = new Uint8Array(1 + pubBytes32.length);
-    bitStringContent[0] = 0x00; // unused bits
-    bitStringContent.set(pubBytes32, 1);
-    const bitString = asn1Tag(0x03, bitStringContent);
-    const spki = asn1Sequence([algId, bitString]);
-    return toPem('PUBLIC KEY', spki);
+async function generateEd25519WebCrypto() {
+    const kp = await crypto.subtle.generateKey({name: 'Ed25519'}, true, ['sign', 'verify']);
+    const spkiDer = new Uint8Array(await crypto.subtle.exportKey('spki', kp.publicKey));
+    const pkcs8Der = new Uint8Array(await crypto.subtle.exportKey('pkcs8', kp.privateKey));
+    try {
+        const pub = extractEd25519PublicFromSpki(spkiDer);
+        const seed = extractEd25519SeedFromPkcs8(pkcs8Der);
+        // OpenSSH private key format stores 64 bytes: seed (32) + public key (32)
+        const secretKey64 = concatArrays([seed, pub]);
+        const publicPem = toPem('PUBLIC KEY', spkiDer);
+        const privatePem = toPem('PRIVATE KEY', pkcs8Der);
+        return {pub, seed, secretKey64, publicPem, privatePem, spkiDer, pkcs8Der};
+    } catch (e) {
+        // Best-effort cleanup of sensitive DER buffers on failure
+        pkcs8Der.fill(0);
+        throw e;
+    }
+}
+
+// Ed25519 OID 1.3.101.112 encoded as DER: 06 03 2B 65 70
+const ED25519_OID_BYTES = Object.freeze([0x06, 0x03, 0x2b, 0x65, 0x70]);
+
+/**
+ * Verify that the Ed25519 OID (1.3.101.112) is present at the expected offset.
+ */
+function verifyEd25519Oid(der, offset) {
+    for (let i = 0; i < ED25519_OID_BYTES.length; i++) {
+        if (der[offset + i] !== ED25519_OID_BYTES[i]) {
+            throw new Error('DER does not contain Ed25519 OID at expected offset ' + offset);
+        }
+    }
 }
 
 /**
- * Wrap a 64-byte Ed25519 secret key (seed+pub from TweetNaCl) in PKCS#8 DER and return PEM.
- * The first 32 bytes are the seed (private scalar); that is what goes into the PKCS#8 wrapper.
- * PrivateKeyInfo ::= SEQUENCE {
- *   version      INTEGER (0),
- *   algorithm    AlgorithmIdentifier ::= SEQUENCE { OID },
- *   privateKey   OCTET STRING { OCTET STRING { 32-byte seed } }
- * }
+ * Extract the raw 32-byte Ed25519 public key from an SPKI DER structure.
+ * Standard Ed25519 SPKI (RFC 8410) is exactly 44 bytes:
+ * SEQUENCE { SEQUENCE { OID 1.3.101.112 }, BIT STRING { 0x00, <32 bytes> } }
+ * Byte layout: 30 2a 30 05 [06 03 2b 65 70] 03 21 00 <32 bytes>
  */
-function ed25519PrivateToPkcs8Pem(secretKey64) {
-    const seed = secretKey64.slice(0, 32); // extract 32-byte seed
-    // version INTEGER 0
-    const versionInt = new Uint8Array([0x02, 0x01, 0x00]);
-    // AlgorithmIdentifier
-    const algId = asn1Sequence([ED25519_OID]);
-    // Inner OCTET STRING wrapping the seed
-    const innerOctet = asn1Tag(0x04, seed);
-    // Outer OCTET STRING wrapping the inner
-    const outerOctet = asn1Tag(0x04, innerOctet);
-    const pkcs8 = asn1Sequence([versionInt, algId, outerOctet]);
-    return toPem('PRIVATE KEY', pkcs8);
+function extractEd25519PublicFromSpki(spki) {
+    if (spki.length !== 44) throw new Error('Unexpected SPKI length for Ed25519: ' + spki.length + ' (expected 44)');
+    verifyEd25519Oid(spki, 4); // OID starts at byte 4
+    return spki.slice(12); // skip 12-byte header
+}
+
+/**
+ * Extract the raw 32-byte Ed25519 private seed from a PKCS#8 DER structure.
+ * Standard Ed25519 PKCS#8 (RFC 8410) is exactly 48 bytes:
+ * SEQUENCE { INTEGER 0, SEQUENCE { OID 1.3.101.112 }, OCTET STRING { OCTET STRING { <32 bytes> } } }
+ * Byte layout: 30 2e 02 01 00 30 05 [06 03 2b 65 70] 04 22 04 20 <32 bytes>
+ */
+function extractEd25519SeedFromPkcs8(pkcs8) {
+    if (pkcs8.length !== 48) throw new Error('Unexpected PKCS#8 length for Ed25519: ' + pkcs8.length + ' (expected 48)');
+    verifyEd25519Oid(pkcs8, 7); // OID starts at byte 7
+    return pkcs8.slice(16); // skip 16-byte header
 }
 
 // ─── ECDSA / RSA PEM via WebCrypto ─────────────────────────────────
@@ -795,58 +815,22 @@ function ed25519PrivateToPkcs8Pem(secretKey64) {
 /**
  * Export a WebCrypto CryptoKey as PEM (PKCS#8 for private, SPKI for public).
  * Works for ECDSA and RSA keys that were generated with extractable=true.
+ * Returns both the PEM string and the raw DER buffer so callers can track it
+ * for best-effort zeroing of sensitive key material.
  * @param {CryptoKey} cryptoKey
  * @param {'private'|'public'} keyType
- * @returns {Promise<string>} PEM string
+ * @returns {Promise<{pem: string, derBuffer: Uint8Array}>}
  */
 async function exportCryptoKeyAsPem(cryptoKey, keyType) {
     if (keyType === 'private') {
         const der = await crypto.subtle.exportKey('pkcs8', cryptoKey);
-        return toPem('PRIVATE KEY', der);
+        // derBuffer is a view on the same ArrayBuffer as passed to toPem;
+        // this is safe because toPem builds the PEM string synchronously.
+        return { pem: toPem('PRIVATE KEY', der), derBuffer: new Uint8Array(der) };
     } else {
         const der = await crypto.subtle.exportKey('spki', cryptoKey);
-        return toPem('PUBLIC KEY', der);
+        return { pem: toPem('PUBLIC KEY', der), derBuffer: new Uint8Array(der) };
     }
-}
-
-// ─── ASN.1 DER helpers ─────────────────────────────────────────────
-
-/**
- * Wrap content bytes with an ASN.1 tag and DER length.
- */
-function asn1Tag(tagByte, content) {
-    const contentBytes = content instanceof Uint8Array ? content : new Uint8Array(content);
-    const len = contentBytes.length;
-    let header;
-    if (len < 0x80) {
-        header = new Uint8Array([tagByte, len]);
-    } else if (len < 0x100) {
-        header = new Uint8Array([tagByte, 0x81, len]);
-    } else if (len < 0x10000) {
-        header = new Uint8Array([tagByte, 0x82, (len >> 8) & 0xFF, len & 0xFF]);
-    } else {
-        // Should never happen for our key sizes
-        header = new Uint8Array([tagByte, 0x83, (len >> 16) & 0xFF, (len >> 8) & 0xFF, len & 0xFF]);
-    }
-    const result = new Uint8Array(header.length + contentBytes.length);
-    result.set(header, 0);
-    result.set(contentBytes, header.length);
-    return result;
-}
-
-/**
- * Build an ASN.1 SEQUENCE from an array of already-encoded TLV byte arrays.
- */
-function asn1Sequence(parts) {
-    let totalLen = 0;
-    for (const p of parts) totalLen += p.length;
-    const content = new Uint8Array(totalLen);
-    let offset = 0;
-    for (const p of parts) {
-        content.set(p, offset);
-        offset += p.length;
-    }
-    return asn1Tag(0x30, content);
 }
 
 function buildOpenSSHPrivateKeyEd25519(secretKey64, publicKey32, comment) {
@@ -1135,6 +1119,128 @@ function buildOpenSSHPrivateKeyRSA(jwk, comment) {
     return `-----BEGIN OPENSSH PRIVATE KEY-----\n${b64}\n-----END OPENSSH PRIVATE KEY-----`;
 }
 
+// ─── Shared key generation core ─────────────────────────────────────
+
+/**
+ * Generate a key pair for the given algorithm and format.
+ * Returns { publicKeyText, privateKeyText, sensitiveBuffers }.
+ * Caller is responsible for zeroing sensitiveBuffers in a finally block.
+ * On internal failure, any accumulated sensitive buffers are zeroed before
+ * the error is re-thrown, so the caller does not need to handle cleanup
+ * for the error case.
+ *
+ * @param {string} algo - Algorithm identifier (ed25519, ecdsa-p256, rsa-2048, etc.)
+ * @param {string} format - 'pem' or 'openssh'
+ * @param {string} comment - Key comment/identifier (may be empty string)
+ * @returns {Promise<{publicKeyText: string, privateKeyText: string, sensitiveBuffers: Uint8Array[]}>}
+ */
+async function generateKeyPair(algo, format, comment) {
+    const sensitiveBuffers = [];
+
+    try {
+        let publicKeyText = '';
+        let privateKeyText = '';
+
+        if (algo === 'ed25519') {
+            const ed = await generateEd25519WebCrypto();
+            sensitiveBuffers.push(ed.seed, ed.secretKey64, ed.pkcs8Der);
+            if (format === 'pem') {
+                publicKeyText = ed.publicPem;
+                privateKeyText = ed.privatePem;
+            } else {
+                const blob = buildSshBufferEd25519(ed.pub);
+                publicKeyText = 'ssh-ed25519 ' + bytesToBase64(blob) + (comment ? ' ' + comment : '');
+                privateKeyText = buildOpenSSHPrivateKeyEd25519(ed.secretKey64, ed.pub, comment);
+            }
+        } else if (algo.startsWith('ecdsa-')) {
+            const curveMap = {'ecdsa-p256': 'nistp256', 'ecdsa-p384': 'nistp384', 'ecdsa-p521': 'nistp521'};
+            const named = curveMap[algo];
+            if (!named) throw new Error('Unsupported ECDSA curve');
+            const webCurve = {nistp256: 'P-256', nistp384: 'P-384', nistp521: 'P-521'}[named];
+            const keyPair = await crypto.subtle.generateKey({
+                name: 'ECDSA',
+                namedCurve: webCurve
+            }, true, ['sign', 'verify']);
+            if (format === 'pem') {
+                const pubExport = await exportCryptoKeyAsPem(keyPair.publicKey, 'public');
+                const privExport = await exportCryptoKeyAsPem(keyPair.privateKey, 'private');
+                sensitiveBuffers.push(privExport.derBuffer);
+                publicKeyText = pubExport.pem;
+                privateKeyText = privExport.pem;
+            } else {
+                const jwkPub = await crypto.subtle.exportKey('jwk', keyPair.publicKey);
+                const jwkPriv = await crypto.subtle.exportKey('jwk', keyPair.privateKey);
+                const x = base64UrlToBytes(jwkPub.x);
+                const y = base64UrlToBytes(jwkPub.y);
+                const point = new Uint8Array(1 + x.length + y.length);
+                point[0] = 0x04;
+                point.set(x, 1);
+                point.set(y, 1 + x.length);
+                const dBytes = base64UrlToBytes(jwkPriv.d);
+                sensitiveBuffers.push(dBytes);
+                publicKeyText = buildOpenSshEcdsaPublic(jwkPub, named, comment);
+                privateKeyText = buildOpenSSHPrivateKeyECDSA(named, point, jwkPriv.d, comment);
+                jwkPriv.d = '';
+            }
+        } else if (algo.startsWith('rsa-')) {
+            const size = parseInt(algo.split('-')[1], 10);
+            const keyPair = await crypto.subtle.generateKey({
+                name: 'RSASSA-PKCS1-v1_5',
+                modulusLength: size,
+                publicExponent: new Uint8Array([1, 0, 1]),
+                hash: 'SHA-256'
+            }, true, ['sign', 'verify']);
+            if (format === 'pem') {
+                const pubExport = await exportCryptoKeyAsPem(keyPair.publicKey, 'public');
+                const privExport = await exportCryptoKeyAsPem(keyPair.privateKey, 'private');
+                sensitiveBuffers.push(privExport.derBuffer);
+                publicKeyText = pubExport.pem;
+                privateKeyText = privExport.pem;
+            } else {
+                const jwkPub = await crypto.subtle.exportKey('jwk', keyPair.publicKey);
+                const jwkPriv = await crypto.subtle.exportKey('jwk', keyPair.privateKey);
+                ['d', 'p', 'q', 'dp', 'dq', 'qi'].forEach(field => {
+                    if (jwkPriv[field]) {
+                        sensitiveBuffers.push(base64UrlToBytes(jwkPriv[field]));
+                    }
+                });
+                publicKeyText = buildOpenSshRsaPublic(jwkPub, comment);
+                privateKeyText = buildOpenSSHPrivateKeyRSA(jwkPriv, comment);
+                ['d', 'p', 'q', 'dp', 'dq', 'qi'].forEach(field => {
+                    jwkPriv[field] = '';
+                });
+            }
+        } else {
+            throw new Error('Unknown algorithm');
+        }
+
+        return { publicKeyText, privateKeyText, sensitiveBuffers };
+    } catch (e) {
+        // Zero any sensitive buffers accumulated before the failure
+        secureZeroAll(...sensitiveBuffers);
+        throw e;
+    }
+}
+
+/**
+ * Map a key generation error to a user-friendly message.
+ * @param {Error} e
+ * @returns {string}
+ */
+function formatKeyGenError(e) {
+    if (e.message === 'Unsupported ECDSA curve' || e.message === 'Unknown algorithm') {
+        return e.message;
+    } else if (e.name === 'NotSupportedError') {
+        return 'This algorithm is not supported by your browser.';
+    } else if (e.name === 'OperationError') {
+        return 'Key generation operation failed. Please try again.';
+    } else if (!window.isSecureContext) {
+        return 'Secure context required. Please use HTTPS.';
+    } else {
+        return 'Key generation failed: ' + (e.message || 'Unknown error');
+    }
+}
+
 async function generateKey() {
     const algo = document.getElementById('key-algorithm').value;
     const purpose = document.getElementById('key-purpose').value;
@@ -1154,16 +1260,16 @@ async function generateKey() {
         return;
     }
 
-    // Check for secure context requirement for ECDSA/RSA (both OpenSSH and PEM need WebCrypto)
-    if (algo !== 'ed25519' && !window.isSecureContext) {
-        errText.textContent = 'ECDSA and RSA require HTTPS. Use Ed25519 or access via HTTPS.';
+    // Check for secure context requirement (all algorithms now use WebCrypto)
+    if (!window.isSecureContext) {
+        errText.textContent = 'Secure context required. Please use HTTPS.';
         errAlert.classList.remove('hidden');
         return;
     }
 
     // Check crypto.subtle availability
-    if (algo !== 'ed25519' && (!window.crypto || !window.crypto.subtle)) {
-        errText.textContent = 'Web Crypto API not available. Use Ed25519 or a modern browser with HTTPS.';
+    if (!window.crypto || !window.crypto.subtle) {
+        errText.textContent = 'Web Crypto API not available. Please use a modern browser with HTTPS.';
         errAlert.classList.remove('hidden');
         return;
     }
@@ -1179,83 +1285,10 @@ async function generateKey() {
     let sensitiveBuffers = [];
 
     try {
-        let publicKeyText = '';
-        let privateKeyText = '';
-        if (algo === 'ed25519') {
-            if (!window.nacl || !nacl.sign) throw new Error('TweetNaCl library not loaded. Please refresh the page.');
-            const kp = nacl.sign.keyPair();
-            const pub = kp.publicKey; // 32 bytes
-            const sec = kp.secretKey; // 64 bytes (seed+pub)
-            sensitiveBuffers.push(sec); // Track for cleanup
-            if (format === 'pem') {
-                publicKeyText = ed25519PublicToSpkiPem(pub);
-                privateKeyText = ed25519PrivateToPkcs8Pem(sec);
-            } else {
-                const blob = buildSshBufferEd25519(pub);
-                publicKeyText = 'ssh-ed25519 ' + bytesToBase64(blob) + (identifier ? ' ' + identifier : '');
-                privateKeyText = buildOpenSSHPrivateKeyEd25519(sec, pub, identifier);
-            }
-        } else if (algo.startsWith('ecdsa-')) {
-            const curveMap = {'ecdsa-p256': 'nistp256', 'ecdsa-p384': 'nistp384', 'ecdsa-p521': 'nistp521'};
-            const named = curveMap[algo];
-            if (!named) throw new Error('Unsupported ECDSA curve');
-            const webCurve = {nistp256: 'P-256', nistp384: 'P-384', nistp521: 'P-521'}[named];
-            const keyPair = await crypto.subtle.generateKey({
-                name: 'ECDSA',
-                namedCurve: webCurve
-            }, true, ['sign', 'verify']);
-            if (format === 'pem') {
-                publicKeyText = await exportCryptoKeyAsPem(keyPair.publicKey, 'public');
-                privateKeyText = await exportCryptoKeyAsPem(keyPair.privateKey, 'private');
-            } else {
-                const jwkPub = await crypto.subtle.exportKey('jwk', keyPair.publicKey);
-                const jwkPriv = await crypto.subtle.exportKey('jwk', keyPair.privateKey);
-                const x = base64UrlToBytes(jwkPub.x);
-                const y = base64UrlToBytes(jwkPub.y);
-                const point = new Uint8Array(1 + x.length + y.length);
-                point[0] = 0x04;
-                point.set(x, 1);
-                point.set(y, 1 + x.length);
-                // Track private scalar for cleanup
-                const dBytes = base64UrlToBytes(jwkPriv.d);
-                sensitiveBuffers.push(dBytes);
-                publicKeyText = buildOpenSshEcdsaPublic(jwkPub, named, identifier);
-                privateKeyText = buildOpenSSHPrivateKeyECDSA(named, point, jwkPriv.d, identifier);
-                // Clear JWK private fields (best effort - strings are immutable in JS)
-                jwkPriv.d = '';
-            }
-        } else if (algo.startsWith('rsa-')) {
-            const size = parseInt(algo.split('-')[1], 10);
-            const keyPair = await crypto.subtle.generateKey({
-                name: 'RSASSA-PKCS1-v1_5',
-                modulusLength: size,
-                publicExponent: new Uint8Array([1, 0, 1]),
-                hash: 'SHA-256'
-            }, true, ['sign', 'verify']);
-            if (format === 'pem') {
-                publicKeyText = await exportCryptoKeyAsPem(keyPair.publicKey, 'public');
-                privateKeyText = await exportCryptoKeyAsPem(keyPair.privateKey, 'private');
-            } else {
-                const jwkPub = await crypto.subtle.exportKey('jwk', keyPair.publicKey);
-                const jwkPriv = await crypto.subtle.exportKey('jwk', keyPair.privateKey);
-                // Track RSA private components for cleanup
-                ['d', 'p', 'q', 'dp', 'dq', 'qi'].forEach(field => {
-                    if (jwkPriv[field]) {
-                        sensitiveBuffers.push(base64UrlToBytes(jwkPriv[field]));
-                    }
-                });
-                publicKeyText = buildOpenSshRsaPublic(jwkPub, identifier);
-                privateKeyText = buildOpenSSHPrivateKeyRSA(jwkPriv, identifier);
-                // Clear JWK private fields (best effort - strings are immutable in JS)
-                ['d', 'p', 'q', 'dp', 'dq', 'qi'].forEach(field => {
-                    jwkPriv[field] = '';
-                });
-            }
-        } else {
-            throw new Error('Unknown algorithm');
-        }
-        pubOut.value = publicKeyText;
-        privOut.value = privateKeyText;
+        const result = await generateKeyPair(algo, format, identifier);
+        sensitiveBuffers = result.sensitiveBuffers;
+        pubOut.value = result.publicKeyText;
+        privOut.value = result.privateKeyText;
 
         // Update UI to show generated state
         const emptyState = document.getElementById('key-empty-state');
@@ -1281,10 +1314,7 @@ async function generateKey() {
         // Update library info tooltip
         const libraryTooltip = document.getElementById('key-library-tooltip');
         if (libraryTooltip) {
-            const libraryInfo = algo === 'ed25519'
-                ? 'Generated using TweetNaCl library'
-                : 'Generated using Web Crypto API';
-            libraryTooltip.setAttribute('data-tip', libraryInfo);
+            libraryTooltip.setAttribute('data-tip', 'Generated using Web Crypto API');
         }
 
         if (outputSection) outputSection.classList.remove('hidden');
@@ -1309,25 +1339,8 @@ async function generateKey() {
 
         updateInstructions(purpose, algo, identifier);
     } catch (e) {
-        // Log detailed error to console for debugging
         console.error('Key generation failed:', e);
-
-        let userMessage;
-        // Check for specific error types and provide helpful messages
-        if (e.message && e.message.includes('TweetNaCl')) {
-            userMessage = e.message;
-        } else if (e.message === 'Unsupported ECDSA curve' || e.message === 'Unknown algorithm') {
-            userMessage = e.message;
-        } else if (e.name === 'NotSupportedError') {
-            userMessage = 'This algorithm is not supported by your browser.';
-        } else if (e.name === 'OperationError') {
-            userMessage = 'Key generation operation failed. Please try again.';
-        } else if (!window.isSecureContext) {
-            userMessage = 'Secure context required. Please use HTTPS or try Ed25519.';
-        } else {
-            userMessage = 'Key generation failed: ' + (e.message || 'Unknown error');
-        }
-        errText.textContent = userMessage;
+        errText.textContent = formatKeyGenError(e);
         errAlert.classList.remove('hidden');
     } finally {
         // Remove spinning animation from the icon
@@ -1595,15 +1608,15 @@ async function generateShareKey() {
         return;
     }
 
-    // Check for secure context requirement for ECDSA/RSA
-    if (algo !== 'ed25519' && !window.isSecureContext) {
-        if (errText) errText.textContent = 'ECDSA and RSA require HTTPS. Please access via HTTPS.';
+    // Check for secure context requirement (all algorithms use WebCrypto)
+    if (!window.isSecureContext) {
+        if (errText) errText.textContent = 'Secure context required. Please use HTTPS.';
         if (errAlert) errAlert.classList.remove('hidden');
         return;
     }
 
     // Check crypto.subtle availability
-    if (algo !== 'ed25519' && (!window.crypto || !window.crypto.subtle)) {
+    if (!window.crypto || !window.crypto.subtle) {
         if (errText) errText.textContent = 'Web Crypto API not available. Please use a modern browser with HTTPS.';
         if (errAlert) errAlert.classList.remove('hidden');
         return;
@@ -1619,89 +1632,20 @@ async function generateShareKey() {
     let sensitiveBuffers = [];
 
     try {
-        let publicKeyText = '';
-        let privateKeyText = '';
         const comment = label || '';
-
-        if (algo === 'ed25519') {
-            if (!window.nacl || !nacl.sign) throw new Error('TweetNaCl library not loaded. Please refresh the page.');
-            const kp = nacl.sign.keyPair();
-            const pub = kp.publicKey;
-            const sec = kp.secretKey;
-            sensitiveBuffers.push(sec);
-            if (format === 'pem') {
-                publicKeyText = ed25519PublicToSpkiPem(pub);
-                privateKeyText = ed25519PrivateToPkcs8Pem(sec);
-            } else {
-                const blob = buildSshBufferEd25519(pub);
-                publicKeyText = 'ssh-ed25519 ' + bytesToBase64(blob) + (comment ? ' ' + comment : '');
-                privateKeyText = buildOpenSSHPrivateKeyEd25519(sec, pub, comment);
-            }
-        } else if (algo.startsWith('ecdsa-')) {
-            const curveMap = {'ecdsa-p256': 'nistp256', 'ecdsa-p384': 'nistp384', 'ecdsa-p521': 'nistp521'};
-            const named = curveMap[algo];
-            if (!named) throw new Error('Unsupported ECDSA curve');
-            const webCurve = {nistp256: 'P-256', nistp384: 'P-384', nistp521: 'P-521'}[named];
-            const keyPair = await crypto.subtle.generateKey({
-                name: 'ECDSA',
-                namedCurve: webCurve
-            }, true, ['sign', 'verify']);
-            if (format === 'pem') {
-                publicKeyText = await exportCryptoKeyAsPem(keyPair.publicKey, 'public');
-                privateKeyText = await exportCryptoKeyAsPem(keyPair.privateKey, 'private');
-            } else {
-                const jwkPub = await crypto.subtle.exportKey('jwk', keyPair.publicKey);
-                const jwkPriv = await crypto.subtle.exportKey('jwk', keyPair.privateKey);
-                const x = base64UrlToBytes(jwkPub.x);
-                const y = base64UrlToBytes(jwkPub.y);
-                const point = new Uint8Array(1 + x.length + y.length);
-                point[0] = 0x04;
-                point.set(x, 1);
-                point.set(y, 1 + x.length);
-                const dBytes = base64UrlToBytes(jwkPriv.d);
-                sensitiveBuffers.push(dBytes);
-                publicKeyText = buildOpenSshEcdsaPublic(jwkPub, named, comment);
-                privateKeyText = buildOpenSSHPrivateKeyECDSA(named, point, jwkPriv.d, comment);
-                jwkPriv.d = '';
-            }
-        } else if (algo.startsWith('rsa-')) {
-            const size = parseInt(algo.split('-')[1], 10);
-            const keyPair = await crypto.subtle.generateKey({
-                name: 'RSASSA-PKCS1-v1_5',
-                modulusLength: size,
-                publicExponent: new Uint8Array([1, 0, 1]),
-                hash: 'SHA-256'
-            }, true, ['sign', 'verify']);
-            if (format === 'pem') {
-                publicKeyText = await exportCryptoKeyAsPem(keyPair.publicKey, 'public');
-                privateKeyText = await exportCryptoKeyAsPem(keyPair.privateKey, 'private');
-            } else {
-                const jwkPub = await crypto.subtle.exportKey('jwk', keyPair.publicKey);
-                const jwkPriv = await crypto.subtle.exportKey('jwk', keyPair.privateKey);
-                ['d', 'p', 'q', 'dp', 'dq', 'qi'].forEach(field => {
-                    if (jwkPriv[field]) {
-                        sensitiveBuffers.push(base64UrlToBytes(jwkPriv[field]));
-                    }
-                });
-                publicKeyText = buildOpenSshRsaPublic(jwkPub, comment);
-                privateKeyText = buildOpenSSHPrivateKeyRSA(jwkPriv, comment);
-                ['d', 'p', 'q', 'dp', 'dq', 'qi'].forEach(field => {
-                    jwkPriv[field] = '';
-                });
-            }
-        } else {
-            throw new Error('Unknown algorithm');
-        }
+        const result = await generateKeyPair(algo, format, comment);
+        sensitiveBuffers = result.sensitiveBuffers;
+        let privateKeyText = result.privateKeyText;
 
         // Download the private key automatically
         downloadSharePrivateKey(privateKeyText, algo, purpose, format);
 
-        // Clear private key from memory as soon as possible
+        // Drop reference to private key string (best-effort; JS strings are immutable and GC'd)
         privateKeyText = '';
 
         // POST the public key to the server
         const formData = new URLSearchParams();
-        formData.append('public-key', publicKeyText);
+        formData.append('public-key', result.publicKeyText);
         formData.append('algorithm', algo);
 
         const response = await fetch(`/key/share/${shareId}/complete`, {
@@ -1732,22 +1676,7 @@ async function generateShareKey() {
 
     } catch (e) {
         console.error('Key generation failed:', e);
-
-        let userMessage;
-        if (e.message && e.message.includes('TweetNaCl')) {
-            userMessage = e.message;
-        } else if (e.message === 'Unsupported ECDSA curve' || e.message === 'Unknown algorithm') {
-            userMessage = e.message;
-        } else if (e.name === 'NotSupportedError') {
-            userMessage = 'This algorithm is not supported by your browser.';
-        } else if (e.name === 'OperationError') {
-            userMessage = 'Key generation operation failed. Please try again.';
-        } else if (!window.isSecureContext) {
-            userMessage = 'Secure context required. Please use HTTPS.';
-        } else {
-            userMessage = 'Key generation failed: ' + (e.message || 'Unknown error');
-        }
-        if (errText) errText.textContent = userMessage;
+        if (errText) errText.textContent = formatKeyGenError(e);
         if (errAlert) errAlert.classList.remove('hidden');
     } finally {
         if (keygenIcon) keygenIcon.classList.remove('animate-spin-reverse');
