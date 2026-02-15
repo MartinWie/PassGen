@@ -12,7 +12,7 @@ class KeyService(
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     // Valid algorithms that we support
-    private val validAlgorithms = setOf("ed25519", "ecdsa-p256", "ecdsa-p384", "rsa-2048", "rsa-4096", "rsa-8192")
+    private val validAlgorithms = setOf("ed25519", "ecdsa-p256", "ecdsa-p384", "ecdsa-p521", "rsa-2048", "rsa-4096", "rsa-8192")
 
     // Valid purposes
     private val validPurposes = setOf("ssh", "git")
@@ -26,6 +26,7 @@ class KeyService(
             "ed25519" to "ssh-ed25519",
             "ecdsa-p256" to "ecdsa-sha2-nistp256",
             "ecdsa-p384" to "ecdsa-sha2-nistp384",
+            "ecdsa-p521" to "ecdsa-sha2-nistp521",
             "rsa-2048" to "ssh-rsa",
             "rsa-4096" to "ssh-rsa",
             "rsa-8192" to "ssh-rsa",
@@ -73,6 +74,7 @@ class KeyService(
                 "ssh-ed25519",
                 "ecdsa-sha2-nistp256",
                 "ecdsa-sha2-nistp384",
+                "ecdsa-sha2-nistp521",
                 "ssh-rsa",
             )
 

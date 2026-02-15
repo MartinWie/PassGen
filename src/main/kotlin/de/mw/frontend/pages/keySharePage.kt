@@ -335,6 +335,7 @@ private fun formatAlgorithm(algorithm: String): String =
         "ed25519" -> "Ed25519"
         "ecdsa-p256" -> "ECDSA P-256"
         "ecdsa-p384" -> "ECDSA P-384"
+        "ecdsa-p521" -> "ECDSA P-521"
         "rsa-2048" -> "RSA 2048"
         "rsa-4096" -> "RSA 4096"
         "rsa-8192" -> "RSA 8192"

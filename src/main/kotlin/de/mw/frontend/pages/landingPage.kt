@@ -344,6 +344,10 @@ fun getLandingPage(pageTitle: String): String =
                                                 +"ECDSA P-384"
                                             }
                                             option {
+                                                value = "ecdsa-p521"
+                                                +"ECDSA P-521"
+                                            }
+                                            option {
                                                 value = "rsa-2048"
                                                 +"RSA 2048"
                                             }

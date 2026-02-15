@@ -56,6 +56,7 @@ class KeyServiceTest {
     private val validRsaKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC7z+5X rsa@example.com"
     private val validEcdsaP256Key = "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBA== ecdsa@example.com"
     private val validEcdsaP384Key = "ecdsa-sha2-nistp384 AAAAE2VjZHNhLXNoYTItbmlzdHAzODQAAAAIbmlzdHAzODQAAABhBA== ecdsa@example.com"
+    private val validEcdsaP521Key = "ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBA== ecdsa@example.com"
 
     // --- sanitizePublicKey Tests ---
 
@@ -112,6 +113,17 @@ class KeyServiceTest {
 
         assertNotNull(result)
         assertTrue(result.startsWith("ecdsa-sha2-nistp384"))
+    }
+
+    @Test
+    fun `sanitizePublicKey accepts valid ECDSA P521 key`() {
+        val fakeDao = FakeKeyShareDao()
+        val service = KeyService(fakeDao)
+
+        val result = service.sanitizePublicKey(validEcdsaP521Key)
+
+        assertNotNull(result)
+        assertTrue(result.startsWith("ecdsa-sha2-nistp521"))
     }
 
     @Test
@@ -238,6 +250,16 @@ class KeyServiceTest {
         assertNotNull(result)
     }
 
+    @Test
+    fun `sanitizePublicKey accepts matching algorithm - ecdsa-p521`() {
+        val fakeDao = FakeKeyShareDao()
+        val service = KeyService(fakeDao)
+
+        val result = service.sanitizePublicKey(validEcdsaP521Key, expectedAlgorithm = "ecdsa-p521")
+
+        assertNotNull(result)
+    }
+
     // --- Comment sanitization tests ---
 
     @Test
@@ -360,7 +382,7 @@ class KeyServiceTest {
 
     @Test
     fun `createPendingShare accepts all valid algorithms`() {
-        val validAlgorithms = listOf("ed25519", "ecdsa-p256", "ecdsa-p384", "rsa-2048", "rsa-4096", "rsa-8192")
+        val validAlgorithms = listOf("ed25519", "ecdsa-p256", "ecdsa-p384", "ecdsa-p521", "rsa-2048", "rsa-4096", "rsa-8192")
 
         validAlgorithms.forEach { algorithm ->
             val fakeDao = FakeKeyShareDao()
