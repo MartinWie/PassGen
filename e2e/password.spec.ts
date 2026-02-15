@@ -931,8 +931,8 @@ test.describe('Purpose-based Key Settings', () => {
     await page.locator('#key-algorithm').selectOption('ecdsa-p256');
     
     // Labels should update immediately (even without regenerating)
-    await expect(page.locator('#download-public-label')).toHaveText('id_ecdsa.pub');
-    await expect(page.locator('#download-private-label')).toHaveText('id_ecdsa');
+    await expect(page.locator('#download-public-label')).toHaveText('id_ecdsa_p256.pub');
+    await expect(page.locator('#download-private-label')).toHaveText('id_ecdsa_p256');
   });
 });
 
@@ -1337,7 +1337,7 @@ test.describe('Key Sharing (Pending Flow)', () => {
     
     // Wait for download
     const download = await downloadPromise;
-    expect(download.suggestedFilename()).toBe('id_ecdsa');
+    expect(download.suggestedFilename()).toBe('id_ecdsa_p256');
     
     // Wait for completion
     await expect(page.locator('h1')).toContainText('Key Generated Successfully!', { timeout: 15000 });
@@ -1967,7 +1967,7 @@ test.describe('WebCrypto Key Generation', () => {
     expect(result.privatePem).toBe(true);
     expect(result.publicPemEnd).toBe(true);
     expect(result.privatePemEnd).toBe(true);
-    expect(result.sensitiveCount).toBeGreaterThanOrEqual(1); // private DER buffer
+    expect(result.sensitiveCount).toBe(0); // PEM strings are immutable; no raw buffers to track
   });
 
   test('generateKeyPair should produce valid RSA-2048 OpenSSH output', async ({ page }) => {
@@ -2011,7 +2011,7 @@ test.describe('WebCrypto Key Generation', () => {
     expect(result.privatePem).toBe(true);
     expect(result.publicPemEnd).toBe(true);
     expect(result.privatePemEnd).toBe(true);
-    expect(result.sensitiveCount).toBeGreaterThanOrEqual(1); // private DER buffer
+    expect(result.sensitiveCount).toBe(0); // PEM strings are immutable; no raw buffers to track
   });
 
   test('generateKeyPair should reject unknown algorithm', async ({ page }) => {

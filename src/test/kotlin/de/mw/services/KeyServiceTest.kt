@@ -118,7 +118,7 @@ class KeyServiceTest {
     fun `sanitizePublicKey rejects key that is too long`() {
         val fakeDao = FakeKeyShareDao()
         val service = KeyService(fakeDao)
-        val tooLongKey = "ssh-ed25519 " + "A".repeat(3000)
+        val tooLongKey = "ssh-ed25519 " + "A".repeat(5000)
 
         val result = service.sanitizePublicKey(tooLongKey)
 
@@ -204,6 +204,16 @@ class KeyServiceTest {
         val service = KeyService(fakeDao)
 
         val result = service.sanitizePublicKey(validRsaKey, expectedAlgorithm = "rsa-4096")
+
+        assertNotNull(result)
+    }
+
+    @Test
+    fun `sanitizePublicKey accepts matching algorithm - rsa-8192`() {
+        val fakeDao = FakeKeyShareDao()
+        val service = KeyService(fakeDao)
+
+        val result = service.sanitizePublicKey(validRsaKey, expectedAlgorithm = "rsa-8192")
 
         assertNotNull(result)
     }
@@ -350,7 +360,7 @@ class KeyServiceTest {
 
     @Test
     fun `createPendingShare accepts all valid algorithms`() {
-        val validAlgorithms = listOf("ed25519", "ecdsa-p256", "ecdsa-p384", "rsa-2048", "rsa-4096")
+        val validAlgorithms = listOf("ed25519", "ecdsa-p256", "ecdsa-p384", "rsa-2048", "rsa-4096", "rsa-8192")
 
         validAlgorithms.forEach { algorithm ->
             val fakeDao = FakeKeyShareDao()
@@ -667,7 +677,7 @@ class KeyServiceTest {
     fun `sanitizePublicKey PEM rejects key that is too long`() {
         val fakeDao = FakeKeyShareDao()
         val service = KeyService(fakeDao)
-        val longBody = "A".repeat(4000) // Way over the 3000 char limit
+        val longBody = "A".repeat(6000) // Way over the 5000 char limit
         val tooLong =
             "-----BEGIN PUBLIC KEY-----\n" +
                 longBody + "\n" +

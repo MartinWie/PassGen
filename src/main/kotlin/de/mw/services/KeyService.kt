@@ -12,7 +12,7 @@ class KeyService(
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     // Valid algorithms that we support
-    private val validAlgorithms = setOf("ed25519", "ecdsa-p256", "ecdsa-p384", "rsa-2048", "rsa-4096")
+    private val validAlgorithms = setOf("ed25519", "ecdsa-p256", "ecdsa-p384", "rsa-2048", "rsa-4096", "rsa-8192")
 
     // Valid purposes
     private val validPurposes = setOf("ssh", "git")
@@ -28,6 +28,7 @@ class KeyService(
             "ecdsa-p384" to "ecdsa-sha2-nistp384",
             "rsa-2048" to "ssh-rsa",
             "rsa-4096" to "ssh-rsa",
+            "rsa-8192" to "ssh-rsa",
         )
 
     /**
@@ -43,12 +44,11 @@ class KeyService(
         publicKey: String,
         expectedAlgorithm: String? = null,
         format: String = "openssh",
-    ): String? {
-        return when (format) {
+    ): String? =
+        when (format) {
             "pem" -> sanitizePemPublicKey(publicKey, expectedAlgorithm)
             else -> sanitizeOpenSshPublicKey(publicKey, expectedAlgorithm)
         }
-    }
 
     /**
      * Validates and sanitizes an OpenSSH-format public key.
@@ -61,8 +61,8 @@ class KeyService(
     ): String? {
         val trimmed = publicKey.trim()
 
-        // Public keys should be reasonably sized (max ~2KB for RSA-4096)
-        if (trimmed.length > 3000) {
+        // Public keys should be reasonably sized (max ~4KB for RSA-8192)
+        if (trimmed.length > 5000) {
             logger.warn("Public key rejected: too long (${trimmed.length} chars)")
             return null
         }
@@ -139,8 +139,8 @@ class KeyService(
     ): String? {
         val trimmed = publicKey.trim()
 
-        // PEM keys should be reasonably sized (max ~2KB for RSA-4096 SPKI)
-        if (trimmed.length > 3000) {
+        // PEM keys should be reasonably sized (max ~4KB for RSA-8192 SPKI)
+        if (trimmed.length > 5000) {
             logger.warn("PEM public key rejected: too long (${trimmed.length} chars)")
             return null
         }

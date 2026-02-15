@@ -351,6 +351,10 @@ fun getLandingPage(pageTitle: String): String =
                                                 value = "rsa-4096"
                                                 +"RSA 4096"
                                             }
+                                            option {
+                                                value = "rsa-8192"
+                                                +"RSA 8192 (slow)"
+                                            }
                                         }
                                     }
 

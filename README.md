@@ -139,8 +139,6 @@ After changing DB migrations, just run `./gradlew build` and commit the updated 
 
 ## Todo's
 
-- Test pem and all key combinations
-- Verify Ed25519 WebCrypto key creation (DER extraction, OpenSSH format round-trip)
 - Also persist the key settings in local storage(restore on page load)
 - make sure test coverage is good also for e2e testing
 - Checkout how to move password generation to client here are some ideas:

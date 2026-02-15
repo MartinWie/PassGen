@@ -622,11 +622,20 @@ document.addEventListener("htmx:configRequest", function (evt) {
 });
 
 function algoBaseName(algo, purpose) {
-    // Naming aligned to common OpenSSH conventions
+    // Naming aligned to common OpenSSH conventions, with size/curve suffix
+    const suffix = purpose === 'git' ? '_signing' : '';
     if (purpose === 'git' || purpose === 'ssh') {
-        if (algo === 'ed25519') return purpose === 'git' ? 'id_ed25519_signing' : 'id_ed25519';
-        if (algo.startsWith('ecdsa')) return purpose === 'git' ? 'id_ecdsa_signing' : 'id_ecdsa';
-        if (algo.startsWith('rsa-')) return purpose === 'git' ? 'id_rsa_signing' : 'id_rsa';
+        if (algo === 'ed25519') return 'id_ed25519' + suffix;
+        if (algo.startsWith('ecdsa-')) {
+            // ecdsa-p256 → id_ecdsa_p256, ecdsa-p384 → id_ecdsa_p384
+            const curve = algo.split('-')[1]; // p256, p384, p521
+            return 'id_ecdsa_' + curve + suffix;
+        }
+        if (algo.startsWith('rsa-')) {
+            // rsa-2048 → id_rsa_2048, rsa-4096 → id_rsa_4096, rsa-8192 → id_rsa_8192
+            const size = algo.split('-')[1];
+            return 'id_rsa_' + size + suffix;
+        }
     }
     return 'key';
 }
@@ -815,21 +824,19 @@ function extractEd25519SeedFromPkcs8(pkcs8) {
 /**
  * Export a WebCrypto CryptoKey as PEM (PKCS#8 for private, SPKI for public).
  * Works for ECDSA and RSA keys that were generated with extractable=true.
- * Returns both the PEM string and the raw DER buffer so callers can track it
- * for best-effort zeroing of sensitive key material.
  * @param {CryptoKey} cryptoKey
  * @param {'private'|'public'} keyType
- * @returns {Promise<{pem: string, derBuffer: Uint8Array}>}
+ * @returns {Promise<string>}
  */
 async function exportCryptoKeyAsPem(cryptoKey, keyType) {
     if (keyType === 'private') {
         const der = await crypto.subtle.exportKey('pkcs8', cryptoKey);
-        // derBuffer is a view on the same ArrayBuffer as passed to toPem;
-        // this is safe because toPem builds the PEM string synchronously.
-        return { pem: toPem('PRIVATE KEY', der), derBuffer: new Uint8Array(der) };
+        const pem = toPem('PRIVATE KEY', der);
+        new Uint8Array(der).fill(0); // best-effort zeroing of private DER
+        return pem;
     } else {
         const der = await crypto.subtle.exportKey('spki', cryptoKey);
-        return { pem: toPem('PUBLIC KEY', der), derBuffer: new Uint8Array(der) };
+        return toPem('PUBLIC KEY', der);
     }
 }
 
@@ -1162,11 +1169,8 @@ async function generateKeyPair(algo, format, comment) {
                 namedCurve: webCurve
             }, true, ['sign', 'verify']);
             if (format === 'pem') {
-                const pubExport = await exportCryptoKeyAsPem(keyPair.publicKey, 'public');
-                const privExport = await exportCryptoKeyAsPem(keyPair.privateKey, 'private');
-                sensitiveBuffers.push(privExport.derBuffer);
-                publicKeyText = pubExport.pem;
-                privateKeyText = privExport.pem;
+                publicKeyText = await exportCryptoKeyAsPem(keyPair.publicKey, 'public');
+                privateKeyText = await exportCryptoKeyAsPem(keyPair.privateKey, 'private');
             } else {
                 const jwkPub = await crypto.subtle.exportKey('jwk', keyPair.publicKey);
                 const jwkPriv = await crypto.subtle.exportKey('jwk', keyPair.privateKey);
@@ -1184,6 +1188,8 @@ async function generateKeyPair(algo, format, comment) {
             }
         } else if (algo.startsWith('rsa-')) {
             const size = parseInt(algo.split('-')[1], 10);
+            const validSizes = [2048, 4096, 8192];
+            if (!validSizes.includes(size)) throw new Error('Unsupported RSA key size');
             const keyPair = await crypto.subtle.generateKey({
                 name: 'RSASSA-PKCS1-v1_5',
                 modulusLength: size,
@@ -1191,11 +1197,8 @@ async function generateKeyPair(algo, format, comment) {
                 hash: 'SHA-256'
             }, true, ['sign', 'verify']);
             if (format === 'pem') {
-                const pubExport = await exportCryptoKeyAsPem(keyPair.publicKey, 'public');
-                const privExport = await exportCryptoKeyAsPem(keyPair.privateKey, 'private');
-                sensitiveBuffers.push(privExport.derBuffer);
-                publicKeyText = pubExport.pem;
-                privateKeyText = privExport.pem;
+                publicKeyText = await exportCryptoKeyAsPem(keyPair.publicKey, 'public');
+                privateKeyText = await exportCryptoKeyAsPem(keyPair.privateKey, 'private');
             } else {
                 const jwkPub = await crypto.subtle.exportKey('jwk', keyPair.publicKey);
                 const jwkPriv = await crypto.subtle.exportKey('jwk', keyPair.privateKey);
@@ -1214,7 +1217,7 @@ async function generateKeyPair(algo, format, comment) {
             throw new Error('Unknown algorithm');
         }
 
-        return { publicKeyText, privateKeyText, sensitiveBuffers };
+        return {publicKeyText, privateKeyText, sensitiveBuffers};
     } catch (e) {
         // Zero any sensitive buffers accumulated before the failure
         secureZeroAll(...sensitiveBuffers);
@@ -1306,7 +1309,8 @@ async function generateKey() {
                 'ecdsa-p384': 'ECDSA P-384',
                 'ecdsa-p521': 'ECDSA P-521',
                 'rsa-2048': 'RSA 2048',
-                'rsa-4096': 'RSA 4096'
+                'rsa-4096': 'RSA 4096',
+                'rsa-8192': 'RSA 8192'
             };
             keyTypeDisplay.textContent = algoNames[algo] || algo;
         }

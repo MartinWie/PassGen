@@ -337,6 +337,7 @@ private fun formatAlgorithm(algorithm: String): String =
         "ecdsa-p384" -> "ECDSA P-384"
         "rsa-2048" -> "RSA 2048"
         "rsa-4096" -> "RSA 4096"
+        "rsa-8192" -> "RSA 8192"
         else -> algorithm
     }
 
