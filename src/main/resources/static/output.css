@@ -2927,6 +2927,11 @@
       padding: calc(var(--spacing) * 6);
     }
   }
+  .\[\&\:\:before\]\:whitespace-pre-line {
+    &::before {
+      white-space: pre-line;
+    }
+  }
 }
 @layer base {
   *, ::after, ::before, ::backdrop, ::file-selector-button {

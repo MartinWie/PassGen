@@ -317,10 +317,12 @@ fun getLandingPage(pageTitle: String): String =
                                             div("flex items-center gap-1") {
                                                 span("label-text text-sm") { +"Algorithm" }
                                                 // Info tooltip about libraries used
-                                                div("tooltip tooltip-bottom") {
+                                                div("tooltip tooltip-bottom inline-flex items-center") {
                                                     attributes["data-tip"] =
                                                         "All algorithms use Web Crypto API"
-                                                    span("w-4 h-4 opacity-60 hover:opacity-100 cursor-help inline-flex") {
+                                                    span(
+                                                        "w-4 h-4 flex-shrink-0 opacity-60 hover:opacity-100 cursor-help inline-flex items-center",
+                                                    ) {
                                                         embedSvg("/static/svg/alert-info.svg")
                                                     }
                                                 }
@@ -367,10 +369,12 @@ fun getLandingPage(pageTitle: String): String =
                                         label("label py-1") {
                                             div("flex items-center gap-1") {
                                                 span("label-text text-sm") { +"Format" }
-                                                div("tooltip tooltip-bottom") {
+                                                div("tooltip tooltip-bottom inline-flex items-center [&::before]:whitespace-pre-line") {
                                                     attributes["data-tip"] =
-                                                        "OpenSSH: standard SSH format | PEM: PKCS#8/SPKI for broader tool compatibility"
-                                                    span("w-4 h-4 opacity-60 hover:opacity-100 cursor-help inline-flex") {
+                                                        "OpenSSH: standard SSH format\nPEM: PKCS#8/SPKI for broader tool compatibility"
+                                                    span(
+                                                        "w-4 h-4 flex-shrink-0 opacity-60 hover:opacity-100 cursor-help inline-flex items-center",
+                                                    ) {
                                                         embedSvg("/static/svg/alert-info.svg")
                                                     }
                                                 }

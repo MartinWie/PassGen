@@ -139,6 +139,8 @@ After changing DB migrations, just run `./gradlew build` and commit the updated 
 
 ## Todo's
 
+- Full security flow analysis: review generation and sharing flows end-to-end for potential issues or overcomplications
+- Test all key types
 - Also persist the key settings in local storage(restore on page load)
 - make sure test coverage is good also for e2e testing
 - Checkout how to move password generation to client here are some ideas:

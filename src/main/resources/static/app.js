@@ -1,4 +1,6 @@
-function clearPrivateKey() {
+function clearPrivateKey(showToast) {
+    // Default to showing toast unless explicitly suppressed (e.g. navigation events)
+    if (showToast === undefined) showToast = true;
     const privOut = document.getElementById('private-key-output');
     const tabPublic = document.getElementById('tab-public');
     const tabPrivate = document.getElementById('tab-private');
@@ -26,17 +28,19 @@ function clearPrivateKey() {
         panelPrivate.classList.add('hidden');
     }
 
-    // Show a toast notification
-    const tooltip = document.getElementById('copy-tooltip');
-    if (tooltip) {
-        const span = tooltip.querySelector('span');
-        const originalText = span ? span.textContent : '';
-        if (span) span.textContent = 'Private key cleared';
-        removeHideThenFadeout(tooltip);
-        // Restore original text after toast fades
-        setTimeout(() => {
-            if (span) span.textContent = originalText;
-        }, 2500);
+    // Show a toast notification (skip during navigation/unload — user won't see it)
+    if (showToast) {
+        const tooltip = document.getElementById('copy-tooltip');
+        if (tooltip) {
+            const span = tooltip.querySelector('span');
+            const originalText = span ? span.textContent : '';
+            if (span) span.textContent = 'Private key cleared';
+            removeHideThenFadeout(tooltip);
+            // Restore original text after toast fades
+            setTimeout(() => {
+                if (span) span.textContent = originalText;
+            }, 2500);
+        }
     }
 }
 
@@ -607,6 +611,13 @@ document.addEventListener("DOMContentLoaded", (event) => {
 
     // Initialize theme from localStorage or system preference
     initTheme();
+
+    // Auto-clear private key when user navigates away or closes the tab.
+    // Reduces the time window the key string sits in the textarea DOM.
+    // Use both beforeunload (desktop) and pagehide (more reliable on mobile/iOS Safari).
+    // Suppress toast — user won't see it during navigation.
+    window.addEventListener('beforeunload', () => clearPrivateKey(false));
+    window.addEventListener('pagehide', () => clearPrivateKey(false));
 });
 
 // Default loading animation for elements that trigger a request (add skeleton class from daisyUI)
@@ -702,6 +713,36 @@ function concatArrays(arrs) {
     }, new Uint8Array());
 }
 
+/**
+ * Concatenate Uint8Arrays in a single allocation (no intermediate copies).
+ * Pushes the result into the tracker array for later zeroing.
+ * @param {Uint8Array[]} parts - Arrays to concatenate
+ * @param {Uint8Array[]} tracker - Array to push the result into (for zeroing)
+ * @returns {Uint8Array}
+ */
+function concatAndTrack(parts, tracker) {
+    const total = parts.reduce((s, b) => s + b.length, 0);
+    const result = new Uint8Array(total);
+    let offset = 0;
+    for (const p of parts) {
+        result.set(p, offset);
+        offset += p.length;
+    }
+    tracker.push(result);
+    return result;
+}
+
+/** Push a UTF-8-encoded length-prefixed string into `arr`. */
+function pushText(arr, text) {
+    const bytes = new TextEncoder().encode(text);
+    arr.push(u32(bytes.length), bytes);
+}
+
+/** Push a length-prefixed byte string into `arr`. */
+function pushBytes(arr, data) {
+    arr.push(u32(data.length), data);
+}
+
 function u32(n) {
     const b = new Uint8Array(4);
     new DataView(b.buffer).setUint32(0, n);
@@ -729,6 +770,31 @@ function mpint(bytes) { // minimal implementation
         bytes = withZero;
     }
     return concatArrays([u32(bytes.length), bytes]);
+}
+
+/**
+ * Encode a big integer as SSH mpint (length-prefixed, two's complement),
+ * tracking all intermediate Uint8Array copies for later zeroing.
+ * Returns [lengthBuf, valueBuf] for use in OpenSSH wire format assembly.
+ * NOTE: Does NOT track the input `bytes` — caller is responsible for zeroing it.
+ * @param {Uint8Array} bytes - Raw big-endian integer bytes
+ * @param {Uint8Array[]} tracker - Array to push intermediates into for zeroing
+ * @returns {Uint8Array[]} [length4bytes, valueBytes]
+ */
+function mpintTracked(bytes, tracker) {
+    let i = 0;
+    while (i < bytes.length - 1 && bytes[i] === 0) i++;
+    const stripped = bytes.slice(i);
+    let result = stripped;
+    if (result.length && (result[0] & 0x80)) {
+        const withZero = new Uint8Array(result.length + 1);
+        withZero[0] = 0;
+        withZero.set(result, 1);
+        tracker.push(stripped);
+        result = withZero;
+    }
+    tracker.push(result);
+    return [u32(result.length), result];
 }
 
 function buildSshBufferEd25519(pubKey) {
@@ -840,84 +906,55 @@ async function exportCryptoKeyAsPem(cryptoKey, keyType) {
     }
 }
 
+/**
+ * Build an OpenSSH-format Ed25519 private key.
+ * @param {Uint8Array} secretKey64 - 64-byte secret key (seed || pub), caller owns and zeros
+ * @param {Uint8Array} publicKey32 - 32-byte public key
+ * @param {string} comment - Key comment
+ * @returns {string} OpenSSH private key PEM
+ */
 function buildOpenSSHPrivateKeyEd25519(secretKey64, publicKey32, comment) {
-    // secretKey64 is 64-byte Uint8Array (seed+pub), publicKey32 is 32-byte Uint8Array
     // Format: https://github.com/openssh/openssh-portable/blob/master/PROTOCOL.key
-    function writeString(arr, str) {
-        const enc = new TextEncoder();
-        const bytes = enc.encode(str);
-        const len = new Uint8Array(4);
-        new DataView(len.buffer).setUint32(0, bytes.length);
-        arr.push(len, bytes);
-    }
-
-    function writeBytes(arr, bytes) {
-        const len = new Uint8Array(4);
-        new DataView(len.buffer).setUint32(0, bytes.length);
-        arr.push(len, bytes);
-    }
+    // Collect all intermediate sensitive Uint8Arrays for zeroing before return
+    const sensitiveInternal = [];
 
     const algorithm = 'ssh-ed25519';
     const magic = new TextEncoder().encode('openssh-key-v1\0');
     const parts = [magic];
-    // ciphername, kdfname, kdfoptions (none)
-    writeString(parts, 'none');
-    writeString(parts, 'none');
-    writeString(parts, '');
-    // number of keys (uint32 =1)
-    const one = new Uint8Array(4);
-    new DataView(one.buffer).setUint32(0, 1);
-    parts.push(one);
-    // public key (wire format)
-    // wire: string alg, string pubkey
+    pushText(parts, 'none');  // ciphername (unencrypted)
+    pushText(parts, 'none');  // kdfname (no key derivation)
+    pushText(parts, '');      // kdfoptions (empty)
+    parts.push(u32(1));       // number of keys
+    // public key (wire format) — public data, no need to track
     const pubWireParts = [];
-    writeString(pubWireParts, algorithm);
-    writeBytes(pubWireParts, publicKey32);
-    const pubWire = pubWireParts.reduce((acc, cur) => {
-        const tmp = new Uint8Array(acc.length + cur.length);
-        tmp.set(acc, 0);
-        tmp.set(cur, acc.length);
-        return tmp;
-    }, new Uint8Array());
-    // length-prefixed public wire
-    const pubLen = new Uint8Array(4);
-    new DataView(pubLen.buffer).setUint32(0, pubWire.length);
-    parts.push(pubLen, pubWire);
+    pushText(pubWireParts, algorithm);
+    pushBytes(pubWireParts, publicKey32);
+    const pubWire = concatArrays(pubWireParts);
+    parts.push(u32(pubWire.length), pubWire);
 
     // Private block
     const privParts = [];
     const check = crypto.getRandomValues(new Uint8Array(4));
     privParts.push(check, check.slice()); // two identical check ints
-    // key wire inside private: string alg, string pubkey, string priv(64 bytes), string comment
-    writeString(privParts, algorithm);
-    writeBytes(privParts, publicKey32);
-    writeBytes(privParts, secretKey64);
-    writeString(privParts, comment || '');
+    pushText(privParts, algorithm);
+    pushBytes(privParts, publicKey32);
+    pushBytes(privParts, secretKey64);
+    pushText(privParts, comment || '');
     // padding 1..n
     let totalLen = privParts.reduce((s, b) => s + b.length, 0);
-    const padNeeded = (8 - (totalLen % 8)) % 8; // minimal to 8-byte block alignment
+    const padNeeded = (8 - (totalLen % 8)) % 8;
     for (let i = 1; i <= padNeeded; i++) {
         privParts.push(new Uint8Array([i]));
     }
-    const privBlock = privParts.reduce((acc, cur) => {
-        const tmp = new Uint8Array(acc.length + cur.length);
-        tmp.set(acc, 0);
-        tmp.set(cur, acc.length);
-        return tmp;
-    }, new Uint8Array());
-    // length of private block
-    const privLen = new Uint8Array(4);
-    new DataView(privLen.buffer).setUint32(0, privBlock.length);
-    parts.push(privLen, privBlock);
+    const privBlock = concatAndTrack(privParts, sensitiveInternal);
+    parts.push(u32(privBlock.length), privBlock);
 
-    const full = parts.reduce((acc, cur) => {
-        const tmp = new Uint8Array(acc.length + cur.length);
-        tmp.set(acc, 0);
-        tmp.set(cur, acc.length);
-        return tmp;
-    }, new Uint8Array());
-    const b64 = bytesToBase64(full).replace(/(.{70})/g, '$1\n');
-    return `-----BEGIN OPENSSH PRIVATE KEY-----\n${b64}\n-----END OPENSSH PRIVATE KEY-----`;
+    const full = concatAndTrack(parts, sensitiveInternal);
+    const b64 = bytesToBase64(full).match(/.{1,70}/g).join('\n');
+    const pem = `-----BEGIN OPENSSH PRIVATE KEY-----\n${b64}\n-----END OPENSSH PRIVATE KEY-----`;
+    // Zero all intermediate buffers that held private key material
+    secureZeroAll(...sensitiveInternal);
+    return pem;
 }
 
 function buildOpenSshEcdsaPublic(jwk, curveName, comment) {
@@ -949,181 +986,116 @@ function buildOpenSshRsaPublic(jwk, comment) {
     return algo + ' ' + bytesToBase64(blob) + (comment ? ' ' + comment : '');
 }
 
-function buildOpenSSHPrivateKeyECDSA(curveName, publicPoint, privateScalar, comment) {
-    // curveName like nistp256 etc.
+/**
+ * Build an OpenSSH-format ECDSA private key.
+ * @param {string} curveName - OpenSSH curve name (nistp256, nistp384, nistp521)
+ * @param {Uint8Array} publicPoint - Uncompressed EC point (0x04 || x || y)
+ * @param {Uint8Array} privateScalarBytes - Raw private scalar bytes (caller owns and zeros)
+ * @param {string} comment - Key comment
+ * @returns {string} OpenSSH private key PEM
+ */
+function buildOpenSSHPrivateKeyECDSA(curveName, publicPoint, privateScalarBytes, comment) {
     const algo = 'ecdsa-sha2-' + curveName;
+    // Collect all intermediate sensitive Uint8Arrays for zeroing before return
+    const sensitiveInternal = [];
 
-    function writeString(arr, data) {
-        const len = new Uint8Array(4);
-        new DataView(len.buffer).setUint32(0, data.length);
-        arr.push(len, data);
-    }
+    // Public key blob: string alg, string curve, string point (public — no need to track)
+    const pointBlobParts = [];
+    pushText(pointBlobParts, algo);
+    pushText(pointBlobParts, curveName);
+    pushBytes(pointBlobParts, publicPoint);
+    const pointBlob = concatArrays(pointBlobParts);
 
-    function writeText(arr, text) {
-        writeString(arr, new TextEncoder().encode(text));
-    }
-
-    function mpintRaw(bytes) { // mpint without outer length (we will add length as bignum2 per spec)
-        // strip leading zeros
-        let i = 0;
-        while (i < bytes.length - 1 && bytes[i] === 0) i++;
-        bytes = bytes.slice(i);
-        if (bytes.length && (bytes[0] & 0x80)) {
-            const withZero = new Uint8Array(bytes.length + 1);
-            withZero[0] = 0;
-            withZero.set(bytes, 1);
-            bytes = withZero;
-        }
-        const len = new Uint8Array(4);
-        new DataView(len.buffer).setUint32(0, bytes.length);
-        return [len, bytes];
-    }
-
-    // Public key blob: string alg, string curve, string point
-    const pointBlob = (() => {
-        const parts = [];
-        writeText(parts, algo);
-        writeText(parts, curveName);
-        writeString(parts, publicPoint);
-        return parts.reduce((a, c) => {
-            const t = new Uint8Array(a.length + c.length);
-            t.set(a);
-            t.set(c, a.length);
-            return t;
-        }, new Uint8Array());
-    })();
-
-    // Private block assembly similar to Ed25519 method
+    // Outer structure
     const blocks = [];
     const magic = new TextEncoder().encode('openssh-key-v1\0');
     blocks.push(magic);
-    writeText(blocks, 'none');
-    writeText(blocks, 'none');
-    writeText(blocks, '');
-    const one = new Uint8Array(4);
-    new DataView(one.buffer).setUint32(0, 1);
-    blocks.push(one);
-    // public key (length + blob)
-    const pubLen = new Uint8Array(4);
-    new DataView(pubLen.buffer).setUint32(0, pointBlob.length);
-    blocks.push(pubLen, pointBlob);
+    pushText(blocks, 'none');  // ciphername
+    pushText(blocks, 'none');  // kdfname
+    pushText(blocks, '');      // kdfoptions
+    blocks.push(u32(1));       // number of keys
+    blocks.push(u32(pointBlob.length), pointBlob);
     // private section
     const check = crypto.getRandomValues(new Uint8Array(4));
     const privParts = [];
     privParts.push(check, check.slice());
-    writeText(privParts, algo);
-    writeText(privParts, curveName);
-    writeString(privParts, publicPoint); // public point
-    // private scalar mpint
-    const scalar = base64UrlToBytes(privateScalar); // JWK d is base64url
-    const mp = mpintRaw(scalar);
+    pushText(privParts, algo);
+    pushText(privParts, curveName);
+    pushBytes(privParts, publicPoint);
+    // private scalar mpint — caller passes decoded bytes, no base64 decode here
+    const mp = mpintTracked(privateScalarBytes, sensitiveInternal);
     privParts.push(...mp);
-    writeText(privParts, comment || '');
+    pushText(privParts, comment || '');
     // padding to 8
     let privLenCount = privParts.reduce((s, b) => s + b.length, 0);
     const pad = (8 - (privLenCount % 8)) % 8;
     for (let i = 1; i <= pad; i++) privParts.push(new Uint8Array([i]));
-    const privBlock = privParts.reduce((a, c) => {
-        const t = new Uint8Array(a.length + c.length);
-        t.set(a);
-        t.set(c, a.length);
-        return t;
-    }, new Uint8Array());
-    const privLenBuf = new Uint8Array(4);
-    new DataView(privLenBuf.buffer).setUint32(0, privBlock.length);
-    blocks.push(privLenBuf, privBlock);
-    const full = blocks.reduce((a, c) => {
-        const t = new Uint8Array(a.length + c.length);
-        t.set(a);
-        t.set(c, a.length);
-        return t;
-    }, new Uint8Array());
-    const b64 = bytesToBase64(full).replace(/(.{70})/g, '$1\n');
-    return `-----BEGIN OPENSSH PRIVATE KEY-----\n${b64}\n-----END OPENSSH PRIVATE KEY-----`;
+    const privBlock = concatAndTrack(privParts, sensitiveInternal);
+    blocks.push(u32(privBlock.length), privBlock);
+    const full = concatAndTrack(blocks, sensitiveInternal);
+    const b64 = bytesToBase64(full).match(/.{1,70}/g).join('\n');
+    const pem = `-----BEGIN OPENSSH PRIVATE KEY-----\n${b64}\n-----END OPENSSH PRIVATE KEY-----`;
+    // Zero all intermediate buffers that held private key material
+    secureZeroAll(...sensitiveInternal);
+    return pem;
 }
 
-function buildOpenSSHPrivateKeyRSA(jwk, comment) {
+/**
+ * Build an OpenSSH-format RSA private key.
+ * All parameters are pre-decoded Uint8Arrays — caller owns and zeros them.
+ * @param {Uint8Array} n - RSA modulus
+ * @param {Uint8Array} e - Public exponent
+ * @param {Uint8Array} d - Private exponent
+ * @param {Uint8Array} p - First prime factor
+ * @param {Uint8Array} q - Second prime factor
+ * @param {Uint8Array} iqmp - CRT coefficient (q^-1 mod p)
+ * @param {string} comment - Key comment
+ * @returns {string} OpenSSH private key PEM
+ */
+function buildOpenSSHPrivateKeyRSA(n, e, d, p, q, iqmp, comment) {
     const algo = 'ssh-rsa';
-    const n = base64UrlToBytes(jwk.n), e = base64UrlToBytes(jwk.e), d = base64UrlToBytes(jwk.d),
-        p = base64UrlToBytes(jwk.p), q = base64UrlToBytes(jwk.q), iqmp = base64UrlToBytes(jwk.qi);
+    // Collect all intermediate sensitive Uint8Arrays for zeroing before return
+    const sensitiveInternal = [];
 
-    function writeString(arr, data) {
-        const len = new Uint8Array(4);
-        new DataView(len.buffer).setUint32(0, data.length);
-        arr.push(len, data);
-    }
-
-    function writeText(arr, text) {
-        writeString(arr, new TextEncoder().encode(text));
-    }
-
-    function mpintFull(bytes) {
-        let i = 0;
-        while (i < bytes.length - 1 && bytes[i] === 0) i++;
-        bytes = bytes.slice(i);
-        if (bytes.length && (bytes[0] & 0x80)) {
-            const withZero = new Uint8Array(bytes.length + 1);
-            withZero[0] = 0;
-            withZero.set(bytes, 1);
-            bytes = withZero;
-        }
-        const len = new Uint8Array(4);
-        new DataView(len.buffer).setUint32(0, bytes.length);
-        return [len, bytes];
-    }
-
+    // Public blob: e and n are public, no need to track in sensitiveInternal
     const pubBlobParts = [];
-    writeText(pubBlobParts, algo);
-    pubBlobParts.push(...mpintFull(e));
-    pubBlobParts.push(...mpintFull(n));
-    const pubBlob = pubBlobParts.reduce((a, c) => {
-        const t = new Uint8Array(a.length + c.length);
-        t.set(a);
-        t.set(c, a.length);
-        return t;
-    }, new Uint8Array());
+    pushText(pubBlobParts, algo);
+    pubBlobParts.push(...mpintTracked(e, []));  // public — discard tracker
+    pubBlobParts.push(...mpintTracked(n, []));  // public — discard tracker
+    const pubBlob = concatArrays(pubBlobParts);
+
     const sections = [];
     const magic = new TextEncoder().encode('openssh-key-v1\0');
     sections.push(magic);
-    writeText(sections, 'none');
-    writeText(sections, 'none');
-    writeText(sections, '');
-    const one = new Uint8Array(4);
-    new DataView(one.buffer).setUint32(0, 1);
-    sections.push(one);
-    const pubLen = new Uint8Array(4);
-    new DataView(pubLen.buffer).setUint32(0, pubBlob.length);
-    sections.push(pubLen, pubBlob);
+    pushText(sections, 'none');  // ciphername
+    pushText(sections, 'none');  // kdfname
+    pushText(sections, '');      // kdfoptions
+    sections.push(u32(1));       // number of keys
+    sections.push(u32(pubBlob.length), pubBlob);
     const check = crypto.getRandomValues(new Uint8Array(4));
     const priv = [];
     priv.push(check, check.slice());
-    writeText(priv, algo);
-    // key components: n,e,d,iqmp,p,q
-    [n, e, d, iqmp, p, q].forEach(b => {
-        const pair = mpintFull(b);
-        priv.push(...pair);
+    pushText(priv, algo);
+    // key components: n,e,d,iqmp,p,q — all passed as Uint8Array
+    // n and e are public but appear in the private block per OpenSSH format
+    priv.push(...mpintTracked(n, []));  // public — discard tracker
+    priv.push(...mpintTracked(e, []));  // public — discard tracker
+    // Only sensitive fields tracked for zeroing
+    [d, iqmp, p, q].forEach(b => {
+        priv.push(...mpintTracked(b, sensitiveInternal));
     });
-    writeText(priv, comment || '');
+    pushText(priv, comment || '');
     let privLenCount = priv.reduce((s, b) => s + b.length, 0);
     const pad = (8 - (privLenCount % 8)) % 8;
     for (let i = 1; i <= pad; i++) priv.push(new Uint8Array([i]));
-    const privBlock = priv.reduce((a, c) => {
-        const t = new Uint8Array(a.length + c.length);
-        t.set(a);
-        t.set(c, a.length);
-        return t;
-    }, new Uint8Array());
-    const privLenBuf = new Uint8Array(4);
-    new DataView(privLenBuf.buffer).setUint32(0, privBlock.length);
-    sections.push(privLenBuf, privBlock);
-    const full = sections.reduce((a, c) => {
-        const t = new Uint8Array(a.length + c.length);
-        t.set(a);
-        t.set(c, a.length);
-        return t;
-    }, new Uint8Array());
-    const b64 = bytesToBase64(full).replace(/(.{70})/g, '$1\n');
-    return `-----BEGIN OPENSSH PRIVATE KEY-----\n${b64}\n-----END OPENSSH PRIVATE KEY-----`;
+    const privBlock = concatAndTrack(priv, sensitiveInternal);
+    sections.push(u32(privBlock.length), privBlock);
+    const full = concatAndTrack(sections, sensitiveInternal);
+    const b64 = bytesToBase64(full).match(/.{1,70}/g).join('\n');
+    const pem = `-----BEGIN OPENSSH PRIVATE KEY-----\n${b64}\n-----END OPENSSH PRIVATE KEY-----`;
+    // Zero all intermediate buffers that held private key material
+    secureZeroAll(...sensitiveInternal);
+    return pem;
 }
 
 // ─── Shared key generation core ─────────────────────────────────────
@@ -1183,7 +1155,8 @@ async function generateKeyPair(algo, format, comment) {
                 const dBytes = base64UrlToBytes(jwkPriv.d);
                 sensitiveBuffers.push(dBytes);
                 publicKeyText = buildOpenSshEcdsaPublic(jwkPub, named, comment);
-                privateKeyText = buildOpenSSHPrivateKeyECDSA(named, point, jwkPriv.d, comment);
+                // Pass decoded Uint8Array — single decode, caller owns the buffer
+                privateKeyText = buildOpenSSHPrivateKeyECDSA(named, point, dBytes, comment);
                 jwkPriv.d = '';
             }
         } else if (algo.startsWith('rsa-')) {
@@ -1202,14 +1175,19 @@ async function generateKeyPair(algo, format, comment) {
             } else {
                 const jwkPub = await crypto.subtle.exportKey('jwk', keyPair.publicKey);
                 const jwkPriv = await crypto.subtle.exportKey('jwk', keyPair.privateKey);
-                ['d', 'p', 'q', 'dp', 'dq', 'qi'].forEach(field => {
-                    if (jwkPriv[field]) {
-                        sensitiveBuffers.push(base64UrlToBytes(jwkPriv[field]));
-                    }
-                });
+                // Decode all fields once — caller owns buffers
+                const nBytes = base64UrlToBytes(jwkPriv.n);
+                const eBytes = base64UrlToBytes(jwkPriv.e);
+                const dBytes = base64UrlToBytes(jwkPriv.d);
+                const pBytes = base64UrlToBytes(jwkPriv.p);
+                const qBytes = base64UrlToBytes(jwkPriv.q);
+                const iqmpBytes = base64UrlToBytes(jwkPriv.qi);
+                // Only track genuinely sensitive fields (n and e are public)
+                sensitiveBuffers.push(dBytes, pBytes, qBytes, iqmpBytes);
                 publicKeyText = buildOpenSshRsaPublic(jwkPub, comment);
-                privateKeyText = buildOpenSSHPrivateKeyRSA(jwkPriv, comment);
-                ['d', 'p', 'q', 'dp', 'dq', 'qi'].forEach(field => {
+                // Pass decoded Uint8Arrays — single decode, single owner
+                privateKeyText = buildOpenSSHPrivateKeyRSA(nBytes, eBytes, dBytes, pBytes, qBytes, iqmpBytes, comment);
+                ['d', 'p', 'q', 'dp', 'dq', 'qi', 'n', 'e'].forEach(field => {
                     jwkPriv[field] = '';
                 });
             }
@@ -1370,46 +1348,34 @@ function updateInstructions(purpose, algo, identifier) {
     const baseName = algoBaseName(algo, purpose);
     if (purpose === 'ssh') {
         const p1 = document.createElement('p');
-        p1.textContent = '1. Append Public Key to ~/.ssh/authorized_keys.';
+        p1.textContent = `1. Save Private Key as ~/.ssh/${baseName}; chmod 600 ~/.ssh/${baseName}.`;
         el.appendChild(p1);
         const p2 = document.createElement('p');
-        p2.textContent = `2. Save Private Key as ${baseName}; chmod 600 ${baseName}.`;
+        p2.textContent = '2. Append Public Key to ~/.ssh/authorized_keys on the server.';
         el.appendChild(p2);
         const p3 = document.createElement('p');
-        p3.textContent = `3. Use: ssh -i ${baseName} user@host.`;
+        p3.textContent = `3. Use: ssh -i ~/.ssh/${baseName} user@host`;
         el.appendChild(p3);
     } else {
-        if (algo === 'ed25519') {
-            const intro = document.createElement('p');
-            intro.textContent = 'Git SSH signing (Ed25519 OpenSSH key):';
-            el.appendChild(intro);
-            const ol = document.createElement('ol');
-            ol.className = 'list-decimal list-inside';
-            const steps = [
-                `Save private key: ${baseName}`,
-                `Public key: ${baseName}.pub → add as Public key.`,
-                'git config --global gpg.format ssh',
-                `git config --global user.signingkey ${baseName}`,
-                '(Optional) git config --global commit.gpgsign true',
-                'Sign commits: git commit -S -m "msg"'
-            ];
-            steps.forEach(t => {
-                const li = document.createElement('li');
-                li.textContent = t;
-                ol.appendChild(li);
-            });
-            el.appendChild(ol);
-        } else {
-            const p = document.createElement('p');
-            const code = document.createElement('code');
-            code.textContent = algo;
-            p.append(
-                'For Git SSH signing, Ed25519 is strongly recommended. Current algorithm ',
-                code,
-                ' is usable for SSH auth but not ideal for signing portability.'
-            );
-            el.appendChild(p);
-        }
+        const intro = document.createElement('p');
+        intro.textContent = 'Git SSH signing setup:';
+        el.appendChild(intro);
+        const ol = document.createElement('ol');
+        ol.className = 'list-decimal list-inside';
+        const steps = [
+            `Save private key as ~/.ssh/${baseName}; chmod 600 ~/.ssh/${baseName}`,
+            `Add ${baseName}.pub as a Signing Key on GitHub/GitLab`,
+            'git config --global gpg.format ssh',
+            `git config --global user.signingkey ~/.ssh/${baseName}`,
+            '(Optional) git config --global commit.gpgsign true',
+            'Sign commits: git commit -S -m "msg"'
+        ];
+        steps.forEach(t => {
+            const li = document.createElement('li');
+            li.textContent = t;
+            ol.appendChild(li);
+        });
+        el.appendChild(ol);
     }
 }
 
