@@ -140,7 +140,7 @@ class PasswordService(
         id: UUID,
         salt: UUID,
     ): String? {
-        val share = passwordDao.getShare(id) ?: return null
+        val share = passwordDao.decrementAndGetShare(id) ?: return null
 
         val decryptedValue =
             CryptoHelper.decrypt(
@@ -149,12 +149,10 @@ class PasswordService(
                 salt.toString(),
             )
 
-        val remainingViews = share.remainingViews.minus(BigDecimal.ONE)
-
-        if (remainingViews <= BigDecimal.ZERO) {
+        // The share's remainingViews is the post-decrement value.
+        // If no views remain, clean up the row.
+        if (share.remainingViews <= BigDecimal.ZERO) {
             passwordDao.deleteShare(id)
-        } else {
-            passwordDao.setRemainingViewsShare(id, remainingViews)
         }
 
         return decryptedValue

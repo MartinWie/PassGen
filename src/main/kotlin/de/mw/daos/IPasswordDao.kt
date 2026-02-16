@@ -2,7 +2,6 @@ package de.mw.daos
 
 import de.mw.models.SharePassword
 import de.mw.models.WordLanguage
-import java.math.BigDecimal
 import java.util.*
 
 /**
@@ -22,12 +21,13 @@ interface IPasswordDao {
 
     fun createShare(sharePassword: SharePassword): String
 
-    fun getShare(id: UUID): SharePassword?
-
-    fun setRemainingViewsShare(
-        id: UUID,
-        amount: BigDecimal,
-    )
+    /**
+     * Atomically decrements remaining_views by 1 and returns the share (with the NEW, post-decrement
+     * remaining_views) only if remaining_views > 0. Returns null if the share doesn't exist or has
+     * no views left. This prevents a race condition where concurrent requests could both view a
+     * one-time share.
+     */
+    fun decrementAndGetShare(id: UUID): SharePassword?
 
     fun deleteShare(id: UUID)
 }

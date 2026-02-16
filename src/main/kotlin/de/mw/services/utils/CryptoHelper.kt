@@ -14,12 +14,22 @@ class CryptoHelper {
     companion object {
         private const val IV_LENGTH = 12
         private const val KEY_LENGTH = 256
+
+        // 10,000 iterations is sufficient here because the input "password" is a UUID (122 bits of
+        // entropy from SecureRandom), not a user-chosen password. OWASP's recommendation of 600,000+
+        // iterations targets low-entropy human passwords; with a random UUID, even 1 iteration would
+        // make brute-force infeasible (2^122 / attempts-per-sec = astronomical). The real security of
+        // password shares depends on the share URL (containing both UUIDs) staying secret.
         private const val ITERATIONS = 10000
         private const val TRANSFORMATION = "AES/GCM/NoPadding"
 
         private val logger = LoggerFactory.getLogger(this::class.java)
 
-        fun encrypt(plainText: String, token: String, salt: String): String {
+        fun encrypt(
+            plainText: String,
+            token: String,
+            salt: String,
+        ): String {
             val secretKey = deriveKey(token, salt)
 
             // Get a random initialisation vector
@@ -40,7 +50,11 @@ class CryptoHelper {
             return Base64.getUrlEncoder().withoutPadding().encodeToString(combined)
         }
 
-        fun decrypt(encryptedText: String, token: String, salt: String): String? {
+        fun decrypt(
+            encryptedText: String,
+            token: String,
+            salt: String,
+        ): String? {
             val combined = Base64.getUrlDecoder().decode(encryptedText)
 
             val iv = ByteArray(IV_LENGTH)
@@ -65,11 +79,22 @@ class CryptoHelper {
         }
 
         // Derive a strong encryption key from the UUID token and salt
-        private fun deriveKey(token: String, salt: String): SecretKey {
+        private fun deriveKey(
+            token: String,
+            salt: String,
+        ): SecretKey {
             val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
-            val spec = PBEKeySpec(token.toCharArray(), salt.toByteArray(), ITERATIONS, KEY_LENGTH)
+            val tokenChars = token.toCharArray()
+            val saltBytes = salt.toByteArray()
+            val spec = PBEKeySpec(tokenChars, saltBytes, ITERATIONS, KEY_LENGTH)
             val secretKey = factory.generateSecret(spec)
-            return SecretKeySpec(secretKey.encoded, "AES")
+            spec.clearPassword() // Zero the internal char array
+            tokenChars.fill('\u0000') // Zero our copy of the token
+            saltBytes.fill(0) // Zero our copy of the salt
+            val encoded = secretKey.encoded
+            val result = SecretKeySpec(encoded, "AES")
+            encoded.fill(0) // Zero the intermediate byte array
+            return result
         }
     }
 }

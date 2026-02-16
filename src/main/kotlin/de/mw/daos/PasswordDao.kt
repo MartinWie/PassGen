@@ -59,23 +59,22 @@ class PasswordDao(
         return sharePassword.id.toString()
     }
 
-    override fun getShare(id: UUID): SharePassword? =
-        dsl
-            .selectFrom(Tables.SHARE_PASSWORD)
-            .where(Tables.SHARE_PASSWORD.ID.eq(id))
-            .fetchOne()
-            ?.toModel()
-
-    override fun setRemainingViewsShare(
-        id: UUID,
-        amount: BigDecimal,
-    ) {
+    /**
+     * Atomically decrements remaining_views and returns the share with the NEW (post-decrement)
+     * remaining_views, but only if remaining_views > 0. Uses UPDATE ... RETURNING to guarantee
+     * that concurrent requests cannot both consume the last view of a one-time share.
+     */
+    override fun decrementAndGetShare(id: UUID): SharePassword? =
         dsl
             .update(Tables.SHARE_PASSWORD)
-            .set(Tables.SHARE_PASSWORD.REMAINING_VIEWS, amount)
-            .where(Tables.SHARE_PASSWORD.ID.eq(id))
-            .execute()
-    }
+            .set(
+                Tables.SHARE_PASSWORD.REMAINING_VIEWS,
+                Tables.SHARE_PASSWORD.REMAINING_VIEWS.minus(BigDecimal.ONE),
+            ).where(Tables.SHARE_PASSWORD.ID.eq(id))
+            .and(Tables.SHARE_PASSWORD.REMAINING_VIEWS.gt(BigDecimal.ZERO))
+            .returning()
+            .fetchOne()
+            ?.toModel()
 
     override fun deleteShare(id: UUID) {
         dsl

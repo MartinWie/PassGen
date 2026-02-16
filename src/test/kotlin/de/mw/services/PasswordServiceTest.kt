@@ -27,7 +27,6 @@ class FakePasswordDao : IPasswordDao {
     var createdShares: MutableList<SharePassword> = mutableListOf()
     var shares: MutableMap<UUID, SharePassword> = mutableMapOf()
     var deletedShareIds: MutableList<UUID> = mutableListOf()
-    var updatedRemainingViews: MutableList<Pair<UUID, BigDecimal>> = mutableListOf()
 
     override fun get(
         amount: Int,
@@ -50,16 +49,16 @@ class FakePasswordDao : IPasswordDao {
         return sharePassword.id.toString()
     }
 
-    override fun getShare(id: UUID): SharePassword? = shares[id]
-
-    override fun setRemainingViewsShare(
-        id: UUID,
-        amount: BigDecimal,
-    ) {
-        updatedRemainingViews.add(id to amount)
-        shares[id]?.let { existing ->
-            shares[id] = existing.copy(remainingViews = amount)
-        }
+    // Note: This fake is not thread-safe. The real DAO uses atomic SQL operations.
+    // For concurrency testing, use integration tests against a real database.
+    override fun decrementAndGetShare(id: UUID): SharePassword? {
+        val existing = shares[id] ?: return null
+        if (existing.remainingViews <= BigDecimal.ZERO) return null
+        val newViews = existing.remainingViews.minus(BigDecimal.ONE)
+        val updated = existing.copy(remainingViews = newViews)
+        shares[id] = updated
+        // Return the post-decrement state (matching real DAO behavior)
+        return updated
     }
 
     override fun deleteShare(id: UUID) {
@@ -278,20 +277,22 @@ class PasswordServiceTest {
 
         service.getShare(id, salt)
 
-        assertEquals(1, fakeDao.updatedRemainingViews.size)
-        assertEquals(id to BigDecimal(2), fakeDao.updatedRemainingViews[0])
+        // After one view, remaining_views should be decremented from 3 to 2
+        assertEquals(BigDecimal(2), fakeDao.shares[id]?.remainingViews)
     }
 
     @Test
     fun `getShare with wrong salt returns null due to decryption failure`() {
         val fakeDao = FakePasswordDao()
         val service = PasswordService(fakeDao)
-        val (id, _) = service.createShare("secret")!!
+        val (id, _) = service.createShare("secret", remainingViews = BigDecimal(3))!!
         val wrongSalt = UUID.randomUUID()
 
         val result = service.getShare(id, wrongSalt)
 
         assertNull(result)
+        // A wrong-salt attempt still consumes a view (security-positive: prevents brute-forcing salt)
+        assertEquals(BigDecimal(2), fakeDao.shares[id]?.remainingViews)
     }
 
     @Test
@@ -311,5 +312,37 @@ class PasswordServiceTest {
         // Third view: 1 -> 0 (deleted)
         service.getShare(id, salt)
         assertTrue(fakeDao.deletedShareIds.contains(id))
+    }
+
+    @Test
+    fun `getShare returns null when remainingViews is already zero`() {
+        val fakeDao = FakePasswordDao()
+        val service = PasswordService(fakeDao)
+        val (id, salt) = service.createShare("secret", remainingViews = BigDecimal.ONE)!!
+
+        // First view consumes the last view and deletes the share
+        val firstResult = service.getShare(id, salt)
+        assertNotNull(firstResult)
+
+        // Second view should return null (share has been deleted)
+        val secondResult = service.getShare(id, salt)
+        assertNull(secondResult)
+    }
+
+    @Test
+    fun `getShare with wrong salt exhausts views and deletes share`() {
+        val fakeDao = FakePasswordDao()
+        val service = PasswordService(fakeDao)
+        val (id, salt) = service.createShare("secret", remainingViews = BigDecimal.ONE)!!
+        val wrongSalt = UUID.randomUUID()
+
+        // Wrong salt consumes the only view and deletes the share
+        val wrongResult = service.getShare(id, wrongSalt)
+        assertNull(wrongResult)
+        assertTrue(fakeDao.deletedShareIds.contains(id), "Share should be deleted after wrong-salt exhausted last view")
+
+        // Correct salt now fails because share is gone
+        val correctResult = service.getShare(id, salt)
+        assertNull(correctResult)
     }
 }
