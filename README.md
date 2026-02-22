@@ -142,10 +142,12 @@ After changing DB migrations, just run `./gradlew build` and commit the updated 
 - Test all key types
 - Also persist the key settings in local storage(restore on page load)
 - make sure test coverage is good also for e2e testing
-- Checkout how to move password generation to client here are some ideas:
+- Checkout how to move password generation to client(without this the password generation is not really secure for the
+  users) here are some ideas:
     - list of hidden tags and take form there?
     - Alpine.js
     - Hyperscript?
+    - Pure JS?
     - Add local storage loading request to text area response(normal return + random wordlist to local storage)
         - hx-Ext json-enc
         - and from buttons and settings use local storage
