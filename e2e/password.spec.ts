@@ -361,6 +361,154 @@ test.describe('Settings Persistence @slow', () => {
     // Special chars from SPECIAL_CHARS constant
     expect(password).toMatch(/[!"#$%&'()*+,\-./:;<=>?@\[\\\]^_`{|}~]/);
   });
+
+  test('should persist key algorithm across page reloads', async ({ page }) => {
+    await page.goto('/');
+
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+
+    // Open key settings and change algorithm
+    await page.getByTitle('Key Settings').click();
+    await page.locator('#key-algorithm').selectOption('ecdsa-p384');
+
+    // Wait for localStorage to be set
+    await expect(async () => {
+      const storedValue = await page.evaluate(() => localStorage.getItem('key-algorithm'));
+      expect(storedValue).toBe('ecdsa-p384');
+    }).toPass({ timeout: 5000 });
+
+    await page.reload();
+    if (await page.locator('#keygen-section').evaluate((el) => el.classList.contains('hidden'))) {
+      await page.locator('#custom-toggle').click();
+    }
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    await page.getByTitle('Key Settings').click();
+    await expect(page.locator('#key-algorithm')).toHaveValue('ecdsa-p384');
+  });
+
+  test('should persist key purpose and format across page reloads', async ({ page }) => {
+    await page.goto('/');
+
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+
+    // Open key settings and change purpose + format
+    await page.getByTitle('Key Settings').click();
+    await page.locator('#key-purpose').selectOption('git');
+    await page.locator('#key-format').selectOption('pem');
+
+    await expect(async () => {
+      const purpose = await page.evaluate(() => localStorage.getItem('key-purpose'));
+      const format = await page.evaluate(() => localStorage.getItem('key-format'));
+      expect(purpose).toBe('git');
+      expect(format).toBe('pem');
+    }).toPass({ timeout: 5000 });
+
+    await page.reload();
+    if (await page.locator('#keygen-section').evaluate((el) => el.classList.contains('hidden'))) {
+      await page.locator('#custom-toggle').click();
+    }
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    await page.getByTitle('Key Settings').click();
+    await expect(page.locator('#key-purpose')).toHaveValue('git');
+    await expect(page.locator('#key-format')).toHaveValue('pem');
+  });
+
+  test('should persist key comment toggle and value across page reloads', async ({ page }) => {
+    await page.goto('/');
+
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+
+    // Open key settings and enable comment input
+    await page.getByTitle('Key Settings').click();
+    const toggle = page.locator('#show-identifier-toggle');
+    await toggle.check();
+    const input = page.locator('#key-identifier');
+    await input.fill('user@example.com');
+
+    await expect(async () => {
+      const show = await page.evaluate(() => localStorage.getItem('show-key-identifier'));
+      const identifier = await page.evaluate(() => localStorage.getItem('key-identifier'));
+      expect(show).toBe('true');
+      expect(identifier).toBe('user@example.com');
+    }).toPass({ timeout: 5000 });
+
+    await page.reload();
+    if (await page.locator('#keygen-section').evaluate((el) => el.classList.contains('hidden'))) {
+      await page.locator('#custom-toggle').click();
+    }
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    await page.getByTitle('Key Settings').click();
+    await expect(page.locator('#show-identifier-toggle')).toBeChecked();
+    await expect(page.locator('#identifier-input-wrapper')).not.toHaveClass(/hidden/);
+    await expect(page.locator('#key-identifier')).toHaveValue('user@example.com');
+  });
+
+  test('should clear persisted key comment when toggle is unchecked', async ({ page }) => {
+    await page.goto('/');
+
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+
+    await page.getByTitle('Key Settings').click();
+    const toggle = page.locator('#show-identifier-toggle');
+    const input = page.locator('#key-identifier');
+
+    await toggle.check();
+    await input.fill('user@example.com');
+    await toggle.uncheck();
+
+    await expect(async () => {
+      const show = await page.evaluate(() => localStorage.getItem('show-key-identifier'));
+      const identifier = await page.evaluate(() => localStorage.getItem('key-identifier'));
+      expect(show).toBe('false');
+      expect(identifier === null || identifier === '').toBeTruthy();
+    }).toPass({ timeout: 5000 });
+
+    await page.reload();
+    if (await page.locator('#keygen-section').evaluate((el) => el.classList.contains('hidden'))) {
+      await page.locator('#custom-toggle').click();
+    }
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    await page.getByTitle('Key Settings').click();
+    await expect(page.locator('#show-identifier-toggle')).not.toBeChecked();
+    await expect(page.locator('#identifier-input-wrapper')).toHaveClass(/hidden/);
+    await expect(page.locator('#key-identifier')).toHaveValue('');
+  });
+
+  test('should fallback to defaults when persisted key settings are invalid', async ({ page }) => {
+    await page.goto('/');
+
+    await page.evaluate(() => {
+      localStorage.setItem('key-algorithm', 'invalid-algo');
+      localStorage.setItem('key-format', 'invalid-format');
+      localStorage.setItem('key-purpose', 'invalid-purpose');
+    });
+
+    await page.reload();
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+    await page.getByTitle('Key Settings').click();
+
+    await expect(page.locator('#key-algorithm')).toHaveValue('ed25519');
+    await expect(page.locator('#key-format')).toHaveValue('openssh');
+    await expect(page.locator('#key-purpose')).toHaveValue('ssh');
+
+    await expect(async () => {
+      const algo = await page.evaluate(() => localStorage.getItem('key-algorithm'));
+      const format = await page.evaluate(() => localStorage.getItem('key-format'));
+      const purpose = await page.evaluate(() => localStorage.getItem('key-purpose'));
+      expect(algo).toBe('ed25519');
+      expect(format).toBe('openssh');
+      expect(purpose).toBe('ssh');
+    }).toPass({ timeout: 5000 });
+  });
 });
 
 test.describe('Theme Toggle', () => {

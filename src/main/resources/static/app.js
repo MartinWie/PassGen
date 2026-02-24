@@ -217,6 +217,18 @@ function removeHideThenFadeout(element) {
  * No-op on pages that don't have the relevant form elements.
  */
 function initLandingPageSettings() {
+    function restoreSelectFromStorage(selectEl, storageKey, fallbackValue) {
+        if (!selectEl) return;
+        const savedValue = localStorage.getItem(storageKey);
+        const hasOption = (value) => Array.from(selectEl.options).some((opt) => opt.value === value);
+        if (savedValue && hasOption(savedValue)) {
+            selectEl.value = savedValue;
+        } else {
+            selectEl.value = fallbackValue;
+            localStorage.setItem(storageKey, fallbackValue);
+        }
+    }
+
     // Language select
     const languageSelect = document.getElementById('language-select');
     if (languageSelect) {
@@ -258,6 +270,41 @@ function initLandingPageSettings() {
         includeSpecial.checked = localStorage.getItem('include-special') === 'true';
     }
 
+    // Key settings: algorithm, format, purpose, optional comment toggle + value
+    const keyAlgorithm = document.getElementById('key-algorithm');
+    restoreSelectFromStorage(keyAlgorithm, 'key-algorithm', 'ed25519');
+
+    const keyFormat = document.getElementById('key-format');
+    restoreSelectFromStorage(keyFormat, 'key-format', 'openssh');
+
+    const keyPurpose = document.getElementById('key-purpose');
+    restoreSelectFromStorage(keyPurpose, 'key-purpose', 'ssh');
+
+    const showIdentifierToggle = document.getElementById('show-identifier-toggle');
+    const identifierWrapper = document.getElementById('identifier-input-wrapper');
+    const identifierInput = document.getElementById('key-identifier');
+    if (showIdentifierToggle && identifierWrapper) {
+        const showIdentifier = localStorage.getItem('show-key-identifier') === 'true';
+        showIdentifierToggle.checked = showIdentifier;
+        showIdentifierToggle.setAttribute('aria-expanded', showIdentifier ? 'true' : 'false');
+        if (showIdentifier) {
+            identifierWrapper.classList.remove('hidden');
+        } else {
+            identifierWrapper.classList.add('hidden');
+        }
+    }
+    if (identifierInput) {
+        const savedIdentifier = localStorage.getItem('key-identifier') || '';
+        if (showIdentifierToggle && showIdentifierToggle.checked && savedIdentifier && isValidIdentifier(savedIdentifier)) {
+            identifierInput.value = savedIdentifier;
+        } else if (!savedIdentifier) {
+            localStorage.setItem('key-identifier', '');
+        } else {
+            identifierInput.value = '';
+            localStorage.removeItem('key-identifier');
+        }
+    }
+
     // Trigger initial password generation after all settings are restored.
     // We use htmx.ajax() directly instead of dispatching a custom event
     // because the declarative hx-trigger on the textarea may not yet be
@@ -296,6 +343,10 @@ function initSettingHandlers() {
         'word-separator': 'word-separator',
         'include-numbers': 'include-numbers',
         'include-special': 'include-special',
+        'key-algorithm': 'key-algorithm',
+        'key-format': 'key-format',
+        'key-purpose': 'key-purpose',
+        'show-identifier-toggle': 'show-key-identifier',
     };
 
     // Helper: persist a setting element's value to localStorage
@@ -320,9 +371,13 @@ function initSettingHandlers() {
     // Delegated change handler for .setting-regen elements
     // (language select, checkboxes, separator, slider on change)
     document.addEventListener('change', (ev) => {
+        // Persist any known setting mapped in storageKeyMap
+        if (storageKeyMap[ev.target.id]) {
+            persistSetting(ev.target);
+        }
+
         const el = ev.target.closest && ev.target.closest('.setting-regen');
         if (el) {
-            persistSetting(el);
             triggerRegen();
         }
 
@@ -340,6 +395,7 @@ function initSettingHandlers() {
                 ev.target.setAttribute('aria-expanded', 'false');
                 const idInput = document.getElementById('key-identifier');
                 if (idInput) idInput.value = '';
+                localStorage.removeItem('key-identifier');
             }
         }
     });
@@ -372,6 +428,17 @@ function initSettingHandlers() {
         if (ev.target.id === 'word-separator') {
             localStorage.setItem('word-separator', ev.target.value);
             triggerRegen();
+        }
+
+        // Key identifier input: persist (only if valid printable ASCII)
+        if (ev.target.id === 'key-identifier') {
+            const raw = ev.target.value;
+            const trimmed = raw.trim();
+            if (!trimmed) {
+                localStorage.setItem('key-identifier', '');
+            } else if (isValidIdentifier(trimmed)) {
+                localStorage.setItem('key-identifier', trimmed);
+            }
         }
 
         // Auto-resize textarea (password input)
@@ -1226,8 +1293,11 @@ async function generateKey() {
     const algo = document.getElementById('key-algorithm').value;
     const purpose = document.getElementById('key-purpose').value;
     const format = document.getElementById('key-format')?.value || 'openssh';
-    const rawIdentifier = document.getElementById('key-identifier').value.trim();
-    const identifier = isValidIdentifier(rawIdentifier) ? rawIdentifier : '';
+    const identifierToggle = document.getElementById('show-identifier-toggle');
+    const identifierInput = document.getElementById('key-identifier');
+    const rawIdentifier = (identifierInput?.value || '').trim();
+    const identifierEnabled = identifierToggle?.checked === true;
+    const identifier = identifierEnabled && isValidIdentifier(rawIdentifier) ? rawIdentifier : '';
     const pubOut = document.getElementById('public-key-output');
     const privOut = document.getElementById('private-key-output');
     const errAlert = document.getElementById('key-error-alert');
@@ -1505,6 +1575,7 @@ function attachKeyGenHandlers() {
 
     purposeSel.addEventListener('change', () => {
         if (idInput) idInput.value = '';
+        localStorage.setItem('key-identifier', '');
         resetKeyOutput();
         updateDownloadLabels(purposeSel.value, algoSel.value);
         updateCommentPlaceholder(purposeSel.value);
