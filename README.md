@@ -139,7 +139,6 @@ After changing DB migrations, just run `./gradlew build` and commit the updated 
 
 ## Todo's
 
-- Test all key types
 - Checkout how to move password generation to client(without this the password generation is not really secure for the
   users) here are some ideas:
     - list of hidden tags and take form there?

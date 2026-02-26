@@ -2303,7 +2303,7 @@ function deriveOpenSshPublicFromPrivate(privateKeyText: string): string {
 }
 
 function assertPemCanSignAndVerify(
-  algorithm: 'ed25519' | 'ecdsa-p256' | 'ecdsa-p384' | 'ecdsa-p521' | 'rsa-2048' | 'rsa-4096',
+  algorithm: 'ed25519' | 'ecdsa-p256' | 'ecdsa-p384' | 'ecdsa-p521' | 'rsa-2048' | 'rsa-4096' | 'rsa-8192',
   privatePem: string,
   publicPem: string,
 ) {
@@ -2323,12 +2323,22 @@ function assertPemCanSignAndVerify(
 }
 
 test.describe('Generated Key Validity @slow', () => {
-  test.skip(process.platform === 'win32', 'OpenSSH validation relies on ssh-keygen binary');
+  test.describe.configure({ mode: 'serial' });
 
   test('generated OpenSSH private keys derive matching public keys', async ({ page }) => {
+    test.skip(process.platform === 'win32', 'OpenSSH validation relies on ssh-keygen binary');
+    test.setTimeout(120000);
     await page.goto('/');
 
-    const algorithms: Array<'ed25519' | 'ecdsa-p256' | 'rsa-2048'> = ['ed25519', 'ecdsa-p256', 'rsa-2048'];
+    const algorithms: Array<'ed25519' | 'ecdsa-p256' | 'ecdsa-p384' | 'ecdsa-p521' | 'rsa-2048' | 'rsa-4096' | 'rsa-8192'> = [
+      'ed25519',
+      'ecdsa-p256',
+      'ecdsa-p384',
+      'ecdsa-p521',
+      'rsa-2048',
+      'rsa-4096',
+      'rsa-8192',
+    ];
 
     for (const algo of algorithms) {
       const generated = await page.evaluate(async (selectedAlgo) => {
@@ -2345,13 +2355,17 @@ test.describe('Generated Key Validity @slow', () => {
   });
 
   test('generated PEM key pairs can sign and verify', async ({ page }) => {
+    test.setTimeout(120000);
     await page.goto('/');
 
-    const algorithms: Array<'ed25519' | 'ecdsa-p256' | 'ecdsa-p384' | 'rsa-2048'> = [
+    const algorithms: Array<'ed25519' | 'ecdsa-p256' | 'ecdsa-p384' | 'ecdsa-p521' | 'rsa-2048' | 'rsa-4096' | 'rsa-8192'> = [
       'ed25519',
       'ecdsa-p256',
       'ecdsa-p384',
+      'ecdsa-p521',
       'rsa-2048',
+      'rsa-4096',
+      'rsa-8192',
     ];
 
     for (const algo of algorithms) {
