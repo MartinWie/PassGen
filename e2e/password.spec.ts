@@ -1,4 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { createPrivateKey, createPublicKey, sign, verify } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+import { chmodSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 
 // Extend Window interface for custom properties set by the app
 declare global {
@@ -2276,5 +2281,89 @@ test.describe('WebCrypto Key Generation', () => {
     expect(result.zeroCallCount).toBeGreaterThanOrEqual(1);
     // Should have zeroed at least 3 buffers: seed, secretKey64, pkcs8Der
     expect(result.zeroedBufferCount).toBeGreaterThanOrEqual(3);
+  });
+});
+
+function getOpenSshKeyHead(publicKeyText: string): string {
+  const [algorithm, keyBase64] = publicKeyText.trim().split(/\s+/, 3);
+  return `${algorithm} ${keyBase64}`;
+}
+
+function deriveOpenSshPublicFromPrivate(privateKeyText: string): string {
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'passgen-keycheck-'));
+  const privateKeyPath = path.join(tempDir, 'id_key');
+  try {
+    writeFileSync(privateKeyPath, privateKeyText, { encoding: 'utf8' });
+    chmodSync(privateKeyPath, 0o600);
+    const derived = execFileSync('ssh-keygen', ['-y', '-f', privateKeyPath], { encoding: 'utf8' });
+    return derived.trim();
+  } finally {
+    rmSync(tempDir, { recursive: true, force: true });
+  }
+}
+
+function assertPemCanSignAndVerify(
+  algorithm: 'ed25519' | 'ecdsa-p256' | 'ecdsa-p384' | 'ecdsa-p521' | 'rsa-2048' | 'rsa-4096',
+  privatePem: string,
+  publicPem: string,
+) {
+  const data = Buffer.from('passgen key validity test vector');
+  const privateKey = createPrivateKey(privatePem);
+  const publicKey = createPublicKey(publicPem);
+
+  if (algorithm === 'ed25519') {
+    const signature = sign(null, data, privateKey);
+    expect(verify(null, data, publicKey, signature)).toBeTruthy();
+    return;
+  }
+
+  const digest = algorithm === 'ecdsa-p384' ? 'sha384' : algorithm === 'ecdsa-p521' ? 'sha512' : 'sha256';
+  const signature = sign(digest, data, privateKey);
+  expect(verify(digest, data, publicKey, signature)).toBeTruthy();
+}
+
+test.describe('Generated Key Validity @slow', () => {
+  test.skip(process.platform === 'win32', 'OpenSSH validation relies on ssh-keygen binary');
+
+  test('generated OpenSSH private keys derive matching public keys', async ({ page }) => {
+    await page.goto('/');
+
+    const algorithms: Array<'ed25519' | 'ecdsa-p256' | 'rsa-2048'> = ['ed25519', 'ecdsa-p256', 'rsa-2048'];
+
+    for (const algo of algorithms) {
+      const generated = await page.evaluate(async (selectedAlgo) => {
+        // @ts-ignore — app.js global
+        const result = await generateKeyPair(selectedAlgo, 'openssh', 'test@example.com');
+        // @ts-ignore — app.js global
+        secureZeroAll(...result.sensitiveBuffers);
+        return { publicKey: result.publicKeyText, privateKey: result.privateKeyText };
+      }, algo);
+
+      const derivedPublic = deriveOpenSshPublicFromPrivate(generated.privateKey);
+      expect(getOpenSshKeyHead(derivedPublic)).toBe(getOpenSshKeyHead(generated.publicKey));
+    }
+  });
+
+  test('generated PEM key pairs can sign and verify', async ({ page }) => {
+    await page.goto('/');
+
+    const algorithms: Array<'ed25519' | 'ecdsa-p256' | 'ecdsa-p384' | 'rsa-2048'> = [
+      'ed25519',
+      'ecdsa-p256',
+      'ecdsa-p384',
+      'rsa-2048',
+    ];
+
+    for (const algo of algorithms) {
+      const generated = await page.evaluate(async (selectedAlgo) => {
+        // @ts-ignore — app.js global
+        const result = await generateKeyPair(selectedAlgo, 'pem', 'test@example.com');
+        // @ts-ignore — app.js global
+        secureZeroAll(...result.sensitiveBuffers);
+        return { publicKey: result.publicKeyText, privateKey: result.privateKeyText };
+      }, algo);
+
+      assertPemCanSignAndVerify(algo, generated.privateKey, generated.publicKey);
+    }
   });
 });

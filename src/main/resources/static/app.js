@@ -1018,7 +1018,7 @@ function buildOpenSSHPrivateKeyEd25519(secretKey64, publicKey32, comment) {
 
     const full = concatAndTrack(parts, sensitiveInternal);
     const b64 = bytesToBase64(full).match(/.{1,70}/g).join('\n');
-    const pem = `-----BEGIN OPENSSH PRIVATE KEY-----\n${b64}\n-----END OPENSSH PRIVATE KEY-----`;
+    const pem = `-----BEGIN OPENSSH PRIVATE KEY-----\n${b64}\n-----END OPENSSH PRIVATE KEY-----\n`;
     // Zero all intermediate buffers that held private key material
     secureZeroAll(...sensitiveInternal);
     return pem;
@@ -1101,7 +1101,7 @@ function buildOpenSSHPrivateKeyECDSA(curveName, publicPoint, privateScalarBytes,
     blocks.push(u32(privBlock.length), privBlock);
     const full = concatAndTrack(blocks, sensitiveInternal);
     const b64 = bytesToBase64(full).match(/.{1,70}/g).join('\n');
-    const pem = `-----BEGIN OPENSSH PRIVATE KEY-----\n${b64}\n-----END OPENSSH PRIVATE KEY-----`;
+    const pem = `-----BEGIN OPENSSH PRIVATE KEY-----\n${b64}\n-----END OPENSSH PRIVATE KEY-----\n`;
     // Zero all intermediate buffers that held private key material
     secureZeroAll(...sensitiveInternal);
     return pem;
@@ -1159,7 +1159,7 @@ function buildOpenSSHPrivateKeyRSA(n, e, d, p, q, iqmp, comment) {
     sections.push(u32(privBlock.length), privBlock);
     const full = concatAndTrack(sections, sensitiveInternal);
     const b64 = bytesToBase64(full).match(/.{1,70}/g).join('\n');
-    const pem = `-----BEGIN OPENSSH PRIVATE KEY-----\n${b64}\n-----END OPENSSH PRIVATE KEY-----`;
+    const pem = `-----BEGIN OPENSSH PRIVATE KEY-----\n${b64}\n-----END OPENSSH PRIVATE KEY-----\n`;
     // Zero all intermediate buffers that held private key material
     secureZeroAll(...sensitiveInternal);
     return pem;
