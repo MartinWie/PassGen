@@ -912,6 +912,31 @@ test.describe('Key Comment Toggle', () => {
     await expect(input).toHaveValue('');
   });
 
+  test('should not include key comment in generated public key when toggle is unchecked', async ({ page }) => {
+    await page.goto('/');
+
+    // Switch to key generation mode
+    await page.locator('#custom-toggle').click();
+    await expect(page.locator('#keygen-section')).not.toHaveClass(/hidden/);
+
+    // Open key settings and enter a comment, then disable it
+    const settingsDropdown = page.getByTitle('Key Settings');
+    await settingsDropdown.click();
+    const toggle = page.locator('#show-identifier-toggle');
+    const input = page.locator('#key-identifier');
+    await toggle.check();
+    await input.fill('comment@example.com');
+    await toggle.uncheck();
+
+    // Generate key and verify no comment suffix is present
+    await page.locator('#generate-key-btn').click();
+    await expect(page.locator('#key-output-section')).not.toHaveClass(/hidden/, { timeout: 10000 });
+    const publicKey = await page.locator('#public-key-output').inputValue();
+    expect(publicKey).toContain('ssh-ed25519');
+    expect(publicKey).not.toContain('comment@example.com');
+    expect(publicKey.trim().split(/\s+/).length).toBe(2);
+  });
+
   test('should have proper ARIA attributes for accessibility', async ({ page }) => {
     await page.goto('/');
     
@@ -1855,6 +1880,33 @@ test.describe('Password Share & Reveal', () => {
 
     // Modal should be closed
     await expect(viewModal).not.toHaveAttribute('open', '', { timeout: 5000 });
+  });
+
+  test('should show not found page on second share view attempt', async ({ page }) => {
+    await page.goto('/');
+
+    // Create share
+    const passwordInput = page.locator('#password-input');
+    await expect(passwordInput).not.toHaveValue('');
+    await page.locator('#shareButton').click();
+    await expect(page.locator('#share_modal')).toHaveAttribute('open', '', { timeout: 10000 });
+    const sharePath = await page.locator('#password-share-link').getAttribute('href');
+    expect(sharePath).toBeTruthy();
+
+    // First successful retrieval
+    await page.goto(sharePath!);
+    await page.locator('button:has-text("View Password")').click();
+    await expect(page.locator('h1')).toContainText('Password Retrieved', { timeout: 10000 });
+
+    // Revisit should fail when trying to view again
+    await page.goto(sharePath!);
+    await page.locator('button:has-text("View Password")').click();
+    await expect(page.locator('#password-container')).toContainText('Share not found, already viewed or expired', { timeout: 10000 });
+  });
+
+  test('should show validation message for malformed share URL', async ({ page }) => {
+    await page.goto('/share/not-a-uuid/not-a-uuid');
+    await expect(page.locator('body')).toContainText('Invalid share ID format', { timeout: 10000 });
   });
 });
 

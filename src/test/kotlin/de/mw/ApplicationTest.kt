@@ -14,6 +14,10 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class ApplicationTest {
+    private val validEd25519PublicKey =
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGpKWz8i5RuBaVG2EyIwU7IiG7NzJ3y9FdJqtFLDZ8lZ user@example.com"
+    private val validRsaPublicKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC7z+5X rsa@example.com"
+
     private fun ApplicationTestBuilder.setupApp() {
         application {
             configureRateLimiting()
@@ -308,5 +312,249 @@ class ApplicationTest {
                     assertTrue(body.startsWith("<div"), "Body should start with a div tag")
                     assertTrue(body.endsWith("</div>"), "Body should end with closing div tag")
                 }
+        }
+
+    @Test
+    fun `health endpoint returns OK`() =
+        testApplication {
+            setupApp()
+            client.get("/health").apply {
+                assertEquals(HttpStatusCode.OK, status)
+                assertEquals("OK", bodyAsText())
+            }
+        }
+
+    @Test
+    fun `key share create returns htmx error when algorithm is missing`() =
+        testApplication {
+            setupApp()
+            client
+                .post("/key/share") {
+                    header("Content-Type", "application/x-www-form-urlencoded")
+                    setBody("purpose=ssh")
+                }.apply {
+                    assertEquals(HttpStatusCode.BadRequest, status)
+                    assertEquals("#global-notification", headers["HX-Retarget"])
+                    assertEquals("innerHTML", headers["HX-Reswap"])
+                    assertTrue(bodyAsText().contains("Missing algorithm"))
+                }
+        }
+
+    @Test
+    fun `key share create returns htmx error when purpose is missing`() =
+        testApplication {
+            setupApp()
+            client
+                .post("/key/share") {
+                    header("Content-Type", "application/x-www-form-urlencoded")
+                    setBody("algorithm=ed25519")
+                }.apply {
+                    assertEquals(HttpStatusCode.BadRequest, status)
+                    assertEquals("#global-notification", headers["HX-Retarget"])
+                    assertEquals("innerHTML", headers["HX-Reswap"])
+                    assertTrue(bodyAsText().contains("Missing purpose"))
+                }
+        }
+
+    @Test
+    fun `key share page returns 400 for invalid share id format`() =
+        testApplication {
+            setupApp()
+            client.get("/key/share/not-a-uuid").apply {
+                assertEquals(HttpStatusCode.BadRequest, status)
+                assertEquals("Invalid share ID format", bodyAsText())
+            }
+        }
+
+    @Test
+    fun `key share complete returns 400 for invalid share id format`() =
+        testApplication {
+            setupApp()
+            client
+                .post("/key/share/not-a-uuid/complete") {
+                    header("Content-Type", "application/x-www-form-urlencoded")
+                    setBody("")
+                }.apply {
+                    assertEquals(HttpStatusCode.BadRequest, status)
+                    assertTrue(bodyAsText().contains("Invalid share ID format"))
+                }
+        }
+
+    @Test
+    fun `key share complete returns 400 when public key is missing`() =
+        testApplication {
+            setupApp()
+            val id = "00000000-0000-0000-0000-000000000001"
+            client
+                .post("/key/share/$id/complete") {
+                    header("Content-Type", "application/x-www-form-urlencoded")
+                    setBody("algorithm=ed25519")
+                }.apply {
+                    assertEquals(HttpStatusCode.BadRequest, status)
+                    assertTrue(bodyAsText().contains("Missing public key"))
+                }
+        }
+
+    @Test
+    fun `key share complete returns 400 when algorithm is missing`() =
+        testApplication {
+            setupApp()
+            val id = "00000000-0000-0000-0000-000000000001"
+            client
+                .post("/key/share/$id/complete") {
+                    header("Content-Type", "application/x-www-form-urlencoded")
+                    setBody("public-key=ssh-ed25519+AAAAC3NzaC1lZDI1NTE5AAAAIGpKWz8i5RuBaVG2EyIwU7IiG7NzJ3y9FdJqtFLDZ8lZ")
+                }.apply {
+                    assertEquals(HttpStatusCode.BadRequest, status)
+                    assertTrue(bodyAsText().contains("Missing algorithm"))
+                }
+        }
+
+    @Test
+    fun `password share get returns 400 for invalid share id format`() =
+        testApplication {
+            setupApp()
+            client.get("/share/not-a-uuid/not-a-uuid").apply {
+                assertEquals(HttpStatusCode.BadRequest, status)
+                assertEquals("Invalid share ID format", bodyAsText())
+            }
+        }
+
+    @Test
+    fun `password share post returns 400 for invalid share id format`() =
+        testApplication {
+            setupApp()
+            client.post("/share/not-a-uuid/not-a-uuid").apply {
+                assertEquals(HttpStatusCode.BadRequest, status)
+                assertEquals("Invalid share ID format", bodyAsText())
+            }
+        }
+
+    @Test
+    fun `password share get returns 400 for invalid salt format`() =
+        testApplication {
+            setupApp()
+            val validShareId = "00000000-0000-0000-0000-000000000001"
+            client.get("/share/$validShareId/not-a-uuid").apply {
+                assertEquals(HttpStatusCode.BadRequest, status)
+                assertEquals("Invalid salt format", bodyAsText())
+            }
+        }
+
+    @Test
+    fun `password share post returns 400 for invalid salt format`() =
+        testApplication {
+            setupApp()
+            val validShareId = "00000000-0000-0000-0000-000000000001"
+            client.post("/share/$validShareId/not-a-uuid").apply {
+                assertEquals(HttpStatusCode.BadRequest, status)
+                assertEquals("Invalid salt format", bodyAsText())
+            }
+        }
+
+    @Test
+    fun `key share page returns 404 for unknown valid share id`() =
+        testApplication {
+            setupApp()
+            client.get("/key/share/00000000-0000-0000-0000-000000000001").apply {
+                assertEquals(HttpStatusCode.NotFound, status)
+                assertEquals("Key share not found", bodyAsText())
+            }
+        }
+
+    @Test
+    fun `key share complete returns share not found for unknown valid share id`() =
+        testApplication {
+            setupApp()
+            val unknownId = "00000000-0000-0000-0000-000000000001"
+            client
+                .post("/key/share/$unknownId/complete") {
+                    header("Content-Type", "application/x-www-form-urlencoded")
+                    setBody("public-key=$validEd25519PublicKey&algorithm=ed25519")
+                }.apply {
+                    assertEquals(HttpStatusCode.BadRequest, status)
+                    assertTrue(bodyAsText().contains("Share not found"))
+                }
+        }
+
+    @Test
+    fun `key share complete returns already completed message on second completion`() =
+        testApplication {
+            setupApp()
+
+            val createResponse =
+                client.post("/key/share") {
+                    header("Content-Type", "application/x-www-form-urlencoded")
+                    setBody("algorithm=ed25519&purpose=ssh")
+                }
+            assertEquals(HttpStatusCode.OK, createResponse.status)
+            val shareBody = createResponse.bodyAsText()
+            val shareId =
+                Regex("/key/share/([0-9a-fA-F-]{36})")
+                    .find(shareBody)
+                    ?.groupValues
+                    ?.getOrNull(1)
+            assertTrue(shareId != null, "Expected share id in key share create response")
+
+            // First completion succeeds
+            client
+                .post("/key/share/$shareId/complete") {
+                    header("Content-Type", "application/x-www-form-urlencoded")
+                    setBody("public-key=$validEd25519PublicKey&algorithm=ed25519")
+                }.apply {
+                    assertEquals(HttpStatusCode.OK, status)
+                }
+
+            // Second completion should fail with already completed
+            client
+                .post("/key/share/$shareId/complete") {
+                    header("Content-Type", "application/x-www-form-urlencoded")
+                    setBody("public-key=$validEd25519PublicKey&algorithm=ed25519")
+                }.apply {
+                    assertEquals(HttpStatusCode.BadRequest, status)
+                    assertTrue(bodyAsText().contains("already been completed"))
+                }
+        }
+
+    @Test
+    fun `key share complete returns invalid key mismatch message`() =
+        testApplication {
+            setupApp()
+
+            val createResponse =
+                client.post("/key/share") {
+                    header("Content-Type", "application/x-www-form-urlencoded")
+                    setBody("algorithm=ed25519&purpose=ssh")
+                }
+            assertEquals(HttpStatusCode.OK, createResponse.status)
+            val shareBody = createResponse.bodyAsText()
+            val shareId =
+                Regex("/key/share/([0-9a-fA-F-]{36})")
+                    .find(shareBody)
+                    ?.groupValues
+                    ?.getOrNull(1)
+            assertTrue(shareId != null, "Expected share id in key share create response")
+
+            // Use RSA key while claiming ed25519 to trigger mismatch/validation failure
+            client
+                .post("/key/share/$shareId/complete") {
+                    header("Content-Type", "application/x-www-form-urlencoded")
+                    setBody("public-key=$validRsaPublicKey&algorithm=ed25519")
+                }.apply {
+                    assertEquals(HttpStatusCode.BadRequest, status)
+                    assertTrue(bodyAsText().contains("Invalid public key format or algorithm mismatch"))
+                }
+        }
+
+    @Test
+    fun `password share post returns 404 for unknown valid share and salt`() =
+        testApplication {
+            setupApp()
+            val unknownShare = "00000000-0000-0000-0000-000000000001"
+            val unknownSalt = "00000000-0000-0000-0000-000000000002"
+            client.post("/share/$unknownShare/$unknownSalt").apply {
+                assertEquals(HttpStatusCode.NotFound, status)
+                assertEquals("Share not found, already viewed or expired", bodyAsText())
+            }
         }
 }

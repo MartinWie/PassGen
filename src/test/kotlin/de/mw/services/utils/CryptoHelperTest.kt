@@ -1,5 +1,6 @@
 package de.mw.services.utils
 
+import java.util.Base64
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
@@ -119,5 +120,18 @@ class CryptoHelperTest {
         assertTrue(!encrypted.contains('/'))
         // And doesn't have padding =
         assertTrue(!encrypted.endsWith('='))
+    }
+
+    @Test
+    fun `decrypt returns null for malformed base64 input`() {
+        val decrypted = CryptoHelper.decrypt("%%%not-base64%%%", "token", "salt")
+        assertNull(decrypted)
+    }
+
+    @Test
+    fun `decrypt returns null when encrypted payload shorter than IV length`() {
+        val tooShort = Base64.getUrlEncoder().withoutPadding().encodeToString(ByteArray(4))
+        val decrypted = CryptoHelper.decrypt(tooShort, "token", "salt")
+        assertNull(decrypted)
     }
 }

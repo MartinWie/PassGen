@@ -55,21 +55,25 @@ class CryptoHelper {
             token: String,
             salt: String,
         ): String? {
-            val combined = Base64.getUrlDecoder().decode(encryptedText)
-
-            val iv = ByteArray(IV_LENGTH)
-            System.arraycopy(combined, 0, iv, 0, iv.size)
-
-            val encryptedBytes = ByteArray(combined.size - iv.size)
-            System.arraycopy(combined, iv.size, encryptedBytes, 0, encryptedBytes.size)
-
-            val secretKey = deriveKey(token, salt)
-
-            val cipher = Cipher.getInstance(TRANSFORMATION)
-            val gcmSpec = GCMParameterSpec(128, iv)
-            cipher.init(Cipher.DECRYPT_MODE, secretKey, gcmSpec)
-
             try {
+                val combined = Base64.getUrlDecoder().decode(encryptedText)
+                if (combined.size <= IV_LENGTH) {
+                    logger.error("Invalid input for decryption: payload too short")
+                    return null
+                }
+
+                val iv = ByteArray(IV_LENGTH)
+                System.arraycopy(combined, 0, iv, 0, iv.size)
+
+                val encryptedBytes = ByteArray(combined.size - iv.size)
+                System.arraycopy(combined, iv.size, encryptedBytes, 0, encryptedBytes.size)
+
+                val secretKey = deriveKey(token, salt)
+
+                val cipher = Cipher.getInstance(TRANSFORMATION)
+                val gcmSpec = GCMParameterSpec(128, iv)
+                cipher.init(Cipher.DECRYPT_MODE, secretKey, gcmSpec)
+
                 val decryptedBytes = cipher.doFinal(encryptedBytes)
                 return String(decryptedBytes, Charsets.UTF_8)
             } catch (e: Exception) {
