@@ -11,6 +11,7 @@ import de.mw.services.PasswordService
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import org.flywaydb.core.Flyway
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL
 import org.slf4j.LoggerFactory
@@ -25,11 +26,35 @@ val postgresHost: String = System.getenv("SECRET_PASSGEN_DB-HOST") ?: "localhost
 val postgresUser: String = System.getenv("SECRET_PASSGEN_DB-USER") ?: "admin"
 val postgresPassword: String =
     System.getenv("SECRET_PASSGEN_DB-PASSWORD") ?: "Helpless-Phrase-Unrushed-Radar0-Buzz-Curling-Haggler"
+val postgresJdbcUrl = "jdbc:postgresql://$postgresHost:5432/passgen"
+
+private fun runFlywayMigrations() {
+    logger.info("Running Flyway migrations...")
+    val result =
+        Flyway
+            .configure()
+            .dataSource(postgresJdbcUrl, postgresUser, postgresPassword)
+            .schemas("public")
+            .locations("classpath:db/migration")
+            .baselineOnMigrate(true)
+            .connectRetries(10)
+            .load()
+            .migrate()
+
+    logger.info(
+        "Flyway migration done. executed={}, currentVersion={}",
+        result.migrationsExecuted,
+        result.targetSchemaVersion,
+    )
+}
+
+// Ensure schema is up-to-date before DAOs/services access tables.
+private val flywayBootstrap = runFlywayMigrations()
 
 // HikariCP data source configuration
 val hikariConfig =
     HikariConfig().apply {
-        jdbcUrl = "jdbc:postgresql://$postgresHost:5432/passgen"
+        jdbcUrl = postgresJdbcUrl
         username = postgresUser
         password = postgresPassword
         addDataSourceProperty("cachePrepStmts", "true")
