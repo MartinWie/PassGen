@@ -4,7 +4,6 @@ import de.mw.daos.IPasswordDao
 import de.mw.models.SharePassword
 import de.mw.models.WordLanguage
 import de.mw.services.utils.CryptoHelper
-import de.mw.services.utils.SPECIAL_CHARS
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -12,7 +11,6 @@ import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.*
-import kotlin.random.Random
 
 class PasswordService(
     private val passwordDao: IPasswordDao,
@@ -36,46 +34,13 @@ class PasswordService(
         lastRefreshTime = System.currentTimeMillis()
     }
 
-    fun getWords(
-        amount: Int = 1,
-        language: WordLanguage,
-        specialChars: Boolean,
-        numbers: Boolean,
-    ): List<String> {
-        logger.info(
-            "Retrieving $amount words in language ${language.name} include special chars: $specialChars, include numbers: $numbers",
-        )
-
-        launch {
-            refreshCashIfNeeded()
-        }
-
-        var words = cachedWords[language.ordinal].shuffled().take(amount)
-
-        if (specialChars) {
-            words =
-                words.map {
-                    it + SPECIAL_CHARS[Random.nextInt(SPECIAL_CHARS.length)]
-                }
-        }
-
-        if (numbers) {
-            words =
-                words.map {
-                    it + Random.nextInt(0, 10)
-                }
-        }
-
-        return words
-    }
-
     /**
      * Returns up to [maxPerLanguage] words per language from the cached in-memory lists.
      * Intended for client-side password generation bootstrap data.
      */
     fun getWordLists(maxPerLanguage: Int = 500): Map<WordLanguage, List<String>> {
         launch {
-            refreshCashIfNeeded()
+            refreshCacheIfNeeded()
         }
         val limit = maxPerLanguage.coerceAtLeast(1)
         return WordLanguage.entries.associateWith { language ->
@@ -97,7 +62,7 @@ class PasswordService(
         }
     }
 
-    private fun refreshCashIfNeeded() {
+    private fun refreshCacheIfNeeded() {
         synchronized(this@PasswordService) {
             if (!refreshInProgress && System.currentTimeMillis() - lastRefreshTime > refreshIntervalMs) {
                 refreshInProgress = true

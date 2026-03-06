@@ -3,7 +3,6 @@ package de.mw.services
 import de.mw.daos.IPasswordDao
 import de.mw.models.SharePassword
 import de.mw.models.WordLanguage
-import de.mw.services.utils.SPECIAL_CHARS
 import java.math.BigDecimal
 import java.util.UUID
 import kotlin.test.Test
@@ -69,98 +68,36 @@ class FakePasswordDao : IPasswordDao {
 
 class PasswordServiceTest {
     @Test
-    fun `getWords returns correct number of words`() {
+    fun `getWordLists returns both language lists`() {
         val fakeDao = FakePasswordDao()
         val service = PasswordService(fakeDao)
 
-        val words = service.getWords(amount = 3, language = WordLanguage.ENG, specialChars = false, numbers = false)
+        val wordLists = service.getWordLists()
 
-        assertEquals(3, words.size)
+        assertEquals(fakeDao.wordsToReturn[WordLanguage.ENG], wordLists[WordLanguage.ENG])
+        assertEquals(fakeDao.wordsToReturn[WordLanguage.GER], wordLists[WordLanguage.GER])
     }
 
     @Test
-    fun `getWords with single word returns one word`() {
+    fun `getWordLists respects maxPerLanguage limit`() {
         val fakeDao = FakePasswordDao()
         val service = PasswordService(fakeDao)
 
-        val words = service.getWords(amount = 1, language = WordLanguage.ENG, specialChars = false, numbers = false)
+        val wordLists = service.getWordLists(maxPerLanguage = 3)
 
-        assertEquals(1, words.size)
+        assertEquals(3, wordLists[WordLanguage.ENG]?.size)
+        assertEquals(3, wordLists[WordLanguage.GER]?.size)
     }
 
     @Test
-    fun `getWords respects language parameter for English`() {
+    fun `getWordLists coerces non-positive max to one`() {
         val fakeDao = FakePasswordDao()
         val service = PasswordService(fakeDao)
 
-        val words = service.getWords(amount = 3, language = WordLanguage.ENG, specialChars = false, numbers = false)
+        val wordLists = service.getWordLists(maxPerLanguage = 0)
 
-        // Words should come from English list
-        val englishWords = fakeDao.wordsToReturn[WordLanguage.ENG]!!
-        words.forEach { word ->
-            assertTrue(englishWords.contains(word), "Word '$word' should be in English word list")
-        }
-    }
-
-    @Test
-    fun `getWords respects language parameter for German`() {
-        val fakeDao = FakePasswordDao()
-        val service = PasswordService(fakeDao)
-
-        val words = service.getWords(amount = 3, language = WordLanguage.GER, specialChars = false, numbers = false)
-
-        // Words should come from German list
-        val germanWords = fakeDao.wordsToReturn[WordLanguage.GER]!!
-        words.forEach { word ->
-            assertTrue(germanWords.contains(word), "Word '$word' should be in German word list")
-        }
-    }
-
-    @Test
-    fun `getWords with specialChars appends special character to each word`() {
-        val fakeDao = FakePasswordDao()
-        val service = PasswordService(fakeDao)
-
-        val words = service.getWords(amount = 3, language = WordLanguage.ENG, specialChars = true, numbers = false)
-
-        words.forEach { word ->
-            val lastChar = word.last()
-            assertTrue(
-                SPECIAL_CHARS.contains(lastChar),
-                "Word '$word' should end with a special character from SPECIAL_CHARS",
-            )
-        }
-    }
-
-    @Test
-    fun `getWords with numbers appends digit to each word`() {
-        val fakeDao = FakePasswordDao()
-        val service = PasswordService(fakeDao)
-
-        val words = service.getWords(amount = 3, language = WordLanguage.ENG, specialChars = false, numbers = true)
-
-        words.forEach { word ->
-            val lastChar = word.last()
-            assertTrue(lastChar.isDigit(), "Word '$word' should end with a digit")
-        }
-    }
-
-    @Test
-    fun `getWords with both specialChars and numbers appends both`() {
-        val fakeDao = FakePasswordDao()
-        val service = PasswordService(fakeDao)
-
-        val words = service.getWords(amount = 3, language = WordLanguage.ENG, specialChars = true, numbers = true)
-
-        words.forEach { word ->
-            val lastChar = word.last()
-            val secondLastChar = word[word.length - 2]
-            assertTrue(lastChar.isDigit(), "Word '$word' should end with a digit")
-            assertTrue(
-                SPECIAL_CHARS.contains(secondLastChar),
-                "Word '$word' should have a special character before the digit",
-            )
-        }
+        assertEquals(1, wordLists[WordLanguage.ENG]?.size)
+        assertEquals(1, wordLists[WordLanguage.GER]?.size)
     }
 
     @Test

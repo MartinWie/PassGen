@@ -702,7 +702,7 @@ function initGenerationToggle() {
     // is NOT sufficient to prevent requests. We use htmx:confirm to veto them instead.
     // The canonical source of truth is window.generationMode (set in apply()).
 
-    // Per-element htmx:confirm guards (defense-in-depth alongside the global beforeRequest guard)
+    // Per-element htmx:confirm guards to block requests from the inactive section.
     if (pwdShareBtn) {
         pwdShareBtn.addEventListener('htmx:confirm', function (e) {
             if (window.generationMode !== 'password') {
@@ -727,8 +727,7 @@ function initGenerationToggle() {
             clearTimeout(animationTimer);
             animationTimer = null;
         }
-        // Expose to global scope so the global htmx:beforeRequest guard
-        // and the per-element htmx:confirm handlers can see the active mode.
+        // Expose to global scope for test assertions and mode-aware handlers.
         window.generationMode = mode;
         toggle.setAttribute('aria-checked', mode === 'key' ? 'true' : 'false');
 
@@ -824,11 +823,8 @@ document.addEventListener("DOMContentLoaded", (event) => {
         }
     });
 
-    // Centralized modal opening after HTMX swaps in share-result fragments.
-    // This is the SINGLE source of truth for opening share modals; the server
-    // fragments no longer contain inline showModal() calls.
-    // Only react when the swap targeted a share-result container to avoid
-    // accidentally opening modals on unrelated swaps.
+    // Open share modals when their HTMX result container swaps in a dialog fragment.
+    // Keeping this centralized avoids duplicating showModal() snippets in server fragments.
     document.body.addEventListener('htmx:afterSwap', function (evt) {
         const targetId = evt.detail?.target?.id;
         if (!targetId) return;
@@ -842,25 +838,6 @@ document.addEventListener("DOMContentLoaded", (event) => {
             if (shareModal && !shareModal.hasAttribute('open')) {
                 shareModal.showModal();
             }
-        }
-    });
-
-    // Global guard: block HTMX share requests that don't match the active generation mode.
-    // This is a belt-and-suspenders safeguard on top of the per-element htmx:confirm listeners
-    // to prevent both share flows from firing after rapid toggling between modes.
-    document.body.addEventListener('htmx:beforeRequest', function (evt) {
-        const elt = evt.detail?.elt;
-        if (!elt?.id) return;
-        const mode = window.generationMode || 'password';
-        if (elt.id === 'shareButton' && mode !== 'password') {
-            console.debug('[htmx guard] Blocking /share because generationMode=', mode);
-            evt.preventDefault();
-            return;
-        }
-        if (elt.id === 'share-key-btn' && mode !== 'key') {
-            console.debug('[htmx guard] Blocking /key/share because generationMode=', mode);
-            evt.preventDefault();
-            return;
         }
     });
 

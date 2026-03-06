@@ -92,27 +92,6 @@ class StringUtilsTest {
     }
 
     @Test
-    fun `SPECIAL_CHARS contains expected characters`() {
-        // Verify the constant has the expected special characters
-        assertTrue(SPECIAL_CHARS.contains('!'))
-        assertTrue(SPECIAL_CHARS.contains('@'))
-        assertTrue(SPECIAL_CHARS.contains('#'))
-        assertTrue(SPECIAL_CHARS.contains('$'))
-        assertTrue(SPECIAL_CHARS.contains('%'))
-        assertTrue(SPECIAL_CHARS.contains('&'))
-        assertTrue(SPECIAL_CHARS.contains('*'))
-        assertTrue(SPECIAL_CHARS.contains('-'))
-        assertTrue(SPECIAL_CHARS.contains('_'))
-    }
-
-    @Test
-    fun `SPECIAL_CHARS does not contain alphanumeric`() {
-        for (char in SPECIAL_CHARS) {
-            assertFalse(char.isLetterOrDigit(), "SPECIAL_CHARS should not contain '$char'")
-        }
-    }
-
-    @Test
     fun `escapeHtml escapes ampersand`() {
         assertEquals("foo &amp; bar", "foo & bar".escapeHtml())
     }

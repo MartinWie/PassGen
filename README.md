@@ -139,16 +139,9 @@ After changing DB migrations, just run `./gradlew build` and commit the updated 
 
 ## Todo's
 
-- Change password amount slider so live and not only release(if the password is generated locally no need to only
-  generate on
-  release)
-- See what we can clean up from the time when we still generated the passwords on the server(additional request
-  handling, server side
-  generation code, etc)
-- Check if we can remove the "Centralized modal opening" and "Global guard: block HTMX share"
 - Is all places were we reference the public key are referenced escaping correct(double check, this is user created, so
   will be malicious)?
-- Do personal security audit of the key gen and check if messed up somewhere (make sure we are secure)
+- Do personal security audit of the key gen and password gen and check if messed up somewhere (make sure we are secure)
 - Add go home button to expired shares page
 - Add multi language support similar to marble game(start with DE and ENG)
 - add required footer stuff(use marble game repo as inspiration) and add an about page with technical explanation and
