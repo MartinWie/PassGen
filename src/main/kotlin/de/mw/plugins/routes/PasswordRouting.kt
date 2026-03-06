@@ -8,57 +8,27 @@ import de.mw.passwordService
 import de.mw.plugins.RateLimitTiers
 import de.mw.plugins.respondHtmlWithCsp
 import de.mw.plugins.respondHtmxError
-import io.github.martinwie.htmx.buildHTMLString
 import io.ktor.http.*
 import io.ktor.server.plugins.ratelimit.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.html.classes
-import kotlinx.html.id
-import kotlinx.html.spellCheck
-import kotlinx.html.textArea
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
 fun Route.passwordRouting() {
     rateLimit(RateLimitTiers.GENERATE) {
-        get("/word") {
-            val parameters = call.queryParameters
-
-            val language =
-                parameters["language-select"]?.let { name ->
-                    runCatching { WordLanguage.valueOf(name) }.getOrNull()
-                } ?: WordLanguage.ENG
-
-            val wordAmount = parameters["word-amount-slider"]?.toIntOrNull() ?: 4
-
-            val spacialChars = parameters["include-special"]?.let { it.uppercase() == "ON" } ?: false
-
-            val numbers = parameters["include-numbers"]?.let { it.uppercase() == "ON" } ?: false
-
-            val separator = parameters["separator"]?.firstOrNull()?.toString() ?: "-"
-
-            if (wordAmount !in 1..50) {
-                return@get call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Word amount must be between 1 and 50",
+        get("/wordlist") {
+            val wordLists = passwordService.getWordLists(500)
+            val payload =
+                WordListResponse(
+                    eng = wordLists[WordLanguage.ENG] ?: emptyList(),
+                    ger = wordLists[WordLanguage.GER] ?: emptyList(),
                 )
-            }
-
-            val textarea =
-                buildHTMLString {
-                    textArea {
-                        id = "password-input"
-                        name = "password-input"
-                        spellCheck = false
-                        classes =
-                            setOf(
-                                "grow resize-none h-14 min-h-[56px] border-none focus:outline-hidden bg-transparent px-2 box-border text-base align-middle leading-[1.5] py-[14px] whitespace-nowrap overflow-x-auto",
-                                "auto-resize-textarea",
-                            )
-                        +passwordService.getWords(wordAmount, language, spacialChars, numbers).joinToString(separator)
-                    }
-                }
-            call.respondText(textarea, ContentType.Text.Html)
+            call.respondText(
+                Json.encodeToString(payload),
+                ContentType.Application.Json,
+            )
         }
     }
 
@@ -70,6 +40,9 @@ fun Route.passwordRouting() {
                 parameters["password-input"] ?: return@post call.respondHtmxError(
                     "Missing value to share",
                 )
+            if (value.isBlank()) {
+                return@post call.respondHtmxError("Password value must not be empty")
+            }
 
             val viewCount = parameters["view-count"]?.toBigDecimalOrNull() ?: java.math.BigDecimal.ONE
 
@@ -129,3 +102,9 @@ fun Route.passwordRouting() {
         }
     }
 }
+
+@Serializable
+private data class WordListResponse(
+    val eng: List<String>,
+    val ger: List<String>,
+)

@@ -86,7 +86,7 @@ bucket algorithm). The limits are:
 | CREATE_SHARE   | 10 req / 60s  | `POST /share`, `POST /key/share`                                           |
 | COMPLETE_SHARE | 5 req / 60s   | `POST /key/share/{id}/complete`                                            |
 | VIEW_SHARE     | 30 req / 60s  | `GET /share/{id}/{salt}`, `POST /share/{id}/{salt}`, `GET /key/share/{id}` |
-| GENERATE       | 120 req / 60s | `GET /word`                                                                |
+| GENERATE       | 120 req / 60s | `GET /wordlist`                                                            |
 
 When a client exceeds the limit they receive HTTP 429 with a `Retry-After` header and a DaisyUI warning alert (
 HTMX-friendly).
@@ -139,15 +139,6 @@ After changing DB migrations, just run `./gradlew build` and commit the updated 
 
 ## Todo's
 
-- Checkout how to move password generation to client(without this the password generation is not really secure for the
-  users) here are some ideas:
-    - list of hidden tags and take form there?
-    - Alpine.js
-    - Hyperscript?
-    - Pure JS?
-    - Add local storage loading request to text area response(normal return + random wordlist to local storage)
-        - hx-Ext json-enc
-        - and from buttons and settings use local storage
 - Change password amount slider so live and not only release(if the password is generated locally no need to only
   generate on
   release)

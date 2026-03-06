@@ -17,13 +17,16 @@ fun getLandingPage(pageTitle: String): String =
                     div(
                         "flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-3 border border-base-300 rounded-xl p-2 md:p-3 focus-within:ring-1 focus-within:ring-base-content focus-within:border-base-content shadow-xs",
                     ) {
-                        // Initial empty placeholder — app.js fires htmx.ajax()
-                        // after restoring settings from localStorage, replacing this
-                        // element with the server-rendered password textarea.
+                        // Password textarea. Value is generated fully client-side in app.js.
                         textArea {
                             id = "password-input"
+                            name = "password-input"
+                            spellCheck = false
                             classes =
-                                setOf("grow resize-none h-14 py-[14px]")
+                                setOf(
+                                    "grow resize-none h-14 min-h-[56px] border-none focus:outline-hidden bg-transparent px-2 box-border text-base align-middle leading-[1.5] py-[14px] whitespace-nowrap overflow-x-auto",
+                                    "auto-resize-textarea",
+                                )
                         }
 
                         div("flex justify-center md:justify-end gap-2 md:gap-3 mt-1 md:mt-0") {
@@ -37,16 +40,6 @@ fun getLandingPage(pageTitle: String): String =
                             // Generate Button
                             button(classes = "btn btn-ghost") {
                                 id = "regen-button"
-                                hxGet("/word")
-                                hxTrigger("click")
-                                hxApplyDuringRequest("animate-spin-reverse")
-                                // hxDisabled("#regen-button")
-                                hxSync("this", SyncModifier.REPLACE)
-                                hxTarget("#password-input")
-                                hxSwap(HxSwapOption.OUTER_HTML)
-                                hxInclude(
-                                    "[name='language-select'], [name='word-amount-slider'], [name='include-special'], [name='include-numbers'], [name='separator']",
-                                )
                                 title = "Generate"
                                 embedSvg("/static/svg/regen.svg")
                             }

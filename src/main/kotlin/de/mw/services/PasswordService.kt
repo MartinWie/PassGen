@@ -69,6 +69,20 @@ class PasswordService(
         return words
     }
 
+    /**
+     * Returns up to [maxPerLanguage] words per language from the cached in-memory lists.
+     * Intended for client-side password generation bootstrap data.
+     */
+    fun getWordLists(maxPerLanguage: Int = 500): Map<WordLanguage, List<String>> {
+        launch {
+            refreshCashIfNeeded()
+        }
+        val limit = maxPerLanguage.coerceAtLeast(1)
+        return WordLanguage.entries.associateWith { language ->
+            cachedWords.getOrElse(language.ordinal) { emptyList() }.take(limit)
+        }
+    }
+
     fun insertWords(
         words: List<String>,
         language: WordLanguage,
@@ -99,9 +113,9 @@ class PasswordService(
     private fun loadWords() {
         cachedWords =
             WordLanguage.entries.map {
-                logger.info("Initial loading of 50 words in language ${it.name}")
+                logger.info("Initial loading of 500 words in language ${it.name}")
                 try {
-                    passwordDao.get(50, it)
+                    passwordDao.get(500, it)
                 } catch (e: Exception) {
                     logger.error("Failed to load words for ${it.name}", e)
                     emptyList()

@@ -208,6 +208,209 @@ function removeHideThenFadeout(element) {
     _tooltipTimers.set(element, {show, fade: null});
 }
 
+// ─── Client-side password generation ───────────────────────────────
+
+const WORDLIST_CACHE_KEY = 'wordlist-cache-v1';
+const WORDLIST_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+const PASSWORD_SPECIAL_CHARS = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
+
+let cachedWordLists = null;
+let wordListLoadPromise = null;
+let passwordGenerationSeq = 0;
+
+function secureRandomInt(maxExclusive) {
+    if (!Number.isInteger(maxExclusive) || maxExclusive <= 0) {
+        throw new Error('maxExclusive must be a positive integer');
+    }
+    const maxUint32 = 0x100000000;
+    const limit = maxUint32 - (maxUint32 % maxExclusive);
+    const buf = new Uint32Array(1);
+    let value;
+    do {
+        crypto.getRandomValues(buf);
+        value = buf[0];
+    } while (value >= limit);
+    return value % maxExclusive;
+}
+
+function normalizeWordArray(value) {
+    if (!Array.isArray(value)) return [];
+    return value
+        .filter((item) => typeof item === 'string')
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0);
+}
+
+function normalizeWordListPayload(payload) {
+    if (!payload || typeof payload !== 'object') return null;
+    const eng = normalizeWordArray(payload.eng);
+    const ger = normalizeWordArray(payload.ger);
+    if (eng.length === 0 && ger.length === 0) return null;
+    return {
+        ENG: eng.length > 0 ? eng : ger,
+        GER: ger.length > 0 ? ger : eng,
+    };
+}
+
+function loadWordListsFromStorage() {
+    const raw = localStorage.getItem(WORDLIST_CACHE_KEY);
+    if (!raw) return null;
+    try {
+        const parsed = JSON.parse(raw);
+        if (
+            typeof parsed?.fetchedAt !== 'number' ||
+            !Number.isFinite(parsed.fetchedAt) ||
+            (Date.now() - parsed.fetchedAt) > WORDLIST_CACHE_TTL_MS
+        ) {
+            localStorage.removeItem(WORDLIST_CACHE_KEY);
+            return null;
+        }
+        const normalized = normalizeWordListPayload(parsed);
+        if (!normalized) {
+            localStorage.removeItem(WORDLIST_CACHE_KEY);
+            return null;
+        }
+        return normalized;
+    } catch (e) {
+        localStorage.removeItem(WORDLIST_CACHE_KEY);
+        return null;
+    }
+}
+
+async function fetchWordListsFromServer() {
+    const response = await fetch('/wordlist', {
+        method: 'GET',
+        headers: {'Accept': 'application/json'},
+        credentials: 'same-origin'
+    });
+    if (!response.ok) {
+        throw new Error('Failed to fetch word list: HTTP ' + response.status);
+    }
+    const payload = await response.json();
+    const normalized = normalizeWordListPayload(payload);
+    if (!normalized) {
+        throw new Error('Invalid word list payload');
+    }
+    localStorage.setItem(
+        WORDLIST_CACHE_KEY,
+        JSON.stringify({eng: normalized.ENG, ger: normalized.GER, fetchedAt: Date.now()}),
+    );
+    return normalized;
+}
+
+async function getWordLists() {
+    if (cachedWordLists) return cachedWordLists;
+    if (wordListLoadPromise) return wordListLoadPromise;
+
+    wordListLoadPromise = (async () => {
+        const cached = loadWordListsFromStorage();
+        if (cached) {
+            cachedWordLists = cached;
+            return cached;
+        }
+        const fetched = await fetchWordListsFromServer();
+        cachedWordLists = fetched;
+        return fetched;
+    })();
+
+    try {
+        return await wordListLoadPromise;
+    } finally {
+        wordListLoadPromise = null;
+    }
+}
+
+function readPasswordSettings() {
+    const languageValue = document.getElementById('language-select')?.value;
+    const language = languageValue === 'GER' ? 'GER' : 'ENG';
+
+    let wordAmount = Number.parseInt(document.getElementById('word-amount-slider')?.value || '4', 10);
+    if (!Number.isFinite(wordAmount)) wordAmount = 4;
+    wordAmount = Math.max(1, Math.min(50, wordAmount));
+
+    const separatorRaw = document.getElementById('word-separator')?.value || '-';
+    const separator = (separatorRaw.length > 0 ? separatorRaw[0] : '-') || '-';
+
+    const includeSpecial = document.getElementById('include-special')?.checked === true;
+    const includeNumbers = document.getElementById('include-numbers')?.checked === true;
+
+    return {
+        language,
+        wordAmount,
+        separator,
+        includeSpecial,
+        includeNumbers,
+    };
+}
+
+function shuffleCopy(words) {
+    const arr = words.slice();
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = secureRandomInt(i + 1);
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
+function generatePasswordFromWordList(wordLists, settings) {
+    const sourceWords = wordLists[settings.language] || wordLists.ENG || [];
+    if (sourceWords.length === 0) return '';
+
+    const words = shuffleCopy(sourceWords).slice(0, Math.min(settings.wordAmount, sourceWords.length));
+    const transformed = words.map((word) => {
+        let result = word;
+        if (settings.includeSpecial) {
+            result += PASSWORD_SPECIAL_CHARS[secureRandomInt(PASSWORD_SPECIAL_CHARS.length)];
+        }
+        if (settings.includeNumbers) {
+            result += String(secureRandomInt(10));
+        }
+        return result;
+    });
+
+    return transformed.join(settings.separator);
+}
+
+function resizePasswordTextarea(textarea) {
+    if (!textarea) return;
+    if (textarea.parentNode && textarea.parentNode.dataset) {
+        textarea.parentNode.dataset.clonedVal = textarea.value;
+    }
+    const lineCount = (textarea.value.match(/\n/g) || []).length + 1;
+    textarea.style.height = Math.min(675, Math.max(56, lineCount * 25)) + 'px';
+}
+
+async function generatePasswordClientSide() {
+    const passwordInput = document.getElementById('password-input');
+    if (!passwordInput) return;
+
+    // Fast path: once word lists are cached in memory, generation is fully synchronous.
+    // This keeps range-slider updates responsive on every input event (not only on release).
+    if (cachedWordLists) {
+        const settings = readPasswordSettings();
+        passwordInput.value = generatePasswordFromWordList(cachedWordLists, settings);
+        resizePasswordTextarea(passwordInput);
+        return;
+    }
+
+    const seq = ++passwordGenerationSeq;
+    try {
+        const wordLists = await getWordLists();
+        // Discard stale completion if a newer generation request was started.
+        if (seq !== passwordGenerationSeq) return;
+
+        const settings = readPasswordSettings();
+        passwordInput.value = generatePasswordFromWordList(wordLists, settings);
+        resizePasswordTextarea(passwordInput);
+    } catch (e) {
+        console.error('Failed to generate password client-side:', e);
+    }
+}
+
+function triggerPasswordRegen() {
+    void generatePasswordClientSide();
+}
+
 /**
  * Restore landing page settings from localStorage on load.
  * Handles: word-language, word-amount, word-separator,
@@ -305,19 +508,9 @@ function initLandingPageSettings() {
         }
     }
 
-    // Trigger initial password generation after all settings are restored.
-    // We use htmx.ajax() directly instead of dispatching a custom event
-    // because the declarative hx-trigger on the textarea may not yet be
-    // processed by HTMX at this point, causing a race condition where the
-    // event fires but HTMX hasn't attached its listener yet.
+    // Trigger initial client-side password generation after settings restore.
     if (languageSelect || wordAmountSlider) {
-        const params = {};
-        if (languageSelect) params['language-select'] = languageSelect.value;
-        if (wordAmountSlider) params['word-amount-slider'] = wordAmountSlider.value;
-        if (includeSpecial && includeSpecial.checked) params['include-special'] = 'on';
-        if (includeNumbers && includeNumbers.checked) params['include-numbers'] = 'on';
-        if (wordSeparator) params['separator'] = wordSeparator.value;
-        htmx.ajax('GET', '/word', {target: '#password-input', swap: 'outerHTML', values: params});
+        triggerPasswordRegen();
     }
 }
 
@@ -362,10 +555,13 @@ function initSettingHandlers() {
         }
     }
 
-    // Helper: trigger password regeneration by clicking the regen button
-    function triggerRegen() {
-        const btn = document.getElementById('regen-button');
-        if (btn) btn.click();
+    // Regenerate button now performs fully client-side generation.
+    const regenButton = document.getElementById('regen-button');
+    if (regenButton) {
+        regenButton.addEventListener('click', (ev) => {
+            ev.preventDefault();
+            triggerPasswordRegen();
+        });
     }
 
     // Delegated change handler for .setting-regen elements
@@ -378,7 +574,7 @@ function initSettingHandlers() {
 
         const el = ev.target.closest && ev.target.closest('.setting-regen');
         if (el) {
-            triggerRegen();
+            triggerPasswordRegen();
         }
 
         // Identifier toggle checkbox
@@ -409,6 +605,7 @@ function initSettingHandlers() {
             if (span) span.textContent = ev.target.value;
             if (numInput) numInput.value = ev.target.value;
             localStorage.setItem('word-amount', ev.target.value);
+            triggerPasswordRegen();
         }
 
         // Word number input: clamp, sync slider + display, persist + regen
@@ -421,13 +618,13 @@ function initSettingHandlers() {
             if (span) span.textContent = ev.target.value;
             if (slider) slider.value = ev.target.value;
             localStorage.setItem('word-amount', ev.target.value.toString());
-            triggerRegen();
+            triggerPasswordRegen();
         }
 
         // Separator input: persist + regen
         if (ev.target.id === 'word-separator') {
             localStorage.setItem('word-separator', ev.target.value);
-            triggerRegen();
+            triggerPasswordRegen();
         }
 
         // Key identifier input: persist (only if valid printable ASCII)

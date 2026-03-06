@@ -13,7 +13,7 @@ import kotlin.time.Duration.Companion.seconds
  * - `RATE_LIMIT_CREATE_SHARE`   — limit for POST /share, POST /key/share (default: 10)
  * - `RATE_LIMIT_COMPLETE_SHARE` — limit for POST /key/share/{id}/complete (default: 5)
  * - `RATE_LIMIT_VIEW_SHARE`     — limit for GET/POST share views (default: 30)
- * - `RATE_LIMIT_GENERATE`       — limit for GET /word (default: 120)
+ * - `RATE_LIMIT_GENERATE`       — limit for GET /wordlist (default: 120)
  * - `RATE_LIMIT_REFILL_SECONDS` — refill period in seconds for all tiers (default: 60)
  */
 data class RateLimitConfig(
@@ -50,7 +50,7 @@ object RateLimitTiers {
     /** Viewing/revealing shares (GET /share/..., GET /key/share/..., POST /share/{id}/{salt}) */
     val VIEW_SHARE = RateLimitName("view-share")
 
-    /** Password generation (GET /word) */
+    /** Password generation bootstrap (GET /wordlist) */
     val GENERATE = RateLimitName("generate")
 }
 

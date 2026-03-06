@@ -135,7 +135,7 @@ class ApplicationTest {
             val limit = 120 // GENERATE tier limit
             // Send exactly `limit` requests — all should succeed
             repeat(limit) { i ->
-                client.get("/word").apply {
+                client.get("/wordlist").apply {
                     assertEquals(
                         HttpStatusCode.OK,
                         status,
@@ -144,7 +144,7 @@ class ApplicationTest {
                 }
             }
             // The next request should be rate-limited
-            client.get("/word").apply {
+            client.get("/wordlist").apply {
                 assertEquals(HttpStatusCode.TooManyRequests, status)
             }
         }
@@ -155,11 +155,11 @@ class ApplicationTest {
             setupApp()
             val limit = 120
             repeat(limit) {
-                client.get("/word")
+                client.get("/wordlist")
             }
             // Trigger 429 with HX-Request header
             client
-                .get("/word") {
+                .get("/wordlist") {
                     header("HX-Request", "true")
                 }.apply {
                     assertEquals(HttpStatusCode.TooManyRequests, status)
@@ -177,10 +177,10 @@ class ApplicationTest {
             setupApp()
             val limit = 120
             repeat(limit) {
-                client.get("/word")
+                client.get("/wordlist")
             }
             // Trigger 429 without HX-Request header
-            client.get("/word").apply {
+            client.get("/wordlist").apply {
                 assertEquals(HttpStatusCode.TooManyRequests, status)
                 val body = bodyAsText()
                 assertEquals("Too many requests — please wait a moment and try again.", body)
@@ -190,40 +190,18 @@ class ApplicationTest {
         }
 
     @Test
-    fun `word endpoint returns 200 for invalid language-select (falls back to ENG)`() =
+    fun `wordlist endpoint returns JSON payload with both languages`() =
         testApplication {
             setupApp()
-            client.get("/word?language-select=INVALID_LANG").apply {
+            client.get("/wordlist").apply {
                 assertEquals(HttpStatusCode.OK, status)
+                assertTrue(
+                    headers[HttpHeaders.ContentType]?.contains(ContentType.Application.Json.toString()) == true,
+                    "Expected application/json content type",
+                )
                 val body = bodyAsText()
-                assertTrue(body.contains("password-input"), "Should still return a password textarea")
-            }
-        }
-
-    @Test
-    fun `word endpoint returns 400 for word amount below 1`() =
-        testApplication {
-            setupApp()
-            client.get("/word?word-amount-slider=0").apply {
-                assertEquals(HttpStatusCode.BadRequest, status)
-            }
-        }
-
-    @Test
-    fun `word endpoint returns 400 for negative word amount`() =
-        testApplication {
-            setupApp()
-            client.get("/word?word-amount-slider=-5").apply {
-                assertEquals(HttpStatusCode.BadRequest, status)
-            }
-        }
-
-    @Test
-    fun `word endpoint returns 400 for word amount above 50`() =
-        testApplication {
-            setupApp()
-            client.get("/word?word-amount-slider=51").apply {
-                assertEquals(HttpStatusCode.BadRequest, status)
+                assertTrue(body.contains("\"eng\":"), "Payload should contain eng key")
+                assertTrue(body.contains("\"ger\":"), "Payload should contain ger key")
             }
         }
 
@@ -311,6 +289,22 @@ class ApplicationTest {
                     // The body should be a valid alert div — no unescaped user content
                     assertTrue(body.startsWith("<div"), "Body should start with a div tag")
                     assertTrue(body.endsWith("</div>"), "Body should end with closing div tag")
+                }
+        }
+
+    @Test
+    fun `share endpoint rejects blank password value`() =
+        testApplication {
+            setupApp()
+            client
+                .post("/share") {
+                    header("Content-Type", "application/x-www-form-urlencoded")
+                    setBody("password-input=   ")
+                }.apply {
+                    assertEquals(HttpStatusCode.BadRequest, status)
+                    assertEquals("#global-notification", headers["HX-Retarget"])
+                    assertEquals("innerHTML", headers["HX-Reswap"])
+                    assertTrue(bodyAsText().contains("Password value must not be empty"))
                 }
         }
 
