@@ -1,19 +1,10 @@
 package de.mw.plugins
 
+import de.mw.config.AnalyticsConfig
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import java.net.URI
-
-private const val DEFAULT_POSTHOG_KEY = "phc_GxF97xQ1R685lo6S7bwRf6HFB1Ta56lAAJLFhtln60p"
-
-private fun posthogKeyConfigured(): Boolean =
-    !System.getenv("POSTHOG_KEY").isNullOrBlank() ||
-            !System.getenv("SECRET_POSTHOG_KEY").isNullOrBlank() ||
-            DEFAULT_POSTHOG_KEY.isNotBlank()
-
-private fun posthogEnabledForCsp(): Boolean =
-    System.getenv("POSTHOG_ENABLED")?.lowercase() != "false" && posthogKeyConfigured()
 
 private fun normalizeOrigin(raw: String?): String? {
     val value = raw?.trim().orEmpty()
@@ -33,10 +24,9 @@ private fun normalizeOrigin(raw: String?): String? {
 }
 
 private fun posthogOrigins(): Set<String> {
-    if (!posthogEnabledForCsp()) return emptySet()
+    if (!AnalyticsConfig.posthogEnabled()) return emptySet()
 
-    val configuredHost = System.getenv("POSTHOG_HOST")?.takeIf { it.isNotBlank() } ?: "https://eu.i.posthog.com"
-    val hostOrigin = normalizeOrigin(configuredHost) ?: return emptySet()
+    val hostOrigin = normalizeOrigin(AnalyticsConfig.posthogHost()) ?: return emptySet()
     val assetsOrigin =
         if (hostOrigin.contains(".i.posthog.com")) {
             hostOrigin.replace(".i.posthog.com", "-assets.i.posthog.com")
@@ -73,15 +63,15 @@ fun buildCspHeaderValue(isDevelopment: Boolean): String {
     val posthogConnectSrc = if (posthog.isEmpty()) "" else " " + posthog.joinToString(" ")
 
     return "default-src 'self';" +
-            " script-src 'self' 'unsafe-inline'$devOrigins$posthogScriptSrc;" +
-            " object-src 'none';" +
-            " base-uri 'none';" +
-            " frame-ancestors 'none';" +
-            " form-action 'self';" +
-            " img-src 'self' data:;" +
-            " style-src 'self' 'unsafe-inline';" +
-            " font-src 'self' data:;" +
-            " connect-src 'self'$devWsOrigins$posthogConnectSrc;"
+        " script-src 'self' 'unsafe-inline'$devOrigins$posthogScriptSrc;" +
+        " object-src 'none';" +
+        " base-uri 'none';" +
+        " frame-ancestors 'none';" +
+        " form-action 'self';" +
+        " img-src 'self' data:;" +
+        " style-src 'self' 'unsafe-inline';" +
+        " font-src 'self' data:;" +
+        " connect-src 'self'$devWsOrigins$posthogConnectSrc;"
 }
 
 /**

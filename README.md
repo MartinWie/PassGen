@@ -132,7 +132,8 @@ To deploy with Dokploy:
     - `SECRET_PASSGEN_DB-PASSWORD` — Database password
     - `APP_HOST` — Bind address (default `0.0.0.0`, usually fine)
     - `POSTHOG_ENABLED` — optional analytics toggle (`false` disables PostHog + cookie banner)
-    - `POSTHOG_KEY` or `SECRET_POSTHOG_KEY` — optional PostHog project key/token (defaults to the current PassGen project key)
+    - `POSTHOG_KEY` or `SECRET_POSTHOG_KEY` — optional PostHog project key/token (defaults to the current PassGen
+      project key)
     - `POSTHOG_HOST` — optional PostHog host (default `https://eu.i.posthog.com`)
     - `LEGAL_NAME` / `LEGAL_ADDRESS` / `LEGAL_EMAIL` / `LEGAL_PHONE` / `LEGAL_VAT_ID` — optional imprint details
 4. Health check: Traefik can use the `/health` endpoint (returns 200 OK).
@@ -153,11 +154,7 @@ After changing DB migrations, just run `./gradlew build` and commit the updated 
     - How a share is stored
     - What is used for the Keygen
     - remove the report a bug/feedback link to github issue(later will add a real feedback process)
-- host(passgen io/sh/...?)
-- Add posthog(similar setup as marbles with different project)
-    - Switch to pay as you go and set spending limits of 10 bucks per project
-    - Generate new token and then setup project
-- Cookie banner?(Similar as marbles)
+- Host on separate domain
 - Add workos for logins
     - login functionality requires monthly fee(check how this works with payment provider)
     - Remove bottom Github and donation link and add imp

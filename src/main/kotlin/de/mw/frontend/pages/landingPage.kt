@@ -1,5 +1,6 @@
 package de.mw.frontend.pages
 
+import de.mw.frontend.utils.FooterPage
 import de.mw.frontend.utils.getCookieConsentBanner
 import de.mw.frontend.utils.getFooter
 import de.mw.frontend.utils.getPageHead
@@ -652,6 +653,7 @@ fun getLandingPage(pageTitle: String): String =
 
 fun getBasePage(
     pageTitle: String,
+    activeFooterPage: FooterPage = FooterPage.GENERATE,
     bodyTags: TagConsumer<StringBuilder>.() -> Unit,
 ): String =
     "<!DOCTYPE html>" +
@@ -738,6 +740,6 @@ fun getBasePage(
                 }
 
                 getCookieConsentBanner()
-                getFooter()
+                getFooter(activeFooterPage)
             }
         }

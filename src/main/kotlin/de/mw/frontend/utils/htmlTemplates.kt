@@ -1,24 +1,18 @@
 package de.mw.frontend.utils
 
+import de.mw.config.AnalyticsConfig
 import io.github.martinwie.htmx.JsEvent
 import io.github.martinwie.htmx.embedSvg
 import io.github.martinwie.htmx.onEvent
 import kotlinx.html.*
 import java.time.Year
 
-private const val COOKIE_CONSENT_KEY = "cookie_consent"
-private const val DEFAULT_POSTHOG_KEY = "phc_GxF97xQ1R685lo6S7bwRf6HFB1Ta56lAAJLFhtln60p"
-
-private fun posthogKey(): String? =
-    System
-        .getenv("POSTHOG_KEY")
-        ?.takeIf { it.isNotBlank() }
-        ?: System.getenv("SECRET_POSTHOG_KEY")?.takeIf { it.isNotBlank() }
-        ?: DEFAULT_POSTHOG_KEY
-
-private fun posthogEnabled(): Boolean = System.getenv("POSTHOG_ENABLED")?.lowercase() != "false" && posthogKey() != null
-
-private fun posthogHost(): String = System.getenv("POSTHOG_HOST")?.takeIf { it.isNotBlank() } ?: "https://eu.i.posthog.com"
+enum class FooterPage {
+    GENERATE,
+    HOW_IT_WORKS,
+    PRIVACY,
+    IMPRINT,
+}
 
 private fun jsEscape(value: String): String =
     value
@@ -26,18 +20,17 @@ private fun jsEscape(value: String): String =
         .replace("'", "\\'")
 
 private fun HEAD.posthogScript() {
-    if (!posthogEnabled()) return
+    if (!AnalyticsConfig.posthogEnabled()) return
 
-    val key = jsEscape(posthogKey() ?: return)
-    val host = jsEscape(posthogHost())
+    val key = jsEscape(AnalyticsConfig.posthogKey() ?: return)
+    val host = jsEscape(AnalyticsConfig.posthogHost())
 
     script {
         unsafe {
             raw(
                 """
                 (function() {
-                    var CONSENT_KEY = '$COOKIE_CONSENT_KEY';
-                    var consent = localStorage.getItem(CONSENT_KEY);
+                    var CONSENT_KEY = '${AnalyticsConfig.COOKIE_CONSENT_KEY}';
 
                     function initPosthogIfAccepted() {
                         if (localStorage.getItem(CONSENT_KEY) !== 'accepted') return;
@@ -54,8 +47,6 @@ private fun HEAD.posthogScript() {
                         window.__passgenPosthogInitialized = true;
                     }
 
-                    initPosthogIfAccepted();
-
                     window.openCookieSettings = function() {
                         var banner = document.getElementById('cookie-banner');
                         if (banner) banner.classList.remove('hidden');
@@ -65,7 +56,11 @@ private fun HEAD.posthogScript() {
                         localStorage.setItem(CONSENT_KEY, 'accepted');
                         var banner = document.getElementById('cookie-banner');
                         if (banner) banner.classList.add('hidden');
-                        initPosthogIfAccepted();
+                        try {
+                            initPosthogIfAccepted();
+                        } catch (e) {
+                            console.error('PostHog init failed after consent:', e);
+                        }
                     };
 
                     window.rejectCookies = function() {
@@ -79,6 +74,12 @@ private fun HEAD.posthogScript() {
                             posthog.reset();
                         }
                     };
+
+                    try {
+                        initPosthogIfAccepted();
+                    } catch (e) {
+                        console.error('PostHog init failed on startup:', e);
+                    }
                 })();
                 """.trimIndent(),
             )
@@ -87,7 +88,7 @@ private fun HEAD.posthogScript() {
 }
 
 fun BODY.getCookieConsentBanner() {
-    if (!posthogEnabled()) return
+    if (!AnalyticsConfig.posthogEnabled()) return
 
     div {
         id = "cookie-banner"
@@ -95,40 +96,48 @@ fun BODY.getCookieConsentBanner() {
             setOf(
                 "hidden",
                 "fixed",
-                "bottom-4",
-                "left-1/2",
-                "-translate-x-1/2",
                 "z-50",
-                "w-[calc(100%-1.5rem)]",
-                "max-w-2xl",
-                "rounded-xl",
-                "border",
-                "border-base-300",
-                "bg-base-100",
-                "shadow-xl",
-                "p-4",
+                "bottom-3",
+                "inset-x-3",
+                "sm:inset-x-auto",
+                "sm:right-4",
+                "sm:w-[26rem]",
             )
 
-        p("text-sm text-base-content/80") {
-            +"We use optional analytics cookies to improve PassGen. You can accept or reject this anytime."
-            +" "
-            a(href = "/privacy") {
-                classes = setOf("link", "link-hover")
-                +"Learn more in the privacy policy"
-            }
-            +"."
-        }
+        div("card border border-base-300 bg-base-100 shadow-2xl") {
+            div("card-body p-4") {
+                div("flex items-start gap-3") {
+                    span("w-5 h-5 mt-0.5 text-info") {
+                        attributes["aria-hidden"] = "true"
+                        embedSvg("/static/svg/alert-info.svg")
+                    }
+                    div("min-w-0") {
+                        p("text-sm font-semibold text-base-content") { +"Cookie preferences" }
+                        p("mt-1 text-sm leading-relaxed text-base-content/70") {
+                            +"Optional analytics helps us improve PassGen."
+                            +" It only starts after your consent."
+                            +" "
+                            a(href = "/privacy") {
+                                classes = setOf("link", "link-hover")
+                                +"Privacy details"
+                            }
+                            +"."
+                        }
+                    }
+                }
 
-        div("mt-3 flex flex-wrap gap-2 justify-end") {
-            button {
-                classes = setOf("btn", "btn-ghost", "btn-sm")
-                onEvent(JsEvent.ON_CLICK, "rejectCookies()")
-                +"Reject"
-            }
-            button {
-                classes = setOf("btn", "btn-primary", "btn-sm")
-                onEvent(JsEvent.ON_CLICK, "acceptCookies()")
-                +"Accept"
+                div("mt-3 flex items-center justify-end gap-2") {
+                    button {
+                        classes = setOf("btn", "btn-ghost", "btn-sm")
+                        onEvent(JsEvent.ON_CLICK, "rejectCookies()")
+                        +"Reject"
+                    }
+                    button {
+                        classes = setOf("btn", "btn-primary", "btn-sm")
+                        onEvent(JsEvent.ON_CLICK, "acceptCookies()")
+                        +"Accept"
+                    }
+                }
             }
         }
     }
@@ -138,7 +147,7 @@ fun BODY.getCookieConsentBanner() {
             raw(
                 """
                 (function() {
-                    var consent = localStorage.getItem('$COOKIE_CONSENT_KEY');
+                    var consent = localStorage.getItem('${AnalyticsConfig.COOKIE_CONSENT_KEY}');
                     if (consent === null) {
                         var banner = document.getElementById('cookie-banner');
                         if (banner) banner.classList.remove('hidden');
@@ -236,68 +245,85 @@ fun TagConsumer<StringBuilder>.getPageHead(pageTitle: String = "") {
     }
 }
 
-fun TagConsumer<StringBuilder>.getFooter() {
+private fun footerLinkClasses(active: Boolean): Set<String> =
+    if (active) {
+        setOf("link", "link-primary", "font-semibold", "underline", "underline-offset-4")
+    } else {
+        setOf("link", "link-hover")
+    }
+
+fun TagConsumer<StringBuilder>.getFooter(activePage: FooterPage = FooterPage.GENERATE) {
     footer {
         id = "footer"
-        classes = setOf("flex flex-col items-center justify-center gap-3 pb-4")
+        classes = setOf("mt-8", "border-t", "border-base-300/70", "bg-base-200/40")
 
-        div("flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm") {
-            a(href = "/") {
-                classes = setOf("link", "link-hover")
-                +"Generate"
-            }
-            span("opacity-50") { +"•" }
-            a(href = "/how-it-works") {
-                classes = setOf("link", "link-hover")
-                +"How it works"
-            }
-            span("opacity-50") { +"•" }
-            a(href = "/privacy") {
-                classes = setOf("link", "link-hover")
-                +"Privacy"
-            }
-            span("opacity-50") { +"•" }
-            a(href = "/imprint") {
-                classes = setOf("link", "link-hover")
-                +"Imprint"
-            }
-            if (posthogEnabled()) {
-                span("opacity-50") { +"•" }
-                button {
-                    classes = setOf("link", "link-hover", "cursor-pointer")
-                    onEvent(JsEvent.ON_CLICK, "openCookieSettings()")
-                    +"Cookie settings"
+        div("mx-auto w-full max-w-5xl px-4 py-8") {
+            div("flex flex-col gap-6 md:flex-row md:items-start md:justify-between") {
+                div("max-w-md") {
+                    p("text-sm font-semibold tracking-wide uppercase text-base-content/70") { +"PassGen" }
+                    p("mt-2 text-sm leading-relaxed text-base-content/60") {
+                        +"Generate passwords and key pairs in your browser, then share securely when needed."
+                    }
+                }
+
+                div("rounded-box border border-base-300 bg-base-100/80 px-4 py-3") {
+                    div("flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm") {
+                        a(href = "/") {
+                            classes = footerLinkClasses(activePage == FooterPage.GENERATE)
+                            +"Generate"
+                        }
+                        a(href = "/how-it-works") {
+                            classes = footerLinkClasses(activePage == FooterPage.HOW_IT_WORKS)
+                            +"How it works"
+                        }
+                        a(href = "/privacy") {
+                            classes = footerLinkClasses(activePage == FooterPage.PRIVACY)
+                            +"Privacy"
+                        }
+                        a(href = "/imprint") {
+                            classes = footerLinkClasses(activePage == FooterPage.IMPRINT)
+                            +"Imprint"
+                        }
+                        if (AnalyticsConfig.posthogEnabled()) {
+                            button {
+                                classes = setOf("link", "link-hover", "cursor-pointer")
+                                onEvent(JsEvent.ON_CLICK, "openCookieSettings()")
+                                +"Cookie settings"
+                            }
+                        }
+                    }
                 }
             }
-        }
 
-        div("flex flex-row items-center gap-3") {
-            a(href = "https://www.buymeacoffee.com/martinwie", target = "_blank") {
-                classes = setOf("flex items-center gap-2 text-sm hover:text-warning")
-                attributes["rel"] = "noopener noreferrer"
-                title = "Support this project"
-                span {
-                    classes = setOf("w-6 h-6 inline-flex items-center")
-                    attributes["aria-hidden"] = "true"
-                    embedSvg("/static/svg/buymeacoffee.svg")
+            div("mt-6 flex flex-wrap items-center justify-center md:justify-start gap-3") {
+                a(href = "https://www.buymeacoffee.com/martinwie", target = "_blank") {
+                    classes = setOf("btn", "btn-sm", "btn-outline", "gap-2")
+                    attributes["rel"] = "noopener noreferrer"
+                    title = "Support this project"
+                    span {
+                        classes = setOf("w-5", "h-5", "inline-flex", "items-center")
+                        attributes["aria-hidden"] = "true"
+                        embedSvg("/static/svg/buymeacoffee.svg")
+                    }
+                    +"Support"
                 }
-                +"Support this project"
+
+                a(href = "https://github.com/MartinWie/PassGen/issues", target = "_blank") {
+                    classes = setOf("btn", "btn-ghost", "btn-sm", "gap-2")
+                    attributes["rel"] = "noopener noreferrer"
+                    title = "Feedback or report a bug"
+                    span {
+                        classes = setOf("w-5", "h-5", "inline-flex", "items-center")
+                        attributes["aria-hidden"] = "true"
+                        embedSvg("/static/svg/github.svg")
+                    }
+                    +"Feedback"
+                }
             }
 
-            a(href = "https://github.com/MartinWie/PassGen/issues", target = "_blank") {
-                classes = setOf("flex items-center gap-3 text-sm hover:text-warning")
-                attributes["rel"] = "noopener noreferrer"
-                title = "Feedback or report a bug"
-                span {
-                    classes = setOf("w-6 h-6 inline-flex items-center")
-                    attributes["aria-hidden"] = "true"
-                    embedSvg("/static/svg/github.svg")
-                }
+            aside("mt-6 text-center md:text-left") {
+                p("text-xs text-base-content/50") { +"Copyright © ${Year.now()} PassGen" }
             }
-        }
-
-        aside {
-            p { +"Copyright © ${Year.now()} - All right reserved" }
         }
     }
 }

@@ -23,7 +23,7 @@ test.describe('Homepage', () => {
     await expect(page).toHaveTitle(/PassGen/);
     
     // Check main heading/logo text
-    await expect(page.locator('a.btn-ghost')).toContainText('PassGen');
+    await expect(page.getByRole('link', { name: 'PassGen', exact: true })).toBeVisible();
   });
 
   test('should have password input field', async ({ page }) => {
@@ -1375,9 +1375,9 @@ test.describe('Key Sharing (Pending Flow)', () => {
     // Verify generate button is visible
     await expect(page.locator('#generate-share-key-btn')).toBeVisible();
     
-    // Verify algorithm and purpose are shown
-    await expect(page.locator('p.text-sm.text-base-content\\/60')).toContainText('Ed25519');
-    await expect(page.locator('p.text-sm.text-base-content\\/60')).toContainText('SSH');
+    // Verify algorithm and purpose metadata for pending flow
+    await expect(page.locator('#share-algorithm')).toHaveValue('ed25519');
+    await expect(page.locator('#share-purpose')).toHaveValue('ssh');
   });
 
   test('should generate key on pending share page and complete the share', async ({ page }) => {
@@ -1525,8 +1525,8 @@ test.describe('Key Sharing (Pending Flow)', () => {
     const sharePath = await shareLink.getAttribute('href');
     await page.goto(sharePath!);
     
-    // Verify Git Signing purpose is displayed
-    await expect(page.locator('p.text-sm.text-base-content\\/60')).toContainText('Git Signing');
+    // Verify Git Signing purpose metadata is preserved
+    await expect(page.locator('#share-purpose')).toHaveValue('git');
   });
 
   test('should create pending share with ECDSA algorithm @slow', async ({ page }) => {
@@ -1554,8 +1554,8 @@ test.describe('Key Sharing (Pending Flow)', () => {
     const sharePath = await shareLink.getAttribute('href');
     await page.goto(sharePath!);
     
-    // Verify ECDSA algorithm is displayed on pending page
-    await expect(page.locator('p.text-sm.text-base-content\\/60')).toContainText('ECDSA P-256');
+    // Verify ECDSA algorithm metadata is preserved on pending page
+    await expect(page.locator('#share-algorithm')).toHaveValue('ecdsa-p256');
   });
 
   test('should generate ECDSA key on pending share page @slow', async ({ page }) => {

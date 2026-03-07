@@ -1,5 +1,6 @@
 package de.mw.frontend.pages
 
+import de.mw.frontend.utils.FooterPage
 import kotlinx.html.*
 
 private fun legalValue(
@@ -7,11 +8,7 @@ private fun legalValue(
     fallback: String,
 ): String = System.getenv(key)?.takeIf { it.isNotBlank() } ?: fallback
 
-private val legalName = legalValue("LEGAL_NAME", "PassGen")
-private val legalAddress = legalValue("LEGAL_ADDRESS", "Please configure LEGAL_ADDRESS")
-private val legalEmail = legalValue("LEGAL_EMAIL", "Please configure LEGAL_EMAIL")
-private val legalPhone = legalValue("LEGAL_PHONE", "Not provided")
-private val legalVatId = legalValue("LEGAL_VAT_ID", "Not provided")
+private val legalEmail = legalValue("LEGAL_EMAIL", "info-7mw@googlegroups.com")
 
 private fun TagConsumer<StringBuilder>.infoPageContainer(
     title: String,
@@ -19,14 +16,20 @@ private fun TagConsumer<StringBuilder>.infoPageContainer(
     content: DIV.() -> Unit,
 ) {
     div {
-        classes = setOf("mx-auto", "max-w-4xl", "px-4", "pt-28", "pb-12")
+        classes = setOf("mx-auto", "max-w-5xl", "px-4", "pt-28", "pb-14")
 
-        div("mb-8") {
-            h1("text-3xl md:text-4xl font-bold") { +title }
-            p("mt-2 text-base-content/70") { +subtitle }
+        div("rounded-2xl border border-base-300 bg-base-100/80 shadow-sm p-6 md:p-8") {
+            div("flex flex-wrap items-center gap-2 text-xs text-base-content/60") {
+                a(href = "/") {
+                    classes = setOf("badge", "badge-outline", "badge-sm")
+                    +"Back to generator"
+                }
+            }
+            h1("mt-3 text-3xl md:text-4xl font-bold tracking-tight") { +title }
+            p("mt-3 text-base leading-relaxed text-base-content/70 max-w-3xl") { +subtitle }
         }
 
-        div("space-y-6") {
+        div("mt-8 grid gap-5") {
             content()
         }
     }
@@ -36,16 +39,16 @@ private fun FlowContent.infoCard(
     heading: String,
     content: DIV.() -> Unit,
 ) {
-    div("card bg-base-100 border border-base-300") {
+    div("card bg-base-100/85 border border-base-300 shadow-sm") {
         div("card-body") {
-            h2("card-title text-xl") { +heading }
+            h2("card-title text-xl md:text-2xl") { +heading }
             content()
         }
     }
 }
 
 fun getHowItWorksPage(): String =
-    getBasePage("PassGen - How It Works") {
+    getBasePage("PassGen - How It Works", FooterPage.HOW_IT_WORKS) {
         infoPageContainer(
             title = "How PassGen Works",
             subtitle = "Password generation, sharing, key generation, and key sharing — with the security model behind each flow.",
@@ -54,7 +57,7 @@ fun getHowItWorksPage(): String =
                 p {
                     +"Passwords are generated in your browser using a local word list and cryptographically secure randomness (Web Crypto)."
                 }
-                ul("list-disc pl-5 space-y-1") {
+                ul("list-disc marker:text-primary pl-5 space-y-1 text-base-content/80") {
                     li { +"No password generation request is sent to the server." }
                     li { +"Word list data is cached locally in your browser for performance." }
                     li { +"You control length, separator, numbers, and special characters client-side." }
@@ -65,10 +68,10 @@ fun getHowItWorksPage(): String =
                 p {
                     +"When you choose to share, the password is encrypted on the server with AES-GCM and stored as a one-time secret."
                 }
-                ul("list-disc pl-5 space-y-1") {
-                    li { +"The share URL includes random IDs needed to retrieve and decrypt the secret." }
+                ul("list-disc marker:text-primary pl-5 space-y-1 text-base-content/80") {
+                    li { +"The share URL contains both IDs required for decryption, including the salt which is not stored on the server." }
                     li { +"View counters are decremented atomically to prevent race-condition double views." }
-                    li { +"Once views are exhausted, the share is deleted." }
+                    li { +"Each shared password is intended for one successful view/decryption, then it is deleted." }
                 }
             }
 
@@ -76,10 +79,9 @@ fun getHowItWorksPage(): String =
                 p {
                     +"SSH/Git key pairs are generated in your browser using Web Crypto."
                 }
-                ul("list-disc pl-5 space-y-1") {
+                ul("list-disc marker:text-primary pl-5 space-y-1 text-base-content/80") {
                     li { +"Private keys are created and kept on your device." }
-                    li { +"Private keys are never uploaded by default." }
-                    li { +"Only generated public keys are meant for distribution." }
+                    li { +"Private keys are never uploaded to PassGen." }
                 }
             }
 
@@ -87,7 +89,7 @@ fun getHowItWorksPage(): String =
                 p {
                     +"Key sharing uses a pending-share flow designed so recipients generate their own private key locally."
                 }
-                ul("list-disc pl-5 space-y-1") {
+                ul("list-disc marker:text-primary pl-5 space-y-1 text-base-content/80") {
                     li { +"Sender creates a pending key-share link with algorithm/purpose metadata." }
                     li { +"Recipient opens link and generates key pair in browser." }
                     li { +"Only recipient public key is submitted and stored." }
@@ -96,88 +98,100 @@ fun getHowItWorksPage(): String =
             }
 
             infoCard("Security assumptions and limits") {
-                ul("list-disc pl-5 space-y-1") {
-                    li { +"Use HTTPS in production to protect traffic and integrity." }
+                ul("list-disc marker:text-primary pl-5 space-y-1 text-base-content/80") {
                     li { +"A compromised browser/device can still leak secrets." }
-                    li { +"Treat shared links as sensitive — possession of the link grants access." }
-                    li { +"For high-risk use cases, add additional operational controls (short TTLs, stricter policies)." }
+                    li {
+                        +"PassGen cannot read private keys, and shared passwords are encrypted with a salt that is only present in the share link (without the full link, decryption is not possible)."
+                    }
                 }
             }
         }
     }
 
 fun getPrivacyPage(): String =
-    getBasePage("PassGen - Privacy") {
+    getBasePage("PassGen - Privacy", FooterPage.PRIVACY) {
         infoPageContainer(
             title = "Privacy Policy",
-            subtitle = "How PassGen processes data when you generate, share, and retrieve secrets.",
+            subtitle = "How data is processed when you use PassGen.",
         ) {
-            infoCard("What is processed") {
-                ul("list-disc pl-5 space-y-1") {
-                    li { +"Generated passwords are created in-browser and are not sent to the server unless you click Share." }
-                    li { +"Generated private keys are created in-browser and stay local by design." }
-                    li { +"Shared passwords are stored encrypted server-side until consumed/expired." }
-                    li { +"Key-share entries store metadata and submitted public keys only." }
-                    li { +"Server logs may include operational metadata (timestamps, route access, and technical diagnostics)." }
+            infoCard("1. Data Controller") {
+                p { +"Responsible for data processing on this website:" }
+                p { +"Email: $legalEmail" }
+                p { +"This is a private, non-commercial hobby project." }
+            }
+
+            infoCard("2. Data Collected") {
+                p { +"This website processes the following data:" }
+                ul("list-disc marker:text-primary pl-5 space-y-1 text-base-content/80") {
+                    li { +"Session cookies: Technically necessary for functionality. Deleted when browser is closed." }
+                    li { +"Temporary technical metadata required to provide the service." }
+                    li { +"Usage statistics: Only with your explicit consent via PostHog (servers in the EU)." }
                 }
             }
 
-            infoCard("Local browser storage") {
+            infoCard("3. Legal Basis") {
+                p { +"Processing is based on:" }
+                ul("list-disc marker:text-primary pl-5 space-y-1 text-base-content/80") {
+                    li { +"Art. 6(1)(f) GDPR (legitimate interest) for technically necessary cookies" }
+                    li { +"Art. 6(1)(a) GDPR (consent) for analytics cookies" }
+                }
+            }
+
+            infoCard("4. Retention Period") {
                 p {
-                    +"PassGen stores non-secret preferences in localStorage (for example UI settings and cached word list data)."
+                    +"Session data is deleted when you close the browser. Runtime data is retained only as long as required for operation and abuse prevention. Analytics data is stored according to PostHog policies."
                 }
+            }
+
+            infoCard("5. Your Rights") {
+                p { +"You have the following rights:" }
+                ul("list-disc marker:text-primary pl-5 space-y-1 text-base-content/80") {
+                    li { +"Access to your stored data (Art. 15 GDPR)" }
+                    li { +"Rectification of inaccurate data (Art. 16 GDPR)" }
+                    li { +"Erasure of your data (Art. 17 GDPR)" }
+                    li { +"Restriction of processing (Art. 18 GDPR)" }
+                    li { +"Withdraw consent at any time (Art. 7 GDPR)" }
+                    li { +"Lodge a complaint with a supervisory authority (Art. 77 GDPR)" }
+                }
+            }
+
+            infoCard("6. Cookies") {
                 p {
-                    +"Do not use shared/untrusted devices for secret workflows without clearing browser data afterward."
+                    +"We use technically necessary session cookies for functionality. Analytics (PostHog) is only enabled with your explicit consent. You can withdraw consent at any time via cookie settings."
                 }
             }
 
-            infoCard("Analytics and cookies") {
+            infoCard("7. Third Parties") {
                 p {
-                    +"If analytics is enabled for this deployment, a cookie consent banner is shown."
+                    +"PostHog (Analytics): Data is processed on servers in the European Union. More information: posthog.com/privacy"
                 }
-                ul("list-disc pl-5 space-y-1") {
-                    li { +"Accepted: analytics is initialized and may use persistent storage for product insights." }
-                    li { +"Rejected or no decision: analytics is not initialized." }
-                    li { +"You can clear your consent decision by clearing local site storage." }
-                }
-            }
-
-            infoCard("Data retention") {
-                ul("list-disc pl-5 space-y-1") {
-                    li { +"Password shares are removed after view limits are reached." }
-                    li { +"Key-share data remains available until explicitly removed by operational policy." }
-                }
-            }
-
-            infoCard("Contact") {
-                p { +"For privacy inquiries, contact: $legalEmail" }
             }
         }
     }
 
 fun getImprintPage(): String =
-    getBasePage("PassGen - Imprint") {
+    getBasePage("PassGen - Imprint", FooterPage.IMPRINT) {
         infoPageContainer(
             title = "Imprint",
             subtitle = "Provider information for this PassGen deployment.",
         ) {
-            infoCard("Provider") {
-                p { +legalName }
-                p { +legalAddress }
+            infoCard("Information according to § 5 TMG") {
+                p { +"This is a private, non-commercial hobby project." }
             }
 
             infoCard("Contact") {
                 p { +"Email: $legalEmail" }
-                p { +"Phone: $legalPhone" }
             }
 
-            infoCard("VAT") {
-                p { +"VAT ID: $legalVatId" }
-            }
-
-            infoCard("Liability") {
+            infoCard("Liability for Content") {
                 p {
-                    +"Content and technical availability are provided in good faith. No guarantee is given for uninterrupted service or suitability for every use case."
+                    +"As a service provider, we are responsible for our own content on these pages in accordance with § 7 para.1 TMG. The content has been created with the utmost care. However, no guarantee can be given for accuracy, completeness and timeliness."
+                }
+            }
+
+            infoCard("Liability for Links") {
+                p {
+                    +"This website may contain links to external third-party websites over whose content we have no influence. The respective provider is always responsible for linked content."
                 }
             }
         }
