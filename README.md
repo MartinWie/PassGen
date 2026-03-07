@@ -113,7 +113,8 @@ To build and run locally:
 
 ```Terminal
 docker build -t passgen:latest .
-docker run -p 8080:8080 \
+docker run -p 8081:8081 \
+  -e APP_PORT=8081 \
   -e SECRET_PASSGEN_DB-HOST=host.docker.internal \
   -e SECRET_PASSGEN_DB-USER=admin \
   -e SECRET_PASSGEN_DB-PASSWORD=your-password \
@@ -130,6 +131,10 @@ To deploy with Dokploy:
     - `SECRET_PASSGEN_DB-USER` — Database user
     - `SECRET_PASSGEN_DB-PASSWORD` — Database password
     - `APP_HOST` — Bind address (default `0.0.0.0`, usually fine)
+    - `POSTHOG_ENABLED` — optional analytics toggle (`false` disables PostHog + cookie banner)
+    - `POSTHOG_KEY` or `SECRET_POSTHOG_KEY` — optional PostHog project key/token (defaults to the current PassGen project key)
+    - `POSTHOG_HOST` — optional PostHog host (default `https://eu.i.posthog.com`)
+    - `LEGAL_NAME` / `LEGAL_ADDRESS` / `LEGAL_EMAIL` / `LEGAL_PHONE` / `LEGAL_VAT_ID` — optional imprint details
 4. Health check: Traefik can use the `/health` endpoint (returns 200 OK).
 
 **JOOQ class generation:** JOOQ sources are committed to `src/main/java/de/mw/generated/`. Every normal build (
@@ -144,9 +149,6 @@ After changing DB migrations, just run `./gradlew build` and commit the updated 
 - Do personal security audit of the key gen and password gen and check if messed up somewhere (make sure we are secure)
 - Add go home button to expired shares page
 - Add multi language support similar to marble game(start with DE and ENG)
-- add required footer stuff(use marble game repo as inspiration) and add an about page with technical explanation and
-  why
-  this is secure. -> that explains the process
     - Password generation
     - How a share is stored
     - What is used for the Keygen

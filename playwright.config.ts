@@ -11,7 +11,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:8080',
+    baseURL: 'http://localhost:8081',
     trace: 'on-first-retry',
   },
 
@@ -27,10 +27,14 @@ export default defineConfig({
    * per-IP token buckets (production defaults are much lower). */
   webServer: {
     command: './gradlew run',
-    url: 'http://localhost:8080',
+    url: 'http://localhost:8081',
     reuseExistingServer: !process.env.CI,
     timeout: 120000, // 2 minutes for Gradle to compile and start
     env: {
+      APP_PORT: '8081',
+      POSTHOG_ENABLED: process.env.PLAYWRIGHT_POSTHOG_ENABLED ?? 'false',
+      POSTHOG_KEY: process.env.PLAYWRIGHT_POSTHOG_KEY ?? '',
+      POSTHOG_HOST: process.env.PLAYWRIGHT_POSTHOG_HOST ?? 'https://eu.i.posthog.com',
       RATE_LIMIT_CREATE_SHARE: '500',
       RATE_LIMIT_COMPLETE_SHARE: '500',
       RATE_LIMIT_VIEW_SHARE: '500',

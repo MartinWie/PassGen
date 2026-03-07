@@ -1,6 +1,9 @@
 package de.mw.plugins
 
+import de.mw.frontend.pages.getHowItWorksPage
+import de.mw.frontend.pages.getImprintPage
 import de.mw.frontend.pages.getLandingPage
+import de.mw.frontend.pages.getPrivacyPage
 import de.mw.frontend.utils.escapeHtml
 import de.mw.plugins.routes.keyRouting
 import de.mw.plugins.routes.passwordRouting
@@ -74,6 +77,18 @@ fun Application.configureRouting() {
 
         get("/health") {
             call.respondText(status = HttpStatusCode.OK, text = "OK")
+        }
+
+        get("/how-it-works") {
+            call.respondHtmlWithCsp { getHowItWorksPage() }
+        }
+
+        get("/privacy") {
+            call.respondHtmlWithCsp { getPrivacyPage() }
+        }
+
+        get("/imprint") {
+            call.respondHtmlWithCsp { getImprintPage() }
         }
 
         passwordRouting()

@@ -26,6 +26,7 @@ val postgresHost: String = System.getenv("SECRET_PASSGEN_DB-HOST") ?: "localhost
 val postgresUser: String = System.getenv("SECRET_PASSGEN_DB-USER") ?: "admin"
 val postgresPassword: String =
     System.getenv("SECRET_PASSGEN_DB-PASSWORD") ?: "Helpless-Phrase-Unrushed-Radar0-Buzz-Curling-Haggler"
+val envPort: Int = System.getenv("APP_PORT")?.toIntOrNull() ?: 8080
 val postgresJdbcUrl = "jdbc:postgresql://$postgresHost:5432/passgen"
 
 private fun runFlywayMigrations() {
@@ -83,7 +84,7 @@ fun main() {
         factory = Netty,
         configure = {
             connector {
-                port = 8080
+                port = envPort
                 host = envHost
             }
         },

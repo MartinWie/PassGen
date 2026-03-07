@@ -1,5 +1,6 @@
 package de.mw.frontend.pages
 
+import de.mw.frontend.utils.getCookieConsentBanner
 import de.mw.frontend.utils.getFooter
 import de.mw.frontend.utils.getPageHead
 import io.github.martinwie.htmx.*
@@ -736,6 +737,7 @@ fun getBasePage(
                     bodyTags()
                 }
 
+                getCookieConsentBanner()
                 getFooter()
             }
         }

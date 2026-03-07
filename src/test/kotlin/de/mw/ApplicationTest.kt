@@ -319,6 +319,36 @@ class ApplicationTest {
         }
 
     @Test
+    fun `how-it-works page returns 200 and content`() =
+        testApplication {
+            setupApp()
+            client.get("/how-it-works").apply {
+                assertEquals(HttpStatusCode.OK, status)
+                assertTrue(bodyAsText().contains("How PassGen Works"))
+            }
+        }
+
+    @Test
+    fun `privacy page returns 200 and content`() =
+        testApplication {
+            setupApp()
+            client.get("/privacy").apply {
+                assertEquals(HttpStatusCode.OK, status)
+                assertTrue(bodyAsText().contains("Privacy Policy"))
+            }
+        }
+
+    @Test
+    fun `imprint page returns 200 and content`() =
+        testApplication {
+            setupApp()
+            client.get("/imprint").apply {
+                assertEquals(HttpStatusCode.OK, status)
+                assertTrue(bodyAsText().contains("Imprint"))
+            }
+        }
+
+    @Test
     fun `key share create returns htmx error when algorithm is missing`() =
         testApplication {
             setupApp()

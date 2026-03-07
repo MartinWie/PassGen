@@ -68,6 +68,82 @@ test.describe('Homepage', () => {
   });
 });
 
+test.describe('Footer and Info Pages', () => {
+  test('should render footer links on landing page', async ({ page }) => {
+    await page.goto('/');
+
+    await expect(page.locator('#footer a[href="/how-it-works"]')).toBeVisible();
+    await expect(page.locator('#footer a[href="/privacy"]')).toBeVisible();
+    await expect(page.locator('#footer a[href="/imprint"]')).toBeVisible();
+  });
+
+  test('should render how-it-works page', async ({ page }) => {
+    await page.goto('/how-it-works');
+    await expect(page.locator('h1')).toContainText('How PassGen Works');
+    await expect(page.locator('#footer a[href="/privacy"]')).toBeVisible();
+  });
+
+  test('should render privacy page', async ({ page }) => {
+    await page.goto('/privacy');
+    await expect(page.locator('h1')).toContainText('Privacy Policy');
+    await expect(page.locator('#footer a[href="/imprint"]')).toBeVisible();
+  });
+
+  test('should render imprint page', async ({ page }) => {
+    await page.goto('/imprint');
+    await expect(page.locator('h1')).toContainText('Imprint');
+    await expect(page.locator('#footer a[href="/how-it-works"]')).toBeVisible();
+  });
+});
+
+test.describe('PostHog Consent', () => {
+  test.skip(process.env.PLAYWRIGHT_POSTHOG_ENABLED !== 'true', 'Enable with PLAYWRIGHT_POSTHOG_ENABLED=true');
+
+  test('should not load PostHog before consent', async ({ page }) => {
+    const posthogRequests: string[] = [];
+    await page.route('**/*posthog.com/**', async (route) => {
+      posthogRequests.push(route.request().url());
+      if (route.request().url().endsWith('/static/array.js')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/javascript',
+          body: 'window.posthog = window.posthog || { init: function(){}, opt_in_capturing: function(){}, opt_out_capturing: function(){}, reset: function(){} };',
+        });
+      } else {
+        await route.fulfill({ status: 204, body: '' });
+      }
+    });
+
+    await page.goto('/');
+    await expect(page.locator('#cookie-banner')).toBeVisible();
+    await page.waitForTimeout(600);
+
+    expect(posthogRequests.length).toBe(0);
+  });
+
+  test('should load PostHog after accepting consent', async ({ page }) => {
+    const posthogRequests: string[] = [];
+    await page.route('**/*posthog.com/**', async (route) => {
+      posthogRequests.push(route.request().url());
+      if (route.request().url().endsWith('/static/array.js')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/javascript',
+          body: 'window.posthog = window.posthog || { init: function(){}, opt_in_capturing: function(){}, opt_out_capturing: function(){}, reset: function(){} };',
+        });
+      } else {
+        await route.fulfill({ status: 204, body: '' });
+      }
+    });
+
+    await page.goto('/');
+    await expect(page.locator('#cookie-banner')).toBeVisible();
+    await page.getByRole('button', { name: 'Accept' }).click();
+
+    await expect.poll(() => posthogRequests.length).toBeGreaterThan(0);
+  });
+});
+
 test.describe('Password Generation', () => {
   test('should regenerate password when clicking regen button', async ({ page }) => {
     await page.goto('/');
