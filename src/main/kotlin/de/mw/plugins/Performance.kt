@@ -7,6 +7,8 @@ import io.ktor.server.application.install
 import io.ktor.server.plugins.cachingheaders.CachingHeaders
 import io.ktor.server.plugins.compression.*
 import io.ktor.server.plugins.conditionalheaders.ConditionalHeaders
+import io.ktor.server.request.path
+import io.ktor.util.date.GMTDate
 
 fun Application.configurePerformance() {
     install(Compression) {
@@ -23,12 +25,15 @@ fun Application.configurePerformance() {
     install(ConditionalHeaders)
 
     install(CachingHeaders) {
-        options { _, outgoingContent ->
-            val isStaticResource = outgoingContent is URIFileContent
-            if (!isStaticResource) return@options null
+        options { call, _ ->
+            if (!call.request.path().startsWith("/static/")) return@options null
+
+            val maxAgeSeconds = 3600
+            val expiresAt = GMTDate(System.currentTimeMillis() + maxAgeSeconds * 1000L)
 
             CachingOptions(
-                cacheControl = CacheControl.MaxAge(maxAgeSeconds = 3600),
+                cacheControl = CacheControl.MaxAge(maxAgeSeconds = maxAgeSeconds),
+                expires = expiresAt,
             )
         }
     }
