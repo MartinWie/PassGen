@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import de.mw.daos.KeyShareDao
 import de.mw.daos.PasswordDao
+import de.mw.plugins.configurePerformance
 import de.mw.plugins.configureRateLimiting
 import de.mw.plugins.configureRouting
 import de.mw.services.KeyService
@@ -93,6 +94,7 @@ fun main() {
 }
 
 fun Application.module() {
+    configurePerformance()
     configureRateLimiting()
     configureRouting()
 }

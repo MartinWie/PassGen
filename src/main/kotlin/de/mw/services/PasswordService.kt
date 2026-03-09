@@ -28,12 +28,10 @@ class PasswordService(
     @Volatile
     private var refreshInProgress = false
 
-    @Volatile
-    private var initialLoadStarted = false
-
     init {
-        // Start cache warm-up in the background so server startup is not blocked.
-        startInitialLoadAsync()
+        // Initialize cache after constructor
+        loadWords()
+        lastRefreshTime = System.currentTimeMillis()
     }
 
     /**
@@ -41,44 +39,12 @@ class PasswordService(
      * Intended for client-side password generation bootstrap data.
      */
     fun getWordLists(maxPerLanguage: Int = 500): Map<WordLanguage, List<String>> {
-        // If first request arrives before async warm-up completed, do a one-time
-        // synchronous load to avoid returning empty word lists.
-        ensureWordsLoaded()
-
         launch {
             refreshCacheIfNeeded()
         }
         val limit = maxPerLanguage.coerceAtLeast(1)
         return WordLanguage.entries.associateWith { language ->
             cachedWords.getOrElse(language.ordinal) { emptyList() }.take(limit)
-        }
-    }
-
-    private fun startInitialLoadAsync() {
-        synchronized(this@PasswordService) {
-            if (initialLoadStarted) return
-            initialLoadStarted = true
-        }
-
-        launch {
-            synchronized(this@PasswordService) {
-                if (cachedWords.isEmpty()) {
-                    loadWords()
-                }
-                lastRefreshTime = System.currentTimeMillis()
-            }
-        }
-    }
-
-    private fun ensureWordsLoaded() {
-        if (cachedWords.isNotEmpty()) return
-
-        synchronized(this@PasswordService) {
-            if (cachedWords.isNotEmpty()) return
-            logger.info("Word cache cold on first request - loading synchronously")
-            loadWords()
-            lastRefreshTime = System.currentTimeMillis()
-            initialLoadStarted = true
         }
     }
 
