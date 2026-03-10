@@ -593,7 +593,7 @@ test.describe('Settings Persistence @slow', () => {
 });
 
 test.describe('Theme Toggle', () => {
-  test('should toggle theme', async ({ page }) => {
+  test('should toggle theme and persist selection across reloads', async ({ page }) => {
     await page.goto('/');
     
     // Get initial theme
@@ -601,6 +601,24 @@ test.describe('Theme Toggle', () => {
       document.documentElement.getAttribute('data-theme')
     );
     
+    const iconOpacities = async () =>
+      await page.evaluate(() => {
+        const moon = document.getElementById('theme-icon-moon');
+        const sun = document.getElementById('theme-icon-sun');
+        return {
+          moon: moon ? Number.parseFloat(getComputedStyle(moon).opacity) : 0,
+          sun: sun ? Number.parseFloat(getComputedStyle(sun).opacity) : 0,
+        };
+      });
+
+    // Initial icon should match current theme (dark => moon, light => sun)
+    const initialIcons = await iconOpacities();
+    if (initialTheme === 'dark') {
+      expect(initialIcons.moon).toBeGreaterThan(initialIcons.sun);
+    } else {
+      expect(initialIcons.sun).toBeGreaterThan(initialIcons.moon);
+    }
+
     // Click theme toggle
     await page.locator('#theme-toggle-label').click();
     
@@ -610,6 +628,38 @@ test.describe('Theme Toggle', () => {
         document.documentElement.getAttribute('data-theme')
       );
       expect(newTheme).not.toBe(initialTheme);
+    }).toPass({ timeout: 5000 });
+
+    const toggledTheme = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
+
+    // After toggle, icon should flip and dark mode must show moon
+    await page.waitForTimeout(300);
+    const toggledIcons = await iconOpacities();
+    if (toggledTheme === 'dark') {
+      expect(toggledIcons.moon).toBeGreaterThan(toggledIcons.sun);
+    } else {
+      expect(toggledIcons.sun).toBeGreaterThan(toggledIcons.moon);
+    }
+
+    // Theme should be persisted to localStorage
+    await expect(async () => {
+      const stored = await page.evaluate(() => localStorage.getItem('theme'));
+      expect(stored).toBe(toggledTheme);
+    }).toPass({ timeout: 5000 });
+
+    // Toggle back should restore initial theme
+    await page.locator('#theme-toggle-label').click();
+    await expect(async () => {
+      const restoredTheme = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
+      expect(restoredTheme).toBe(initialTheme);
+    }).toPass({ timeout: 5000 });
+
+    // Reload should keep the selected theme
+    await page.reload();
+    await expect(async () => {
+      const reloadedTheme = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
+      const stored = await page.evaluate(() => localStorage.getItem('theme'));
+      expect(reloadedTheme).toBe(stored);
     }).toPass({ timeout: 5000 });
   });
 });

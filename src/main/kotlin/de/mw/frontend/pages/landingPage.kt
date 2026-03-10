@@ -694,11 +694,15 @@ fun getBasePage(
                             // Theme init and toggle handled by initTheme() in app.js
                         }
                         span {
+                            id = "theme-icon-moon"
+                            classes = setOf("swap-on", "pointer-events-none")
                             attributes["aria-hidden"] = "true"
                             embedSvg("/static/svg/moon.svg")
                         }
 
                         span {
+                            id = "theme-icon-sun"
+                            classes = setOf("swap-off", "pointer-events-none")
                             attributes["aria-hidden"] = "true"
                             embedSvg("/static/svg/sun.svg")
                         }
